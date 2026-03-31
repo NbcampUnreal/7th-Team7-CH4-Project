@@ -11,6 +11,10 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/
+
+# RiderLink plugin
+Plugins/Developer/RiderLink/
 
 # AWS User-specific
 .idea/**/aws.xml
@@ -173,6 +177,3 @@ Plugins/**/Binaries/*
 Plugins/**/Intermediate/*
 
 # End of https://www.toptal.com/developers/gitignore/api/unrealengine,rider
-
-# KHB Plugin
-Plugins/OneClickLangChange/*
