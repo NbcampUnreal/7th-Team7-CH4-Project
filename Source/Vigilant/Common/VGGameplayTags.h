@@ -14,7 +14,8 @@
 */
 namespace VigilantTags
 {
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Sprint);
+	//예시
+	// UE_DECLARE_GAMEPLAY_TAG_EXTERN(Sprint);
 }
 
 
