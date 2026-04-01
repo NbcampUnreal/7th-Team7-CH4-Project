@@ -94,3 +94,8 @@ float UVGMissionSubsystem::GetMissionProgress() const
 	
 	return static_cast<float>(CompletedMissions.Num()) / RegisteredMissions.Num();
 }
+
+void UVGMissionSubsystem::OnMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)
+{
+	
+}

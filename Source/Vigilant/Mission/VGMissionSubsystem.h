@@ -3,13 +3,12 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "GameplayTagContainer.h"
+#include "Mission/VGMissionBase.h" 
 #include "VGMissionSubsystem.generated.h"
 
 class AVGMissionBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllMissionCompleted);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-	FOnMissionStateChanged, int32, MissionID, FGameplayTag, NewStateTag);
 
 UCLASS()
 class VIGILANT_API UVGMissionSubsystem : public UWorldSubsystem
@@ -40,15 +39,14 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	float GetMissionProgress() const;
-
+protected:
+	UFUNCTION()
+	void OnMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag);
+	
 public:	
 	// 모든 미션 완료 시 브로드케스트 -> GameMode가 구독하여 페이즈 전환 트리거
 	UPROPERTY(BlueprintAssignable)
 	FOnAllMissionCompleted OnAllMissionCompleted;
-	
-	// UI 구독 -> 미션 상태 변경 시마다 HUD 갱신?
-	UPROPERTY(BlueprintAssignable)
-	FOnMissionStateChanged OnMissionStateChanged;
 	
 private:
 	UPROPERTY()

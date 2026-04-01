@@ -32,13 +32,14 @@ namespace VigilantMissionTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatMission);
 	// 미션 기믹 상태
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GimmickInative);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GimmickAtive);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GimmickActive);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GimmickCompleted);
 	// 미션 기믹 타입
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PressureGimmick);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(StatueGimmick);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(LeverGimmick);
 }
+
 class VIGILANT_API VGGameplayTags
 {
 public:

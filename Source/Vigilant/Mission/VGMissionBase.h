@@ -9,8 +9,7 @@ class AVGMissionGimmickBase;
 class AVGMissionItemBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionCompleted, int32, MissionID);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-	FOnMissionStateChanged, int32, MissionID, FGameplayTag, NewStateTag);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMissionStateChanged, int32, MissionID, FGameplayTag, NewStateTag);
 
 UCLASS()
 class VIGILANT_API AVGMissionBase : public AActor
