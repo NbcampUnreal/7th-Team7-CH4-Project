@@ -7,7 +7,11 @@
 		{
 			"Name": "Vigilant",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"CoreUObject"
+			]
 		},
 		{
 			"Name": "GitStatusBranch",
