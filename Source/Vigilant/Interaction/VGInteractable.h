@@ -6,20 +6,21 @@
 #include "UObject/Interface.h"
 #include "VGInteractable.generated.h"
 
-// This class does not need to be modified.
+class AVGCharacterBase;
+
 UINTERFACE(MinimalAPI)
 class UVGInteractable : public UInterface
 {
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
+
 class VIGILANT_API IVGInteractable
 {
 	GENERATED_BODY()
-
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
+	
 public:
+	virtual bool CheckInteract(AVGCharacterBase* Interactor) const = 0;
+	virtual void OnInteract(AVGCharacterBase* Interactor) = 0;
+	
 };
