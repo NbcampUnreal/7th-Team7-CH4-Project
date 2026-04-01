@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
+#include "Equipment/VGEquippableActor.h"
 #include "VGEquipmentDataAsset.generated.h"
 
 /**

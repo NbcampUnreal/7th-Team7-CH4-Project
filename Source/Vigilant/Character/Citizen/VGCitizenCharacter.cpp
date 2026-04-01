@@ -5,7 +5,7 @@
 
 void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
-	TagContainer = CharacterGameplayTags
+	TagContainer = CharacterGameplayTags;
 }
 
 void AVGCitizenCharacter::AddGameplayTag(FGameplayTag TagToAdd)
