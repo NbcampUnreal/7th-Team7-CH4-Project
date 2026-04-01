@@ -61,5 +61,5 @@ protected:
 	void CameraZoom(const FInputActionValue& Value);
 	
 	UFUNCTION(Server, Reliable)
-	void ServerSetSprinting(bool bIsSprinting);
+	void ServerRPCSetSprinting(bool bIsSprinting);
 };
