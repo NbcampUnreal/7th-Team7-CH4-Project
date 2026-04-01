@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Character/VGBossCharacter.h"
+#include "VGBossCharacter.h"
 
 #include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -14,14 +14,26 @@ AVGBossCharacter::AVGBossCharacter()
 	// 보스의 덩치를 1.5배 크게 설정 (임시)
 	SetActorScale3D(FVector(1.5f, 1.5f, 1.5f));
 
-	// 플레이어보다 느리게 이동 속도 조절 (임시)
-	if (GetCharacterMovement() != nullptr)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 400.0f;
-	}
-	
 	bReplicates = true;
+	JumpMaxCount = 0;
+}
+
+void AVGBossCharacter::BeginPlay()
+{
+	Super::BeginPlay();
 	
+	// 게임이 시작될 때, 데이터 에셋이 연결되어 있다면 변수에 값 세팅
+	if (BossData != nullptr)
+	{
+		CurrentHealth = BossData->BaseHealth;
+		AttackDamage = BossData->BaseDamage;
+		AttackRadius = BossData->AttackRadius;
+		AttackMontage = BossData->AttackMontage;
+		NormalSpeed = BossData->BossNormalSpeed;
+		SprintSpeed = BossData->BossSprintSpeed;
+		
+		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	}
 }
 
 void AVGBossCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -70,20 +82,6 @@ void AVGBossCharacter::NetMulticast_PlayAttackEffects_Implementation()
 	if (AttackMontage != nullptr)
 	{
 		PlayAnimMontage(AttackMontage);
-	}
-}
-
-void AVGBossCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	// 게임이 시작될 때, 데이터 에셋이 연결되어 있다면 변수에 값 세팅
-	if (BossData != nullptr)
-	{
-		CurrentHealth = BossData->BaseHealth;
-		AttackDamage = BossData->BaseDamage;
-		AttackRadius = BossData->AttackRadius;
-		AttackMontage = BossData->AttackMontage;
 	}
 }
 

@@ -28,6 +28,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 	float AttackRadius = 500.0f;
 
+	// 보스 이동 속도 데이터 추가
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float BossNormalSpeed = 400.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float BossSprintSpeed = 600.0f;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 	TObjectPtr<UAnimMontage> AttackMontage;
 
