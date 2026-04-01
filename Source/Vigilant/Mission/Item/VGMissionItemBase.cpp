@@ -1,5 +1,5 @@
 ﻿#include "VGMissionItemBase.h"
-#include "VGMissionBase.h"
+#include "Mission/VGMissionBase.h"
 #include "Character/VGCharacterBase.h"
 #include "Net/UnrealNetwork.h"
 
@@ -7,6 +7,16 @@ AVGMissionItemBase::AVGMissionItemBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+}
+
+bool AVGMissionItemBase::CanInteractWith(AVGCharacterBase* Interactor) const
+{
+	return Super::CanInteractWith(Interactor);
+}
+
+void AVGMissionItemBase::OnInteractWith(AVGCharacterBase* Interactor)
+{
+	Super::OnInteractWith(Interactor);
 }
 
 void AVGMissionItemBase::GetLifetimeReplicatedProps(

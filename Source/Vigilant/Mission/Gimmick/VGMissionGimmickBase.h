@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
-#include "Interaction/VGInteractable.h"
+#include "Interaction/VGInteractableActorBase.h"
 #include "VGMissionGimmickBase.generated.h"
 
 class AVGMissionBase;
 
 UCLASS()
-class VIGILANT_API AVGMissionGimmickBase : public AActor, public IVGInteractable
+class VIGILANT_API AVGMissionGimmickBase : public AVGInteractableActorBase
 {
 	GENERATED_BODY()
 
@@ -26,6 +26,10 @@ public:
 	// Todo IVGInteractable 구현
 	
 protected:
+	// IVGInteractable 구현
+	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor);
+	
 	// 조건 충족 시 자식 클래스에서 호출 -> OwnerMission에 보고
 	virtual void ReportConditionMet();
 	

@@ -3,27 +3,30 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
-#include "Interaction/VGInteractable.h"
+#include "Interaction/VGInteractableActorBase.h"
 #include "VGMissionItemBase.generated.h"
 
 class AVGMissionBase;
 class AVGCharacterBase;
 
 UCLASS(Abstract)
-class VIGILANT_API AVGMissionItemBase : public AActor, public IVGInteractable
+class VIGILANT_API AVGMissionItemBase : public AVGInteractableActorBase
 {
 	GENERATED_BODY()
 
 public:
 	AVGMissionItemBase();
-
-	// IVGInteractable 구현
-
+	
 	UFUNCTION(BlueprintCallable)
 	AVGCharacterBase* GetCarrier() const { return Carrier; }
 
 	UFUNCTION(BlueprintCallable)
 	bool IsCarried() const { return Carrier != nullptr; }
+
+protected:
+	// IVGInteractable 구현
+	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor);
 
 protected:
 	// 조건 충족 시 보고할 대상 미션 — 에디터에서 지정

@@ -1,8 +1,9 @@
 ﻿#include "VGMissionBase.h"
-#include "VGMissionGimmickBase.h"
-#include "VGMissionItemBase.h"
+#include "Gimmick/VGMissionGimmickBase.h"
+#include "Item/VGMissionItemBase.h"
 #include "VGMissionSubsystem.h"
 #include "Net/UnrealNetwork.h"
+#include "Common/VGGameplayTags.h"
 
 AVGMissionBase::AVGMissionBase()
 {
@@ -10,7 +11,7 @@ AVGMissionBase::AVGMissionBase()
 	bReplicates = true;
 	
 	// 초기 상태는 비활성
-	CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("Mission.State.Inactive"));
+	CurrentStateTag = VigilantMissionTags::MissionInactive;
 }
 
 void AVGMissionBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -63,7 +64,7 @@ void AVGMissionBase::OnConditionMet()
 		return;
 	}
 	
-	if (CurrentStateTag == FGameplayTag::RequestGameplayTag(FName("Mission.State.Completed")))
+	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
 	{
 		return;
 	}
@@ -84,7 +85,7 @@ void AVGMissionBase::CompleteMission()
 		return;
 	}
 	
-    SetMissionState(FGameplayTag::RequestGameplayTag(FName("Mission.State.Completed")));
+    SetMissionState(VigilantMissionTags::MissionCompleted);
 	NotifyMissionCompleted();
 }
 
