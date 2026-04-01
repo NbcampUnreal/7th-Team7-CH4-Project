@@ -13,19 +13,8 @@
 				"CoreUObject"
 			]
 		},
-		{
-			"Name": "GitStatusBranch",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		}
+
 	],
 	"Plugins": [
-		{
-			"Name": "ModelingToolsEditorMode",
-			"Enabled": true,
-			"TargetAllowList": [
-				"Editor"
 			]
-		}
-	]
 }
