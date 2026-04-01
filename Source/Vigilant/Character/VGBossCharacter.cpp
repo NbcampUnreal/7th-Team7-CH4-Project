@@ -30,3 +30,15 @@ void AVGBossCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	DOREPLIFETIME(AVGBossCharacter, CurrentHealth);
 	DOREPLIFETIME(AVGBossCharacter, AttackDamage);
 }
+
+void AVGBossCharacter::InitializeBossStats(float InCalculatedHealth, float InCalculatedDamage)
+{
+	// 스탯 적용은 서버에서만 권한을 가짐
+	if (HasAuthority())
+	{
+		CurrentHealth = InCalculatedHealth;
+		AttackDamage = InCalculatedDamage;
+		
+		UE_LOG(LogTemp, Log, TEXT("보스 스탯 - 체력: %f, 공격력: %f"), CurrentHealth, AttackDamage);
+	}
+}
