@@ -9,6 +9,8 @@ class AVGMissionGimmickBase;
 class AVGMissionItemBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionCompleted, int32, MissionID);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FOnMissionStateChanged, int32, MissionID, FGameplayTag, NewStateTag);
 
 UCLASS()
 class VIGILANT_API AVGMissionBase : public AActor
@@ -35,7 +37,7 @@ public:
 	virtual void OnConditionMet();
 	
 	
-	virtual void Server_CompleteMission();
+	virtual void CompleteMission();
 	void NotifyMissionCompleted();
 	
 protected:
@@ -55,6 +57,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnMissionCompleted OnMissionCompleted;
 	
+	UPROPERTY(BlueprintAssignable)
+	FOnMissionStateChanged OnMissionStateChanged;
 protected:
 	// bool 2개(bIsActivated, bIsCompleted) 대신 Tag 하나
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentStateTag)

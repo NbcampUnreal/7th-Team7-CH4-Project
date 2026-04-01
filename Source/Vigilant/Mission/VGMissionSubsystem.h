@@ -31,7 +31,7 @@ public:
 	AVGMissionBase* GetMissionsByID(int32 MissionID) const;
 	
 	UFUNCTION(BlueprintCallable)
-	TArray<AVGMissionBase*> GetAllMissions();
+	TArray<AVGMissionBase*> GetAllMissions() const;
 	
 	
 	// 특정 상태인 미션 개수 반환 - UI 미션 진행도에 사용

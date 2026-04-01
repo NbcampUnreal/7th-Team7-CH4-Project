@@ -31,6 +31,9 @@ void AVGMissionBase::SetMissionState(FGameplayTag NewStateTag)
 
 	// 서버는 OnRep가 자동 호출되지 않으므로 직접 호출
 	OnRep_CurrentStateTag();
+	
+	// 모든 상태 전환을 외부에 전달
+    OnMissionStateChanged.Broadcast(MissionID, NewStateTag);
 }
 
 bool AVGMissionBase::HasMissionTag(FGameplayTag Tag) const
@@ -66,15 +69,15 @@ void AVGMissionBase::OnConditionMet()
 	}
 	
 	// Todo 미션별 달성 조건 판단 로직 구현
-	
+	CompleteMission();
 }
 
 void AVGMissionBase::OnRep_CurrentStateTag()
 {
-	// Todo State 변경에 따른 
+	// Todo State 변경에 따른 피드백 처리
 }
 
-void AVGMissionBase::Server_CompleteMission()
+void AVGMissionBase::CompleteMission()
 {
 	if (!HasAuthority())
 	{
@@ -97,5 +100,3 @@ void AVGMissionBase::NotifyMissionCompleted()
 	// UI 및 외부 시스템용 델리게이트 브로드캐스트
 	OnMissionCompleted.Broadcast(MissionID);
 }
-
-

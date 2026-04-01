@@ -11,7 +11,11 @@ void UVGMissionSubsystem::RegisterMission(AVGMissionBase* Mission)
 	if (RegisteredMissions.Contains(Mission) == false)
 	{
 		RegisteredMissions.AddUnique(Mission);
+		// 완료 이벤트 - 진행도 계산용
 		Mission->OnMissionCompleted.AddDynamic(this, &UVGMissionSubsystem::OnMissionCompleted);
+		// 상태 전환 이벤트 - 맵 표시 / HUD 갱신용
+		// Subsystem의 OnMissionStateChanged으로 MissionBase의 델리게이트를 구독
+		Mission->OnMissionStateChanged.AddDynamic(this, &UVGMissionSubsystem::OnMissionStateChanged);
 	}
 }
 
@@ -25,11 +29,6 @@ void UVGMissionSubsystem::OnMissionCompleted(int32 MissionID)
 	
 	CompletedMissions.Add(MissionID);
 	
-	if (AVGMissionBase* Mission = GetMissionsByID(MissionID))
-	{
-		OnMissionStateChanged.Broadcast(MissionID, Mission->GetCurrentStateTag());
-	}
-	
 	// 전체 완료 시
 	if (CompletedMissions.Num() == RegisteredMissions.Num())
 	{
@@ -42,9 +41,12 @@ TArray<AVGMissionBase*> UVGMissionSubsystem::GetMissionsByTag(FGameplayTag TypeT
 	TArray<AVGMissionBase*> Missions;
 	for (AVGMissionBase* Mission : RegisteredMissions)
 	{
-		if (Mission && Mission->HasMissionTag(TypeTag))
+		if (Mission)
 		{
-			Missions.Add(Mission);
+			if(Mission->HasMissionTag(TypeTag) || Mission->GetCurrentStateTag() == TypeTag)
+			{
+				Missions.Add(Mission);
+			}
 		}
 	}
 	
@@ -64,7 +66,7 @@ AVGMissionBase* UVGMissionSubsystem::GetMissionsByID(int32 MissionID) const
 	return nullptr;
 }
 
-TArray<AVGMissionBase*> UVGMissionSubsystem::GetAllMissions()
+TArray<AVGMissionBase*> UVGMissionSubsystem::GetAllMissions() const
 {
 	return RegisteredMissions;
 }
@@ -90,5 +92,5 @@ float UVGMissionSubsystem::GetMissionProgress() const
 		return 0.f;
 	}
 	
-	return CompletedMissions.Num() / RegisteredMissions.Num();
+	return static_cast<float>(CompletedMissions.Num()) / RegisteredMissions.Num();
 }
