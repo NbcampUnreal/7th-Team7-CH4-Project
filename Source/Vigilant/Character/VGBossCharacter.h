@@ -17,4 +17,14 @@ class VIGILANT_API AVGBossCharacter : public AVGCharacterBase
 public:
 	AVGBossCharacter();
 	
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+protected:
+	// 보스의 현재 체력
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "BossStats")
+	float CurrentHealth;
+	
+	// 보스의 공격력
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "BossStats")
+	float AttackDamage;
 };

@@ -3,6 +3,7 @@
 
 #include "Character/VGBossCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AVGBossCharacter::AVGBossCharacter()
 {
@@ -14,4 +15,18 @@ AVGBossCharacter::AVGBossCharacter()
 	{
 		GetCharacterMovement()->MaxWalkSpeed = 400.0f;
 	}
+	
+	bReplicates = true;
+	
+	// 기본 스탯 초기화 (임시)
+	CurrentHealth = 5000.0f;
+	AttackDamage = 50.0f;
+}
+
+void AVGBossCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(AVGBossCharacter, CurrentHealth);
+	DOREPLIFETIME(AVGBossCharacter, AttackDamage);
 }
