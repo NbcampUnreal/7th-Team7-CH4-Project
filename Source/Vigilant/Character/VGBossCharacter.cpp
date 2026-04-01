@@ -2,6 +2,8 @@
 
 
 #include "Character/VGBossCharacter.h"
+
+#include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -18,9 +20,6 @@ AVGBossCharacter::AVGBossCharacter()
 	
 	bReplicates = true;
 	
-	// 기본 스탯 초기화 (임시)
-	CurrentHealth = 5000.0f;
-	AttackDamage = 50.0f;
 }
 
 void AVGBossCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -29,6 +28,20 @@ void AVGBossCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	
 	DOREPLIFETIME(AVGBossCharacter, CurrentHealth);
 	DOREPLIFETIME(AVGBossCharacter, AttackDamage);
+}
+
+void AVGBossCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	// 게임이 시작될 때, 데이터 에셋이 연결되어 있다면 변수에 값 세팅
+	if (BossData != nullptr)
+	{
+		CurrentHealth = BossData->BaseHealth;
+		AttackDamage = BossData->BaseDamage;
+		AttackRadius = BossData->AttackRadius;
+		AttackMontage = BossData->AttackMontage;
+	}
 }
 
 void AVGBossCharacter::InitializeBossStats(float InCalculatedHealth, float InCalculatedDamage)
