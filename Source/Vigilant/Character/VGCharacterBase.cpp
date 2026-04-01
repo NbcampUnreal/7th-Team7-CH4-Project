@@ -108,20 +108,20 @@ void AVGCharacterBase::Look(const FInputActionValue& Value)
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
 	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-	ServerSetSprinting(true);
+	ServerRPCSetSprinting(true);
 }
 
 void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 {
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-	ServerSetSprinting(false);
+	ServerRPCSetSprinting(false);
 }
 
 void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
 {
 }
 
-void AVGCharacterBase::ServerSetSprinting_Implementation(bool bIsSprinting)
+void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 {
 	// TODO: GameplayTag 체크 필요
 	if (bIsSprinting)
