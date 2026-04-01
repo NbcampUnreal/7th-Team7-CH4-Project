@@ -3,4 +3,4 @@
 
 #include "Interaction/VGInteractable.h"
 
-// Add default functionality here for any IVGInteractable functions that are not pure virtual.
+
