@@ -14,4 +14,7 @@ class VIGILANT_API AVGBossCharacter : public AVGCharacterBase
 {
 	GENERATED_BODY()
 	
+public:
+	AVGBossCharacter();
+	
 };
