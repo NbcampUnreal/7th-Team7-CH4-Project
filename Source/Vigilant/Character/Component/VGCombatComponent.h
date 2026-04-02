@@ -6,7 +6,7 @@
 #include "VGCombatComponent.generated.h"
 
 class UVGWeaponDataAsset;
-
+class UInputAction;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VIGILANT_API UVGCombatComponent : public UActorComponent
 {
@@ -33,7 +33,13 @@ public:
 	void StartMeleeTrace();
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
 	void StopMeleeTrace();
-
+	
+	// --- 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
+	TObjectPtr<UInputAction> LightAttackAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
+	TObjectPtr<UInputAction> HeavyAttackAction;
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

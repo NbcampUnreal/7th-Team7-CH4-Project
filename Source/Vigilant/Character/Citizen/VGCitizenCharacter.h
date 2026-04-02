@@ -25,6 +25,8 @@ public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 	
+
+	
 	
 #pragma region Interfaces Func
 public:

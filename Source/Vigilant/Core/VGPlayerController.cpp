@@ -3,12 +3,7 @@
 #include "Subsystem/VGUIManagerSubsystem.h"
 
 AVGPlayerController::AVGPlayerController()
-	: InputMappingContext(nullptr),
-	  MoveAction(nullptr),
-	  JumpAction(nullptr),
-	  LookAction(nullptr),
-	  SprintAction(nullptr),
-	  CameraZoomAction(nullptr)
+	:InputMappingContext(nullptr)
 {
 }
 
