@@ -5,6 +5,7 @@
 #include "VGCharacterBase.generated.h"
 
 class UCameraComponent;
+class UVGCombatComponent;
 class USpringArmComponent;
 
 struct FInputActionValue;
@@ -13,14 +14,18 @@ UCLASS()
 class VIGILANT_API AVGCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
-protected:
+
 	// Components
+protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+  
+  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UVGCombatComponent> CombatComponent;
 	
 	// Camera Settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
@@ -58,6 +63,8 @@ protected:
 	void StartSprint(const FInputActionValue& Value);
 	void StopSprint(const FInputActionValue& Value);
 	void CameraZoom(const FInputActionValue& Value);
+	void LightAttack(const FInputActionValue& Value);
+	void HeavyAttack(const FInputActionValue& Value);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetSprinting(bool bIsSprinting);

@@ -31,6 +31,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	TObjectPtr<UInputAction> CameraZoomAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
+	TObjectPtr<UInputAction> LightAttackAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
+	TObjectPtr<UInputAction> HeavyAttackAction;
 
 	// functions
 public:
