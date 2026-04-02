@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InputBlueprintNodes/Private/EnhancedInputUserWidgetValidator.h"
+#include "Blueprint/UserWidget.h"
 #include "VGHUDWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class VIGILANT_API UVGHUDWidget : public UEnhancedInputUserWidgetValidator
+class VIGILANT_API UVGHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 };
