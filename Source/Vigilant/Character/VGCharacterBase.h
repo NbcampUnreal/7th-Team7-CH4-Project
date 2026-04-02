@@ -1,33 +1,27 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Component/VGEquipmentComponent.h"
 #include "GameFramework/Character.h"
 #include "VGCharacterBase.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
-class UVGEquipmentComponent;
 
 struct FInputActionValue;
-
-// 델리게이트 선언
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentSlotChangedSignature, EVGEquipmentSlot, NewActiveSlot);
 
 UCLASS()
 class VIGILANT_API AVGCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
-
+protected:
 	// Components
-private:
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
-
-protected:
+	
 	// Camera Settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float DefaultCameraDistance = 400.0f;
@@ -51,13 +45,7 @@ protected:
 	// Functions
 public:
 	AVGCharacterBase();
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
 	
-	// UI(블루프린트)에서 이벤트로 끌어다 쓸 수 있는 델리게이트 변수
-	UPROPERTY(BlueprintAssignable, Category = "Equipment|Events")
-	FOnEquipmentSlotChangedSignature OnEquipmentSlotChanged;
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -70,25 +58,6 @@ protected:
 	void StartSprint(const FInputActionValue& Value);
 	void StopSprint(const FInputActionValue& Value);
 	void CameraZoom(const FInputActionValue& Value);
-	
-	// 상호작용 입력 액션
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* InteractAction;
-	// 아이템 버리기 입력 액션
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* DropAction;
-	// 슬롯 선택(1, 2) 입력 액션
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* SlotSelectAction;
-	// 현재 활성화된 슬롯을 기억할 변수 (기본값: 오른손)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
-	EVGEquipmentSlot ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
-	// 상호작용 실행 함수
-	void Interact();
-	// 버리기 실행 함수
-	void DropItem();
-	// 슬롯 선택 실행 함수
-	void SelectSlot(const FInputActionValue& Value);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetSprinting(bool bIsSprinting);
