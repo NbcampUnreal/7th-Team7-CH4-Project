@@ -27,6 +27,13 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter == nullptr || OwnerCharacter->GetMesh() == nullptr) return;
 	
+	// 아이템의 루트 컴포넌트 물리 끄기
+	if (UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(ItemToEquip->GetRootComponent()))
+        {
+            RootComp->SetSimulatePhysics(false);
+            RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 손에 쥔 무기에 캐릭터가 부딪히지 않게
+        }
+        
 	// 기획 규칙에 따라 슬롯 판별 및 장착
 	switch (ItemType)
 	{
@@ -114,6 +121,18 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 	else if (SlotToDrop == EVGEquipmentSlot::RightHand) TargetItem = RightHandItem;
 
 	if (TargetItem == nullptr) return;
+	
+	if (TargetItem)
+	{
+		TargetItem->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+        
+		// 분리한 직후, 물리 시뮬레이션과 충돌 다시 켜기
+		if (UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(TargetItem->GetRootComponent()))
+		{
+			RootComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			RootComp->SetSimulatePhysics(true);
+		}
+	}
 	
 	// 버리려는 아이템이 양손 무기면
 	if (EquipmentTags.HasTag(VigilantEquipmentTags::Equipped_State_TwoHanded) && (LeftHandItem == RightHandItem))
