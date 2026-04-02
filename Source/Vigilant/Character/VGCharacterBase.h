@@ -11,6 +11,9 @@ class UVGEquipmentComponent;
 
 struct FInputActionValue;
 
+// 델리게이트 선언
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentSlotChangedSignature, EVGEquipmentSlot, NewActiveSlot);
+
 UCLASS()
 class VIGILANT_API AVGCharacterBase : public ACharacter
 {
@@ -51,6 +54,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
+	
+	// UI(블루프린트)에서 이벤트로 끌어다 쓸 수 있는 델리게이트 변수
+	UPROPERTY(BlueprintAssignable, Category = "Equipment|Events")
+	FOnEquipmentSlotChangedSignature OnEquipmentSlotChanged;
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

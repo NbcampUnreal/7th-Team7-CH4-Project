@@ -5,7 +5,7 @@
 #include "Core/VGPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Character/Component/VGEquipmentComponent.h"
+#include "Component/VGEquipmentComponent.h"
 #include "Equipment/VGEquippableActor.h"
 #include "DrawDebugHelpers.h"
 
@@ -209,11 +209,15 @@ void AVGCharacterBase::Interact()
 			{
 				ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
 				UE_LOG(LogTemp, Warning, TEXT("무기 장착 활성화 슬롯이 [오른손]으로 강제 전환"));
+				
+				OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
 			}
 			else if (TypeToEquip == EVGEquipmentType::Shield)
 			{
 				ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
 				UE_LOG(LogTemp, Warning, TEXT("방패 장착 활성화 슬롯이 [왼손]으로 강제 전환"));
+				
+				OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
 			}
 			// 미션 아이템은 빈 손에 들어가므로 활성화 슬롯을 강제로 바꾸지 않음
             
@@ -237,15 +241,19 @@ void AVGCharacterBase::SelectSlot(const FInputActionValue& Value)
 	float SlotNumber = Value.Get<float>();
 
 	// 1.0 이면 왼손, 2.0 이면 오른손 활성화
-	if (SlotNumber == 1.0f)
+	if (FMath::IsNearlyEqual(SlotNumber, 1.0f))
 	{
 		ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
 		UE_LOG(LogTemp, Warning, TEXT("왼손 슬롯 활성화"));
+		
+		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
 	}
-	else if (SlotNumber == 2.0f)
+	else if (FMath::IsNearlyEqual(SlotNumber, 2.0f))
 	{
 		ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
 		UE_LOG(LogTemp, Warning, TEXT("오른손 슬롯 활성화"));
+		
+		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
 	}
 }
 
