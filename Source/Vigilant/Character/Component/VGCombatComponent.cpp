@@ -59,6 +59,8 @@ void UVGCombatComponent::TryLightAttack()
 		{
 			bHasBufferedAttack = true;
 			bIsBufferedAttackHeavy = false;
+			UE_LOG(LogTemp, Warning, TEXT("[%s] %s: 콤보 중 Light Attack 입력 저장 성공!"),
+				OwnerCharacter->HasAuthority() ? TEXT("SERVER") : TEXT("CLIENT"), *OwnerCharacter->GetName());
 		}
 		return;
 	}
@@ -72,6 +74,8 @@ void UVGCombatComponent::TryLightAttack()
 	
 	// 3. 새로운 공격
 	CurrentComboIndex = 0;
+	UE_LOG(LogTemp, Warning, TEXT("[%s] %s: New Light Attack! 로컬에서 재생합니다"),
+		OwnerCharacter->HasAuthority() ? TEXT("SERVER") : TEXT("CLIENT"), *OwnerCharacter->GetName());
 	PerformAttack(false);
 	
 	if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
@@ -112,7 +116,7 @@ void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 	if (OwnerCharacter)
 	{
 		FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
-		FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex));
+		FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
 		OwnerCharacter->PlayAnimMontage(MontageToPlay, Data->AttackSpeed, SectionName);
 	}
 }
@@ -157,6 +161,9 @@ void UVGCombatComponent::OnComboWindowClosed()
 
 void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 ExpectedComboIndex)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[SERVER] %s: Received Server_TryAttack. ComboIndex: %d"),
+		*GetOwner()->GetName(), ExpectedComboIndex);
+	
 	CurrentComboIndex = ExpectedComboIndex;
 	PerformAttack(bIsHeavy);
 	
@@ -168,6 +175,7 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 		FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
 		FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
 		
+		UE_LOG(LogTemp, Warning, TEXT("[SERVER] %s: 다른 클라이언트에게 Multicast!"), *GetOwner()->GetName());
 		Multicast_PlayAttackMontage(MontageToPlay, SectionName, Data->AttackSpeed);
 	}
 }
@@ -204,6 +212,7 @@ void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage
 	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (OwnerCharacter)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[CLIENT] %s: Received Multicast!"), *OwnerPawn->GetName());
 		OwnerCharacter->PlayAnimMontage(MontageToPlay, PlayRate, SectionName);
 	}
 }

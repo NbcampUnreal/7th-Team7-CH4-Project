@@ -19,7 +19,6 @@ public:
 	void SetActiveCombatData(UVGWeaponDataAsset* NewData);
 	
 	// --- Inputs ---
-	// TODO: 캐릭터에서 Enhanced Input에 바인딩
 	void TryLightAttack();
 	void TryHeavyAttack();
 	
@@ -63,6 +62,7 @@ private:
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	
 	// Combat State
+	UPROPERTY(Replicated)
 	FGameplayTagContainer CurrentCombatTags;
 	
 	int32 CurrentComboIndex = 0;
