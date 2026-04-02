@@ -58,7 +58,15 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnMissionStateChanged OnMissionStateChanged;
+
 protected:
+	// For TimeAttack
+	UPROPERTY(EditDefaultOnlyeOnly, Category = "Mission|TimeAttack")
+	float TimeLimit = 30.f;
+	
+	FTimerHandle MissionTimerHandle;
+	
+	
 	// bool 2개(bIsActivated, bIsCompleted) 대신 Tag 하나
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentStateTag)
 	FGameplayTag CurrentStateTag;

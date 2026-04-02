@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "GameplayTagContainer.h"
-#include "Mission/VGMissionBase.h" 
+#include "Mission/VGMissionBase.h"
 #include "VGMissionSubsystem.generated.h"
 
 class AVGMissionBase;
@@ -39,15 +39,18 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	float GetMissionProgress() const;
+	
 protected:
 	UFUNCTION()
-	void OnMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag);
+	void HandleMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag);
 	
 public:	
 	// 모든 미션 완료 시 브로드케스트 -> GameMode가 구독하여 페이즈 전환 트리거
 	UPROPERTY(BlueprintAssignable)
 	FOnAllMissionCompleted OnAllMissionCompleted;
 	
+	UPROPERTY(BlueprintAssignable)
+	FOnMissionStateChanged OnMissionStateChanged;
 private:
 	UPROPERTY()
 	TArray<TObjectPtr<AVGMissionBase>> RegisteredMissions;
