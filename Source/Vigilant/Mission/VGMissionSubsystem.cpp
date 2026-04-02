@@ -17,6 +17,9 @@ void UVGMissionSubsystem::RegisterMission(AVGMissionBase* Mission)
 		// 상태 전환 이벤트 - 맵 표시 / HUD 갱신용
 		Mission->OnMissionStateChanged.AddDynamic(this, &UVGMissionSubsystem::HandleMissionStateChanged);
 	}
+	UE_LOG(LogTemp, Warning,
+		TEXT("[Subsystem] Registered Mission: %s (ID=%d)"),
+		*Mission->GetName(), Mission->GetMissionID());
 }
 
 void UVGMissionSubsystem::OnMissionCompleted(int32 MissionID)
@@ -32,6 +35,7 @@ void UVGMissionSubsystem::OnMissionCompleted(int32 MissionID)
 	// 전체 완료 시
 	if (CompletedMissions.Num() == RegisteredMissions.Num())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("All Mission Clear!"));
 		OnAllMissionCompleted.Broadcast();
 	}
 }

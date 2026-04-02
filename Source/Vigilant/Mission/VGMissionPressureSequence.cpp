@@ -1,5 +1,10 @@
 ﻿#include "VGMissionPressureSequence.h"
+
+#include "SNegativeActionButton.h"
 #include "Gimmick/VGMissionGimmickPressure.h"
+#include "Common/VGGameplayTags.h"
+#include "EditorState/EditorState.h"
+#include "Gimmick/VGMissionGimmickBase.h"
 
 AVGMissionPressureSequence::AVGMissionPressureSequence()
 {
@@ -10,20 +15,41 @@ AVGMissionPressureSequence::AVGMissionPressureSequence()
 
 bool AVGMissionPressureSequence::CheckMissionCondition(AActor* Reporter)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[PressureSeq] %s Request CheckClear"), *Reporter->GetName());
+	
 	AVGMissionGimmickPressure* Pressure =
 		Cast<AVGMissionGimmickPressure>(Reporter);
         
-	if (!Pressure) return false;
+	if (!Pressure)
+	{
+		return false;
+	}
 	return CheckSequenceOrder(Pressure);
 }
 
-void AVGMissionPressureSequence::OnMissionActivated()
+bool AVGMissionPressureSequence::CheckSequenceOrder(AVGMissionGimmickPressure* Pressure)
 {
-	// 순서 초기화
-	CurrentSequenceIndex = 0;
-}
-
-bool AVGMissionPressureSequence::CheckSequenceOrder(AActor* Reporter)
-{
+	UE_LOG(LogTemp, Warning,
+		TEXT("[PressureSeq] Reported index=%d | Expected=%d"),
+		Pressure->GetSequenceIndex(), CurrentSequenceIndex);
 	
+	if (Pressure->GetSequenceIndex() != CurrentSequenceIndex)
+	{
+		// 순서 틀림 — 모든 발판 상태 초기화
+		UE_LOG(LogTemp, Warning, TEXT("[PressureSeq] WRONG ORDER → Reset all"));
+		CurrentSequenceIndex = 0;
+		for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
+		{
+			Gimmick->ResetGimmickState();
+		}
+		return false;
+	}
+	
+	CurrentSequenceIndex++;
+	UE_LOG(LogTemp, Warning,
+		TEXT("[PressureSeq] Correct! Progress=%d/%d"),
+		CurrentSequenceIndex, MissionGimmicks.Num())
+	
+	// 등록된 모든 발판을 순서대로 밟았으면 완료
+	return CurrentSequenceIndex >= MissionGimmicks.Num();
 }

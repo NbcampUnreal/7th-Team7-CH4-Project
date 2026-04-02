@@ -11,7 +11,7 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::MissionCompleted, "Mission.State.Com
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::PuzzleMission, "Mission.Type.Puzzle");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::CooperativeMission, "Mission.Type.Cooperative");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::CombatMission, "Mission.Type.Combat");
-UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::GimmickInative, "Mission.Gimmick.State.Inactive");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::GimmickInactive, "Mission.Gimmick.State.Inactive");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::GimmickActive, "Mission.Gimmick.State.Active");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::GimmickCompleted, "Mission.Gimmick.State.Completed");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::PressureGimmick, "Mission.Gimmick.Type.Pressure");

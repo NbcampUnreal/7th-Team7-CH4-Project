@@ -1,6 +1,7 @@
 ﻿#include "VGMissionGimmickPressure.h"
 #include "Components/BoxComponent.h"
 #include "Common/VGGameplayTags.h"
+#include "Mission/VGMissionBase.h"
 
 AVGMissionGimmickPressure::AVGMissionGimmickPressure()
 {
@@ -42,7 +43,7 @@ void AVGMissionGimmickPressure::OnRep_GimmickStateTag()
 	Super::OnRep_GimmickStateTag();
 	
 	// Todo : 발판 눌림 /해제 시각 피드백
-	
+	UE_LOG(LogTemp, Warning, TEXT("[Pressure:%s] CurrentStae : %s"), *GetName(), *GimmickStateTag.ToString());
 }
 
 void AVGMissionGimmickPressure::OnPressed()
@@ -57,9 +58,13 @@ void AVGMissionGimmickPressure::OnPressed()
 		return;
 	}
 	
-	SetGimmickState(VigilantMissionTags::GimmickActive);
+	SetStateTag(VigilantMissionTags::GimmickActive);
 
-	ReportConditionMet();
+	UE_LOG(LogTemp, Warning, TEXT("[Pressure:%s] OnPressed"), *GetName());
+	if (OwnerMission)
+	{
+		OwnerMission->OnConditionMet(this);
+	}
 }
 
 void AVGMissionGimmickPressure::OnReleased()
@@ -74,8 +79,9 @@ void AVGMissionGimmickPressure::OnReleased()
 	{
 		return;
 	}
-
-	SetGimmickState(VigilantMissionTags::GimmickInative);
+	
+	UE_LOG(LogTemp, Warning, TEXT("[Pressure:%s] OnReleased"), *GetName());
+	SetStateTag(VigilantMissionTags::GimmickInactive);
 }
 
 void AVGMissionGimmickPressure::OnTriggerBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

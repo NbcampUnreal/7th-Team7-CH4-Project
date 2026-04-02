@@ -27,11 +27,18 @@ void AVGMissionBase::BeginPlay()
 	
 	if (HasAuthority())
 	{
+		if (UVGMissionSubsystem* Subsystem =
+			GetWorld()->GetSubsystem<UVGMissionSubsystem>())
+		{
+			Subsystem->RegisterMission(this);
+		}
+		
 		// 에디터에서 등록된 기믹들에 바인딩
 		for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
 		{
 			if (Gimmick)
 			{
+				Gimmick->SetOwnerMission(this);
 				Gimmick->OnGimmickStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnGimmickStateChanged);
 			}
@@ -42,6 +49,7 @@ void AVGMissionBase::BeginPlay()
 		{
 			if (Item)
 			{
+				Item->SetOwnerMission(this);
 				Item->OnItemStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnItemStateChanged);
 			}
@@ -107,11 +115,38 @@ void AVGMissionBase::OnConditionMet(AActor* Reporter)
 void AVGMissionBase::OnRep_CurrentStateTag()
 {
 	// Todo State 변경에 따른 피드백 처리
+	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Mission Clear!"), *GetName());
+		
+		if (HasAuthority())
+		{
+			for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
+			{
+				if (Gimmick)
+				{
+					Gimmick->SetStateTag(VigilantMissionTags::GimmickCompleted);
+				}
+			}
+		
+			for (AVGMissionItemBase* Item : MissionItems)
+			{
+				if (Item)
+				{
+					// Item->SetStateTag(VigilantMissionTags::MissionCompleted);
+				}
+			}
+		}
+	}
 }
 
 void AVGMissionBase::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
 {
 	
+}
+
+void AVGMissionBase::OnItemStateChanged(AVGMissionItemBase* Gimmick, FGameplayTag Tag)
+{
 }
 
 bool AVGMissionBase::CheckMissionCondition(AActor* Reporter)
@@ -136,13 +171,6 @@ void AVGMissionBase::CompleteMission()
 
 void AVGMissionBase::NotifyMissionCompleted()
 {
-	// Subsystem에 완료 보고
-	if (UVGMissionSubsystem* MissionSubsystem =
-		GetWorld()->GetSubsystem<UVGMissionSubsystem>())
-	{
-		MissionSubsystem->OnMissionCompleted(MissionID);
-	}
-
 	// UI 및 외부 시스템용 델리게이트 브로드캐스트
 	OnMissionCompleted.Broadcast(MissionID);
 }

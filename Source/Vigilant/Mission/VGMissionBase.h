@@ -48,9 +48,12 @@ protected:
 	virtual void OnRep_CurrentStateTag();
 	
 	// 어떤 Gimmick이 변경되었는지 확인하기
+	UFUNCTION()
 	virtual void OnGimmickStateChanged(
 		AVGMissionGimmickBase* Gimmick, FGameplayTag Tag);
+	
 	// 어떤 Gimmick이 변경되었는지 확인하기
+	UFUNCTION()
 	virtual void OnItemStateChanged(
 		AVGMissionItemBase* Gimmick, FGameplayTag Tag);
 	

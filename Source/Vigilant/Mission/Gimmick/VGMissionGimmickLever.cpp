@@ -1,6 +1,4 @@
 ﻿#include "VGMissionGimmickLever.h"
-
-#include "Common/VGGameplayTags.h"
 #include "Common/VGGameplayTags.h"
 
 AVGMissionGimmickLever::AVGMissionGimmickLever()
@@ -42,16 +40,13 @@ void AVGMissionGimmickLever::Toggle()
 	
 	if (IsActivated())
 	{
-		GimmickStateTag = VigilantMissionTags::GimmickInative;
-		OnGimmickStateChanged.Broadcast(this, VigilantMissionTags::GimmickInative);
+		SetStateTag(VigilantMissionTags::GimmickInactive);
 	}
 	else
 	{
-		GimmickStateTag = VigilantMissionTags::GimmickActive;
-		OnGimmickStateChanged.Broadcast(this, VigilantMissionTags::GimmickActive);
+		SetStateTag(VigilantMissionTags::GimmickActive);
+		ReportConditionMet();
 	}
-	
-	ReportConditionMet();
 }
 
 void AVGMissionGimmickLever::OnRep_GimmickStateTag()

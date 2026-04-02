@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
 #include "Interaction/VGInteractableActorBase.h"
+#include "Mission/VGMissionObjectInterface.h"
 #include "VGMissionItemBase.generated.h"
 
 class AVGMissionBase;
@@ -11,12 +12,12 @@ class AVGCharacterBase;
 
 // Gimmick 상태 변경 시 어떤 기믹의 상태가 외부에 변했는지 알리기
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
-	FOnGimmickStateChanged,
+	FOnItemStateChanged,
 	AVGMissionItemBase*, Item,  // 어떤 아이템인지
 	FGameplayTag, NewStateTag);
 
 UCLASS(Abstract)
-class VIGILANT_API AVGMissionItemBase : public AVGInteractableActorBase
+class VIGILANT_API AVGMissionItemBase : public AVGInteractableActorBase, public IVGMissionObjectInterface
 {
 	GENERATED_BODY()
 
@@ -25,15 +26,43 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	AVGCharacterBase* GetCarrier() const { return Carrier; }
-
+	
+	virtual void GetLifetimeReplicatedProps(
+			TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	UFUNCTION(BlueprintCallable)
 	bool IsCarried() const { return Carrier != nullptr; }
 
+	
+	virtual void SetOwnerMission(AVGMissionBase* InOwnerMission) override;
+	
+	// 목표 위치 도달 등 조건 충족 시 자식 클래스에서 호출
+	void ReportConditionMet();
+
+	virtual FGameplayTag GetStateTag() override { return ItemStateTag; }
+	virtual void SetStateTag(FGameplayTag NewStateTag) override;
+	
 protected:
 	// IVGInteractable 구현
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
 	virtual void OnInteractWith(AVGCharacterBase* Interactor);
 
+	// 줍기 — 서버 전용
+	virtual void OnPickedUp(AVGCharacterBase* NewCarrier);
+
+	// 내려놓기 — 서버 전용
+	virtual void OnDropped();
+
+	UFUNCTION()
+	virtual void OnRep_Carrier();
+	
+	UFUNCTION()
+	virtual void OnRep_ItemStateTag();
+	
+public:
+	UPROPERTY(BlueprintAssignable)
+	FOnItemStateChanged OnItemStateChanged;
+	
 protected:
 	// 조건 충족 시 보고할 대상 미션 — 에디터에서 지정
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
@@ -43,20 +72,8 @@ protected:
 	// Replicated: 아이템이 캐릭터를 따라 움직이는 시각 처리를 모든 클라이언트에 동기화
 	UPROPERTY(ReplicatedUsing = OnRep_Carrier)
 	TObjectPtr<AVGCharacterBase> Carrier;
-
-	// 줍기 — 서버 전용
-	virtual void OnPickedUp(AVGCharacterBase* NewCarrier);
-
-	// 내려놓기 — 서버 전용
-	virtual void OnDropped();
-
-	// 목표 위치 도달 등 조건 충족 시 자식 클래스에서 호출
-	void ReportConditionMet();
-
-	UFUNCTION()
-	virtual void OnRep_Carrier();
-
-public:
-	virtual void GetLifetimeReplicatedProps(
-		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	// 아이템 현재 상태 태그
+	UPROPERTY(ReplicatedUsing = OnRep_ItemStateTag)
+	FGameplayTag ItemStateTag;
 };

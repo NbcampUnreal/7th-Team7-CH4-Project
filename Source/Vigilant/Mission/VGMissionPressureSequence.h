@@ -4,17 +4,21 @@
 #include "VGMissionBase.h"
 #include "VGMissionPressureSequence.generated.h"
 
+class AVGMissionGimmickPressure;
+
 UCLASS()
 class VIGILANT_API AVGMissionPressureSequence : public AVGMissionBase
 {
 	GENERATED_BODY()
 
+public:
+	AVGMissionPressureSequence();
+	
 protected:
 	virtual bool CheckMissionCondition(AActor* Reporter) override;
-
-	virtual void OnMissionActivated() override;
 	
-	bool CheckSequenceOrder(AActor* Reporter);
+private:
+	bool CheckSequenceOrder(AVGMissionGimmickPressure* Pressure);
 	
 	int32 CurrentSequenceIndex = 0;
 };

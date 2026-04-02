@@ -15,7 +15,8 @@ class VIGILANT_API AVGMissionGimmickPressure : public AVGMissionGimmickBase
 
 public:
 	AVGMissionGimmickPressure();
-
+	
+	int32 GetSequenceIndex() const { return SequenceIndex; }
 protected:
 	virtual void BeginPlay() override;
 	
@@ -66,4 +67,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
 	int32 RequiredActorCount = 1;
 	
+	// 이 발판의 순서 번호 — 에디터에서 지정 (0부터 시작)
+	// 순서 무관 미션에서는 사용 안 함
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
+	int32 SequenceIndex = 0;
 };

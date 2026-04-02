@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
 #include "Interaction/VGInteractableActorBase.h"
+#include "Mission/VGMissionObjectInterface.h"
 #include "VGMissionGimmickBase.generated.h"
 
 class AVGMissionBase;
@@ -17,7 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FGameplayTag, NewStateTag); 
 
 UCLASS()
-class VIGILANT_API AVGMissionGimmickBase : public AVGInteractableActorBase
+class VIGILANT_API AVGMissionGimmickBase : public AVGInteractableActorBase, public IVGMissionObjectInterface
 {
 	GENERATED_BODY()
 
@@ -29,17 +30,23 @@ public:
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	// Todo IVGInteractable 구현
+	// 미션 실패 시 리셋
+	UFUNCTION()
+	virtual void ResetGimmickState();
+	
+	FGameplayTag GetStateTag() { return GimmickStateTag; }
+	void SetStateTag(FGameplayTag NewStateTag);
+	
+	void SetOwnerMission(AVGMissionBase* InOwnerMission);
+	
+	// 조건 충족 시 자식 클래스에서 호출 -> OwnerMission에 보고
+	virtual void ReportConditionMet();
 	
 protected:
 	// IVGInteractable 구현
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
 	virtual void OnInteractWith(AVGCharacterBase* Interactor);
 	
-	// 조건 충족 시 자식 클래스에서 호출 -> OwnerMission에 보고
-	virtual void ReportConditionMet();
-	
-	void SetGimmickState(FGameplayTag NewStateTag);
 	
 	UFUNCTION()
 	virtual void OnRep_GimmickStateTag();
@@ -64,4 +71,7 @@ protected:
 	// 기믹 현재 상태 태그
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickStateTag)
 	FGameplayTag GimmickStateTag;
+	
+private:
+	UMaterialInstanceDynamic* DynamicMaterialInstance;
 };
