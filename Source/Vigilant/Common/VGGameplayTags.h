@@ -43,10 +43,10 @@ namespace VigilantMissionTags
 namespace VigilantEquipmentTags
 {
 	// 장비 상태 태그 선언
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equipped_Weapon);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equipped_Shield);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equipped_TwoHanded);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equipped_MissionItem);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Equipped_State_Weapon);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Equipped_State_Shield);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Equipped_State_TwoHanded);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Equipped_State_MissionItem);
 }
 class VIGILANT_API VGGameplayTags
 {
