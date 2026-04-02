@@ -40,6 +40,14 @@ namespace VigilantMissionTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(LeverGimmick);
 }
 
+namespace VigilantEquipmentTags
+{
+	// 장비 상태 태그 선언
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equipped_Weapon);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equipped_Shield);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equipped_TwoHanded);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Equipped_MissionItem);
+}
 class VIGILANT_API VGGameplayTags
 {
 public:
