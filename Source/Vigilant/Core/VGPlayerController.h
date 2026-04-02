@@ -43,5 +43,5 @@ public:
 	AVGPlayerController();
 	
 	virtual void BeginPlay() override;
-	
+	virtual void AcknowledgePossession(class APawn* P) override; //LifeCycle함수 - 빙의 후 (클라이언트전용) 
 };

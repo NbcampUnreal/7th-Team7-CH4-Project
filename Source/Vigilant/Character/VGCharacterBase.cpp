@@ -6,6 +6,8 @@
 #include "Core/VGPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Equipment/VGEquippableActor.h"
+#include "DrawDebugHelpers.h"
 
 AVGCharacterBase::AVGCharacterBase()
 {

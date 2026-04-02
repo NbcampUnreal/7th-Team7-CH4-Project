@@ -1,5 +1,6 @@
 #include "Core/VGPlayerController.h"
 #include "EnhancedInputSubsystems.h"
+#include "Subsystem/VGUIManagerSubsystem.h"
 
 AVGPlayerController::AVGPlayerController()
 	: InputMappingContext(nullptr),
@@ -29,5 +30,15 @@ void AVGPlayerController::BeginPlay()
 				Subsystem->AddMappingContext(InputMappingContext, 0);
 			}
 		}
+	}
+}
+
+void AVGPlayerController::AcknowledgePossession(class APawn* P)
+{
+	Super::AcknowledgePossession(P);
+	if (IsLocalPlayerController() && GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
+	{
+		UVGUIManagerSubsystem* UISubsystem = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>();
+		UISubsystem->ShowHUD();
 	}
 }
