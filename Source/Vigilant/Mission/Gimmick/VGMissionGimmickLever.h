@@ -1,6 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "VGMissionGimmickBase.h"
@@ -12,14 +10,25 @@ class VIGILANT_API AVGMissionGimmickLever : public AVGMissionGimmickBase
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	AVGMissionGimmickLever();
-
+	
+	UFUNCTION(BlueprintCallable, Category = "Gimmick|Lever")
+	bool IsActivated() const;
+	
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	// 상호작용할 때마다 On/Off 토글
+	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+
+	void Toggle();
+	
+	virtual void OnRep_GimmickStateTag() override;
 
 public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	// true이면 On 이후 Off 불가 (횃불 등에 사용)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Lever")
+	bool bIsOneWay = false;
+	
 };
