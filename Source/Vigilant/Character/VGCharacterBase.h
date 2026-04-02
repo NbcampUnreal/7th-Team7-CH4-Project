@@ -1,11 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Component/VGEquipmentComponent.h"
 #include "GameFramework/Character.h"
 #include "VGCharacterBase.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
+class UVGEquipmentComponent;
 
 struct FInputActionValue;
 
@@ -47,6 +49,8 @@ protected:
 public:
 	AVGCharacterBase();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -59,6 +63,25 @@ protected:
 	void StartSprint(const FInputActionValue& Value);
 	void StopSprint(const FInputActionValue& Value);
 	void CameraZoom(const FInputActionValue& Value);
+	
+	// 상호작용 입력 액션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* InteractAction;
+	// 아이템 버리기 입력 액션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* DropAction;
+	// 슬롯 선택(1, 2) 입력 액션
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* SlotSelectAction;
+	// 현재 활성화된 슬롯을 기억할 변수 (기본값: 오른손)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	EVGEquipmentSlot ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
+	// 상호작용 실행 함수
+	void Interact();
+	// 버리기 실행 함수
+	void DropItem();
+	// 슬롯 선택 실행 함수
+	void SelectSlot(const FInputActionValue& Value);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetSprinting(bool bIsSprinting);
