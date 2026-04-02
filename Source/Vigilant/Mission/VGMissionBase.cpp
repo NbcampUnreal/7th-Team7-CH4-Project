@@ -21,6 +21,34 @@ void AVGMissionBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ThisClass, CurrentStateTag);
 }
 
+void AVGMissionBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (HasAuthority())
+	{
+		// 에디터에서 등록된 기믹들에 바인딩
+		for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
+		{
+			if (Gimmick)
+			{
+				Gimmick->OnGimmickStateChanged.AddDynamic(
+					this, &AVGMissionBase::OnGimmickStateChanged);
+			}
+		}
+		
+		// 에디터에서 등록된 Item 바인딩
+		for (AVGMissionItemBase* Item : MissionItems)
+		{
+			if (Item)
+			{
+				Item->OnItemStateChanged.AddDynamic(
+					this, &AVGMissionBase::OnItemStateChanged);
+			}
+		}
+	}
+}
+
 void AVGMissionBase::SetMissionState(FGameplayTag NewStateTag)
 {
 	if (!HasAuthority())
@@ -57,7 +85,7 @@ int32 AVGMissionBase::GetMissionID() const
 	return MissionID;
 }
 
-void AVGMissionBase::OnConditionMet()
+void AVGMissionBase::OnConditionMet(AActor* Reporter)
 {
 	if (!HasAuthority())
 	{
@@ -69,13 +97,30 @@ void AVGMissionBase::OnConditionMet()
 		return;
 	}
 	
-	// Todo 미션별 달성 조건 판단 로직 구현
-	CompleteMission();
+	// 판정은 자식한테 위임
+	if (CheckMissionCondition(Reporter))
+	{
+		CompleteMission();
+	}
 }
 
 void AVGMissionBase::OnRep_CurrentStateTag()
 {
 	// Todo State 변경에 따른 피드백 처리
+}
+
+void AVGMissionBase::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
+{
+	
+}
+
+bool AVGMissionBase::CheckMissionCondition(AActor* Reporter)
+{
+	// 자식이 override 안 하면 런타임에 경고
+	ensureMsgf(false, 
+		TEXT("CheckMissionCondition must be overridden in %s"),
+		*GetClass()->GetName());
+	return false;
 }
 
 void AVGMissionBase::CompleteMission()

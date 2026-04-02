@@ -82,7 +82,7 @@ void AVGMissionItemBase::ReportConditionMet()
 		return;
 	}
 
-	OwnerMission->OnConditionMet();
+	OwnerMission->OnConditionMet(this);
 }
 
 // -----------------------------------------------

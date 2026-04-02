@@ -9,6 +9,12 @@
 class AVGMissionBase;
 class AVGCharacterBase;
 
+// Gimmick 상태 변경 시 어떤 기믹의 상태가 외부에 변했는지 알리기
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FOnGimmickStateChanged,
+	AVGMissionItemBase*, Item,  // 어떤 아이템인지
+	FGameplayTag, NewStateTag);
+
 UCLASS(Abstract)
 class VIGILANT_API AVGMissionItemBase : public AVGInteractableActorBase
 {
