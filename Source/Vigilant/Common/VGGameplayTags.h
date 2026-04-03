@@ -20,6 +20,18 @@ namespace VigilantTags
 	
 }
 
+namespace VigilantCharacter
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dodge);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Invincible);
+	
+	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedLeftHand);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedRightHand);
+}
+
+
+
 namespace VigilantMissionTags
 {
 	// 미션 상태
