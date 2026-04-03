@@ -59,8 +59,6 @@ void UVGCombatComponent::TryLightAttack()
 		{
 			bHasBufferedAttack = true;
 			bIsBufferedAttackHeavy = false;
-			UE_LOG(LogTemp, Warning, TEXT("[%s] %s: 콤보 중 Light Attack 입력 저장 성공!"),
-				OwnerCharacter->HasAuthority() ? TEXT("SERVER") : TEXT("CLIENT"), *OwnerCharacter->GetName());
 		}
 		return;
 	}
@@ -74,28 +72,47 @@ void UVGCombatComponent::TryLightAttack()
 	
 	// 3. 새로운 공격
 	CurrentComboIndex = 0;
-	UE_LOG(LogTemp, Warning, TEXT("[%s] %s: New Light Attack! 로컬에서 재생합니다"),
-		OwnerCharacter->HasAuthority() ? TEXT("SERVER") : TEXT("CLIENT"), *OwnerCharacter->GetName());
 	PerformAttack(false);
 	
 	if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
 	{
 		Server_TryAttack(false, CurrentComboIndex);
 	}
-	else if (OwnerCharacter->HasAuthority())
-	{
-		if (Data && Data->LightAttackMontage)
-		{
-			FString SectionPrefix = TEXT("Light");
-			FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
-			Multicast_PlayAttackMontage(Data->LightAttackMontage, SectionName, Data->AttackSpeed);
-		}
-	}
 }
 
 void UVGCombatComponent::TryHeavyAttack()
 {
 	// TODO: bIsHeavy = true로 구현
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter)
+	{
+		return;
+	}
+	
+	if (bCanChainCombo)
+	{
+		if (!bHasBufferedAttack)
+		{
+			bHasBufferedAttack = true;
+			bIsBufferedAttackHeavy = true;
+		}
+		return;
+	}
+	
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->HeavyAttackMontage))
+	{
+		return;
+	}
+	
+	CurrentComboIndex = 0;
+	PerformAttack(true);
+	
+	if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
+	{
+		Server_TryAttack(true, CurrentComboIndex);
+	}
+	
 }
 
 void UVGCombatComponent::PerformAttack(bool bIsHeavy)
@@ -127,12 +144,24 @@ void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 
 void UVGCombatComponent::OnComboWindowOpened()
 {
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+	{
+		return;
+	}
+	
 	bCanChainCombo = true;
 	bHasBufferedAttack = false;
 }
 
 void UVGCombatComponent::OnComboWindowClosed()
 {
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+	{
+		return;
+	}
+	
 	bCanChainCombo = false;
 	
 	if (bHasBufferedAttack)
@@ -142,8 +171,7 @@ void UVGCombatComponent::OnComboWindowClosed()
 		
 		PerformAttack(bIsBufferedAttackHeavy);
 		
-		APawn* OwnerPawn = Cast<APawn>(GetOwner());
-		if (OwnerPawn && OwnerPawn->IsLocallyControlled() && !OwnerPawn->HasAuthority())
+		if (!OwnerPawn->HasAuthority())
 		{
 			Server_TryAttack(bIsBufferedAttackHeavy, CurrentComboIndex);
 		}
@@ -161,9 +189,6 @@ void UVGCombatComponent::OnComboWindowClosed()
 
 void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 ExpectedComboIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[SERVER] %s: Received Server_TryAttack. ComboIndex: %d"),
-		*GetOwner()->GetName(), ExpectedComboIndex);
-	
 	CurrentComboIndex = ExpectedComboIndex;
 	PerformAttack(bIsHeavy);
 	
@@ -174,8 +199,7 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 		UAnimMontage* MontageToPlay = bIsHeavy ? Data->HeavyAttackMontage : Data->LightAttackMontage;
 		FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
 		FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
-		
-		UE_LOG(LogTemp, Warning, TEXT("[SERVER] %s: 다른 클라이언트에게 Multicast!"), *GetOwner()->GetName());
+
 		Multicast_PlayAttackMontage(MontageToPlay, SectionName, Data->AttackSpeed);
 	}
 }
@@ -206,13 +230,12 @@ void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage
 	
 	if (OwnerPawn->IsLocallyControlled() || (OwnerPawn->HasAuthority() && IsNetMode(NM_DedicatedServer)))
 	{
-		return; // 로컬 플레이어 및 데디케이티드 서버는 무시됨
+		return;
 	}
 	
 	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (OwnerCharacter)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[CLIENT] %s: Received Multicast!"), *OwnerPawn->GetName());
 		OwnerCharacter->PlayAnimMontage(MontageToPlay, PlayRate, SectionName);
 	}
 }
