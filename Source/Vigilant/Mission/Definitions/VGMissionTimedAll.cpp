@@ -1,13 +1,13 @@
-﻿#include "VGMissionTimedPressure.h"
+﻿#include "VGMissionTimedAll.h"
 #include "Common/VGGameplayTags.h"
 #include "Mission/Gimmick/VGMissionGimmickBase.h"
 
-AVGMissionTimedPressure::AVGMissionTimedPressure()
+AVGMissionTimedAll::AVGMissionTimedAll()
 {
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void AVGMissionTimedPressure::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
+void AVGMissionTimedAll::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
 {
 	if (Tag != VigilantMissionTags::GimmickActive)
 	{
@@ -20,23 +20,23 @@ void AVGMissionTimedPressure::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmi
 		SetMissionState(VigilantMissionTags::MissionActive);
 	}
 	
-	if (AreAllPressuresActive())
+	if (AreAllGimmicActive())
 	{
 		CompleteMission();
 	}
 }
 
-void AVGMissionTimedPressure::StartTimer()
+void AVGMissionTimedAll::StartTimer()
 {
 	GetWorldTimerManager().SetTimer(
 		MissionTimerHandle,
 		this,
-		&AVGMissionTimedPressure::OnTimerExpired,
+		&AVGMissionTimedAll::OnTimerExpired,
 		TimeLimit,  // MissionBase에 이미 있는 변수
 		false);
 }
 
-void AVGMissionTimedPressure::OnTimerExpired()
+void AVGMissionTimedAll::OnTimerExpired()
 {
 	SetMissionState(VigilantMissionTags::MissionInactive);
 	for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
@@ -48,7 +48,7 @@ void AVGMissionTimedPressure::OnTimerExpired()
 	}
 }
 
-bool AVGMissionTimedPressure::AreAllPressuresActive() const
+bool AVGMissionTimedAll::AreAllGimmicActive() const
 {
 	for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
 	{

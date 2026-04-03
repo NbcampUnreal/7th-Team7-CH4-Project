@@ -2,15 +2,15 @@
 
 #include "CoreMinimal.h"
 #include "VGMissionBase.h"
-#include "VGMissionTimedPressure.generated.h"
+#include "VGMissionTimedAll.generated.h"
 
 UCLASS()
-class VIGILANT_API AVGMissionTimedPressure : public AVGMissionBase
+class VIGILANT_API AVGMissionTimedAll : public AVGMissionBase
 {
 	GENERATED_BODY()
 
 public:
-	AVGMissionTimedPressure();
+	AVGMissionTimedAll();
 
 protected:
 	virtual void OnGimmickStateChanged(
@@ -18,5 +18,5 @@ protected:
 private:
 	void StartTimer();
 	void OnTimerExpired();
-	bool AreAllPressuresActive() const;
+	bool AreAllGimmicActive() const;
 };
