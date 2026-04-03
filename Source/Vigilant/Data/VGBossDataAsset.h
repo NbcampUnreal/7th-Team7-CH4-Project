@@ -17,26 +17,26 @@ class VIGILANT_API UVGBossDataAsset : public UDataAsset
 	GENERATED_BODY()
 	
 public:
-	// 기본 스탯
+	// 생존 스탯
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stats")
 	float BaseHealth = 5000.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stats")
-	float BaseDamage = 50.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
+	float BaseDefense = 50.0f;
 
-	// 공격 관련 데이터
+	// 공격 스탯
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
+	float BaseDamage = 50.0f;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 	float AttackRadius = 500.0f;
-
-	// 보스 이동 속도 데이터 추가
+	
+	// 이동 스탯
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float BossNormalSpeed = 400.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float BossSprintSpeed = 600.0f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-	TObjectPtr<UAnimMontage> AttackMontage;
-
 	// (추후 확장) 페이즈별 강화 수치나 이펙트 등을 여기에 추가
 };

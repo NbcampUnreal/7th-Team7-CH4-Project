@@ -31,18 +31,6 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "BossStats")
 	float CurrentHealth;
 	
-	// 보스의 공격력
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "BossStats")
-	float AttackDamage;
-	
-	// 보스의 광역 공격 범위
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BossStats")
-	float AttackRadius;
-	
-	// 보스 공격 시 재생할 애니메이션 몽타주
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BossStats")
-	TObjectPtr<UAnimMontage> AttackMontage;
-	
 	// 최종 스탯을 전달받아 세팅하는 함수
 	UFUNCTION(BlueprintCallable, Category = "BossStats")
 	void InitializeBossStats(float InCalculatedHealth, float InCalculatedDamage);
