@@ -30,6 +30,10 @@ AVGCitizenCharacter::AVGCitizenCharacter()
 	//속도 조정
 	NormalSpeed = 320.f;
 	SprintSpeed = 500.f;
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	
+	OriginalFriction = GetCharacterMovement()->GroundFriction;
+	ModifyFriction = 2.f;
 	// 장비 컴포넌트 생성
 	EquipmentComponent = CreateDefaultSubobject<UVGEquipmentComponent>(TEXT("EquipmentComponent"));
 }
@@ -187,7 +191,9 @@ void AVGCitizenCharacter::Dodge()
 		DodgeRotattion.Pitch = 0.f;
 		DodgeRotattion.Roll = 0.f;
 		SetActorRotation(DodgeRotattion);
-		
+		//구르기 느낌을 위한 마찰력 조절
+		GetCharacterMovement()->GroundFriction = ModifyFriction;
+		GetCharacterMovement()->GroundFriction;
 	}
 }
 
@@ -196,6 +202,7 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 {
 	
 	CharacterTags.RemoveTag(VigilantCharacter::Dodge);
+	GetCharacterMovement()->GroundFriction = OriginalFriction;
 	if (bWasCancelled == true)
 	{
 		//회피가 불명의 이유로 중단되었을때 로직

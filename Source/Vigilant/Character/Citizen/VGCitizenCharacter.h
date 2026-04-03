@@ -80,6 +80,10 @@ protected:
 	float DodgeForce = 600.0f; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
 	float DodgeZForce = 200.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
+	float ModifyFriction;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dodge|Force")
+	float OriginalFriction; // 기본값 8.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dodge")
 	TObjectPtr<UAnimMontage> DodgeAnimation;
 	
