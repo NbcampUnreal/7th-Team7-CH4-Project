@@ -76,7 +76,10 @@ protected:
 	virtual void Move(const FInputActionValue& Value) override;
 	
 	void Dodge();
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
+	float DodgeForce = 600.0f; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
+	float DodgeZForce = 200.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dodge")
 	TObjectPtr<UAnimMontage> DodgeAnimation;
 	

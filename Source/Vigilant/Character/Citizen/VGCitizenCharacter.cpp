@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Common/VGGameplayTags.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
@@ -26,6 +27,9 @@ void AVGCitizenCharacter::RemoveGameplayTag(FGameplayTag TagToRemove)
 
 AVGCitizenCharacter::AVGCitizenCharacter()
 {
+	//속도 조정
+	NormalSpeed = 320.f;
+	SprintSpeed = 500.f;
 	// 장비 컴포넌트 생성
 	EquipmentComponent = CreateDefaultSubobject<UVGEquipmentComponent>(TEXT("EquipmentComponent"));
 }
@@ -141,7 +145,6 @@ void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
 	{
 		//구르기상태는 이동불가
-		GEngine->AddOnScreenDebugMessage(-1, 3,FColor::Red, TEXT("움직이면안됨"));
 		return;
 	}
 	
@@ -169,6 +172,21 @@ void AVGCitizenCharacter::Dodge()
 		AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutStarted, DodgeAnimation);
 		
 		//루트모션이 아닌 직접 날리자.. 멀티플레이상황에서는 루트모션이 버벅거림
+		FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
+		
+		if(DodgeDirection.IsNearlyZero())
+		{
+			DodgeDirection = GetActorForwardVector();
+		}
+		DodgeDirection.Normalize();
+		FVector DodgeVelocity = DodgeDirection*DodgeForce;
+		DodgeVelocity.Z = DodgeZForce;
+		LaunchCharacter(DodgeVelocity,true,true);
+		
+		FRotator DodgeRotattion = DodgeDirection.Rotation();
+		DodgeRotattion.Pitch = 0.f;
+		DodgeRotattion.Roll = 0.f;
+		SetActorRotation(DodgeRotattion);
 		
 	}
 }

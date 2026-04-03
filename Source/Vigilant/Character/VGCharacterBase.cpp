@@ -97,7 +97,6 @@ void AVGCharacterBase::Move(const FInputActionValue& Value)
 	
 	if (GetController() != nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3,FColor::Red, TEXT("움직임"));
 		const FVector2D MovementVector = Value.Get<FVector2D>();
 
 		// find out which way is forward
