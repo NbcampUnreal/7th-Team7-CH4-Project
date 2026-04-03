@@ -4,6 +4,8 @@
 #include "GameFramework/GameMode.h"
 #include "VGGameMode.generated.h"
 
+class AVGCharacterBase;
+class UVGPhaseBase;
 
 UCLASS()
 class VIGILANT_API AVGGameMode : public AGameMode
@@ -12,21 +14,39 @@ class VIGILANT_API AVGGameMode : public AGameMode
 protected:
 	virtual void BeginPlay() override;
 	
-	virtual void PostLogin(APlayerController *NewPlayer) override;
-	
-protected:
+	// 현제 게임의 페이즈 객체
 	UPROPERTY(Transient)
-	class UVGPhaseBase* CurrentPhase;
+	TArray<UVGPhaseBase*> PhaseStack;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Phase")
+	TSubclassOf<class UVGPhaseBase> InitialPhase;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Phase")
+	TSubclassOf<class UVGPhaseBase> DuelPhaseClass;
 	
 public:
-	UFUNCTION(BlueprintCallable, Category = "Vigilance|Phase")
-	void ChangePhase(TSubclassOf<class UVGPhaseBase> NewPhase);
+	
+	UPROPERTY(Transient)
+	AVGCharacterBase* DuelChallenger;
+	
+	UPROPERTY(Transient)
+	AVGCharacterBase* DuelTarget;
+	
+	virtual void PostLogin(APlayerController *NewPlayer) override;
+	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
+	void PushPhase(TSubclassOf<class UVGPhaseBase> NewPhase);
+	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
+	void PopPhase();
 	
 	void AssignRoles();
 	
 	void CheckWinCondition();
 	
-	void OnMissionCleared(int32 TimeReducedAmount);
+	void StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target);
 	
-	void OnPlayerDeath();
+	// 이벤트 중개소
+	void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim);
+	void OnMissionCleared(int32 TimeReducedAmount);
 };
