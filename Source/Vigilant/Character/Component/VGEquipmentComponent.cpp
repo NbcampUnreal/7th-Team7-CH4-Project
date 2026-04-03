@@ -39,7 +39,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 	{
 		case EVGEquipmentType::Weapon:
 			// 오른손이 비어있고, 양손 무기를 들고 있지 않으면 장착 가능
-			if (RightHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Equipped_State_TwoHanded))
+			if (RightHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
 			{
 				RightHandItem = ItemToEquip;
 				
@@ -50,7 +50,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 					FName("RightHandSocket")
 				);
 				
-				EquipmentTags.AddTag(VigilantEquipmentTags::Equipped_State_Weapon);
+				EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_OneHand);
 				UE_LOG(LogTemp, Log, TEXT("서버: 오른손에 무기 장착 및 태그 추가 완료"));
 				
 				OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
@@ -59,7 +59,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 
 		case EVGEquipmentType::Shield:
 			// 왼손이 비어있고, 양손 무기를 들고 있지 않으면 장착 가능
-			if (LeftHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Equipped_State_TwoHanded))
+			if (LeftHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
 			{
 				LeftHandItem = ItemToEquip;
 				
@@ -70,7 +70,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 					FName("LeftHandSocket")
 				);
 				
-				EquipmentTags.AddTag(VigilantEquipmentTags::Equipped_State_Shield);
+				EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_Shield);
 				UE_LOG(LogTemp, Log, TEXT("서버: 왼손에 방패 장착 및 태그 추가 완료"));
 				
 				OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, ItemToEquip);
@@ -93,7 +93,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 				FName("RightHandSocket")
 				);
 				
-				EquipmentTags.AddTag(VigilantEquipmentTags::Equipped_State_TwoHanded);
+				EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_TwoHand);
 				UE_LOG(LogTemp, Log, TEXT("서버: 양손 무기 장착 및 태그 추가 완료"));
 				
 				OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
@@ -101,7 +101,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 			break;
 
 		case EVGEquipmentType::MissionItem:
-			if (LeftHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Equipped_State_TwoHanded))
+			if (LeftHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
 			{
 				LeftHandItem = ItemToEquip;
 				ItemToEquip->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("LeftHandSocket"));
@@ -109,7 +109,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 				
 				OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, ItemToEquip);
 			}
-			else if (RightHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Equipped_State_TwoHanded))
+			else if (RightHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
 			{
 				RightHandItem = ItemToEquip;
 				ItemToEquip->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
@@ -143,10 +143,10 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 	OnItemDropped.Broadcast(SlotToDrop);
 	
 	// 버리려는 아이템이 양손 무기면
-	if (EquipmentTags.HasTag(VigilantEquipmentTags::Equipped_State_TwoHanded) && (LeftHandItem == RightHandItem))
+	if (EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand) && (LeftHandItem == RightHandItem))
 	{
 		// 태그 제거
-		EquipmentTags.RemoveTag(VigilantEquipmentTags::Equipped_State_TwoHanded);
+		EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_TwoHand);
         
 		// 양쪽 슬롯을 동시에 비움
 		LeftHandItem = nullptr;
@@ -159,14 +159,14 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 	{
 		if (SlotToDrop == EVGEquipmentSlot::LeftHand)
 		{
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Equipped_State_Weapon);
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Equipped_State_MissionItem);
+			EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_OneHand);
+			EquipmentTags.RemoveTag(VigilantEquipmentTags::Item_Mission);
 			LeftHandItem = nullptr;
 		}
 		else
 		{
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Equipped_State_Weapon);
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Equipped_State_MissionItem);
+			EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_OneHand);
+			EquipmentTags.RemoveTag(VigilantEquipmentTags::Item_Mission);
 			RightHandItem = nullptr;
 		}
 		UE_LOG(LogTemp, Log, TEXT("서버: 한손 아이템 버리기 완료"));
