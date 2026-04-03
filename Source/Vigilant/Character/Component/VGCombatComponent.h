@@ -51,6 +51,9 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_TryAttack(bool bIsHeavy, int32 ExpectedComboIndex);
 	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ProcessHit(AActor* HitActor);
+	
 	UFUNCTION(Client, Reliable)
 	void Client_CancelAttackPrediction();
 	
@@ -79,8 +82,7 @@ private:
 	bool bIsBufferedAttackHeavy = false;
 	
 	// Hit Detection State
-	UPROPERTY()
-	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
-	
-	
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<AActor>> HitActorsThisSwing;
+
 };

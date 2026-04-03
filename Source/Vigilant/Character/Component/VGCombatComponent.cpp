@@ -4,6 +4,7 @@
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/Character.h"
 #include "DrawDebugHelpers.h"
+#include "VGStatComponent.h"
 
 UVGCombatComponent::UVGCombatComponent()
 {
@@ -247,36 +248,37 @@ void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage
 
 void UVGCombatComponent::StartMeleeTrace()
 {
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+	{
+		return;
+	}
+
 	HitActorsThisSwing.Empty();
 }
 
 void UVGCombatComponent::TickMeleeTrace()
 {
-	AActor* Owner = GetOwner();
-	if (!Owner)
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
 	{
 		return;
 	}
-	
-	if (!Owner->HasAuthority())
-	{
-		return;
-	}
-	
+
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (!Data)
 	{
 		return;
 	}
 
-	FVector StartLoc = Owner->GetActorLocation();
-	FVector ForwardVector = Owner->GetActorForwardVector();
+	FVector StartLoc = OwnerPawn->GetActorLocation();
+	FVector ForwardVector = OwnerPawn->GetActorForwardVector();
 	FVector EndLoc = StartLoc + (ForwardVector * 150.0f);
 	float AttackRadius = 45.0f;
 
 	FCollisionShape Sphere = FCollisionShape::MakeSphere(AttackRadius);
 	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(Owner);
+	QueryParams.AddIgnoredActor(OwnerPawn);
 
 	TArray<FHitResult> HitResults;
 
@@ -296,7 +298,7 @@ void UVGCombatComponent::TickMeleeTrace()
 	DrawDebugCapsule(GetWorld(), StartLoc + (EndLoc - StartLoc) * 0.5f, FVector::Distance(StartLoc, EndLoc) * 0.5f,
 					 AttackRadius, ForwardVector.Rotation().Quaternion(), DrawColor, false, 2.0f);
 	 */
-	
+
 	if (bHit)
 	{
 		for (const FHitResult& HitResult : HitResults)
@@ -305,7 +307,7 @@ void UVGCombatComponent::TickMeleeTrace()
 			if (HitActor && !HitActorsThisSwing.Contains(HitActor))
 			{
 				HitActorsThisSwing.Add(HitActor);
-				UE_LOG(LogTemp, Warning, TEXT("[Server] HitActor: %s"), *HitActor->GetName());
+				Server_ProcessHit(HitActor);
 			}
 		}
 	}
@@ -313,5 +315,44 @@ void UVGCombatComponent::TickMeleeTrace()
 
 void UVGCombatComponent::StopMeleeTrace()
 {
-	//  TODO: 구현 예정
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+	{
+		return;
+	}
+	
+	HitActorsThisSwing.Empty();
+}
+
+
+void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
+{
+	AActor* Owner = GetOwner();
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+
+	if (!Owner || !Data || !HitActor)
+	{
+		return;
+	}
+
+	// Validation
+	float Distance = FVector::Distance(Owner->GetActorLocation(), HitActor->GetActorLocation());
+	float MaxAllowedDistance = 300.0f;
+
+	if (Distance <= MaxAllowedDistance)
+	{
+		UVGStatComponent* StatComp = HitActor->FindComponentByClass<UVGStatComponent>();
+		if (StatComp)
+		{
+			StatComp->ApplyDamage(Data->BaseDamage);
+			
+			UE_LOG(LogTemp, Warning, TEXT("[Server] Validated Client Hit on: %s, Applying %f Damage! Current HP: %f"),
+				   *HitActor->GetName(), Data->BaseDamage, StatComp->GetCurrentHP());
+		}
+	}
+}
+
+bool UVGCombatComponent::Server_ProcessHit_Validate(AActor* HitActor)
+{
+	return true;
 }

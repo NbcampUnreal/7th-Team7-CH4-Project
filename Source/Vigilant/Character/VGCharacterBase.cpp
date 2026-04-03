@@ -5,6 +5,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Component/VGCombatComponent.h"
+#include "Component/VGStatComponent.h"
+
 AVGCharacterBase::AVGCharacterBase()
 : MoveAction(nullptr),
   JumpAction(nullptr),
@@ -34,6 +36,9 @@ AVGCharacterBase::AVGCharacterBase()
 	
 	// create the combat component
 	CombatComponent = CreateDefaultSubobject<UVGCombatComponent>(TEXT("CombatComponent"));
+	
+	// create the stat component
+	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
 }
 
 void AVGCharacterBase::BeginPlay()

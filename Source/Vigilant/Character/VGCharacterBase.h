@@ -8,6 +8,7 @@ class UInputAction;
 class UCameraComponent;
 class UVGCombatComponent;
 class USpringArmComponent;
+class UVGStatComponent;
 
 struct FInputActionValue;
 
@@ -25,8 +26,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
   
-  UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UVGCombatComponent> CombatComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UVGStatComponent> StatComponent;
+	
 	
 	// Camera Settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
