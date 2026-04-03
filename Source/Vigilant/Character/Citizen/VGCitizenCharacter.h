@@ -75,4 +75,8 @@ protected:
 	void SelectSlot(const FInputActionValue& Value);
 	
 	void Dodge();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dodge")
+	TObjectPtr<UAnimMontage> DodgeAnimation;
+	UFUNCTION()
+	void OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled = false);
 };

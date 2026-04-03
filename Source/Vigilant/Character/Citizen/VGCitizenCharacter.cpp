@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Common/VGGameplayTags.h"
 
 void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
@@ -137,4 +138,40 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 
 void AVGCitizenCharacter::Dodge()
 {
+	// 특정 태그 보유시 리턴, 추가가능
+	if (CharacterGameplayTags.HasTag(VigilantCharacter::Dodge))
+	{
+		return;
+	}
+
+
+	CharacterGameplayTags.AddTag(VigilantCharacter::Dodge);
+
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		AnimInstance->Montage_Play(DodgeAnimation);
+
+		FOnMontageBlendingOutStarted BlendingOutStarted;
+		BlendingOutStarted.BindUObject(this, &AVGCitizenCharacter::OnMontageCompleted);
+		AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutStarted, DodgeAnimation);
+		
+		//루트모션이 아닌 직접 날리자.. 멀티플레이상황에서는 루트모션이 버벅거림
+		
+	}
+}
+
+
+void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled)
+{
+	
+	CharacterGameplayTags.RemoveTag(VigilantCharacter::Dodge);
+	if (bWasCancelled == true)
+	{
+		//회피가 불명의 이유로 중단되었을때 로직
+		
+	}
+	else
+	{
+		//회피가 잘 끝났을 때 로직
+	}
 }
