@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "VGCharacterBase.generated.h"
 
@@ -19,7 +20,12 @@ class VIGILANT_API AVGCharacterBase : public ACharacter
 
 	// Components
 protected:
-
+	/**
+	 * 
+	 */
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GameplayTags", meta = (AllowPrivateAccess = "true"))
+	FGameplayTagContainer CharacterTags;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 

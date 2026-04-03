@@ -8,9 +8,8 @@
 
 class UVGBossDataAsset;
 class UAnimMontage;
-/**
- * 
- */
+class UVGCombatComponent;
+
 UCLASS()
 class VIGILANT_API AVGBossCharacter : public AVGCharacterBase
 {
@@ -21,13 +20,6 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	// 클라이언트(또는 서버)가 공격을 실행할 때 호출하는 서버 RPC (데미지 판정용)
-	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "BossAction")
-	void Server_PerformAttack();
-
-	// 서버가 모든 클라이언트에게 이펙트와 애니메이션 재생을 지시하는 멀티캐스트 RPC (시각 효과용)
-	UFUNCTION(NetMulticast, Unreliable)
-	void NetMulticast_PlayAttackEffects();
 protected:
 	virtual void BeginPlay() override;
 	
