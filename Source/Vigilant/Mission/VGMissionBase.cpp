@@ -21,6 +21,42 @@ void AVGMissionBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ThisClass, CurrentStateTag);
 }
 
+void AVGMissionBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (HasAuthority())
+	{
+		if (UVGMissionSubsystem* Subsystem =
+			GetWorld()->GetSubsystem<UVGMissionSubsystem>())
+		{
+			Subsystem->RegisterMission(this);
+		}
+		
+		// 에디터에서 등록된 기믹들에 바인딩
+		for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
+		{
+			if (Gimmick)
+			{
+				Gimmick->SetOwnerMission(this);
+				Gimmick->OnGimmickStateChanged.AddDynamic(
+					this, &AVGMissionBase::OnGimmickStateChanged);
+			}
+		}
+		
+		// 에디터에서 등록된 Item 바인딩
+		for (AVGMissionItemBase* Item : MissionItems)
+		{
+			if (Item)
+			{
+				Item->SetOwnerMission(this);
+				Item->OnItemStateChanged.AddDynamic(
+					this, &AVGMissionBase::OnItemStateChanged);
+			}
+		}
+	}
+}
+
 void AVGMissionBase::SetMissionState(FGameplayTag NewStateTag)
 {
 	if (!HasAuthority())
@@ -57,7 +93,7 @@ int32 AVGMissionBase::GetMissionID() const
 	return MissionID;
 }
 
-void AVGMissionBase::OnConditionMet()
+void AVGMissionBase::OnConditionMet(AActor* Reporter)
 {
 	if (!HasAuthority())
 	{
@@ -69,13 +105,57 @@ void AVGMissionBase::OnConditionMet()
 		return;
 	}
 	
-	// Todo 미션별 달성 조건 판단 로직 구현
-	CompleteMission();
+	// 판정은 자식한테 위임
+	if (CheckMissionCondition(Reporter))
+	{
+		CompleteMission();
+	}
 }
 
 void AVGMissionBase::OnRep_CurrentStateTag()
 {
 	// Todo State 변경에 따른 피드백 처리
+	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s] Mission Clear!"), *GetName());
+		
+		if (HasAuthority())
+		{
+			for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
+			{
+				if (Gimmick)
+				{
+					Gimmick->SetStateTag(VigilantMissionTags::GimmickCompleted);
+				}
+			}
+		
+			for (AVGMissionItemBase* Item : MissionItems)
+			{
+				if (Item)
+				{
+					// Item->SetStateTag(VigilantMissionTags::MissionCompleted);
+				}
+			}
+		}
+	}
+}
+
+void AVGMissionBase::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
+{
+	
+}
+
+void AVGMissionBase::OnItemStateChanged(AVGMissionItemBase* Gimmick, FGameplayTag Tag)
+{
+}
+
+bool AVGMissionBase::CheckMissionCondition(AActor* Reporter)
+{
+	// 자식이 override 안 하면 런타임에 경고
+	ensureMsgf(false, 
+		TEXT("CheckMissionCondition must be overridden in %s"),
+		*GetClass()->GetName());
+	return false;
 }
 
 void AVGMissionBase::CompleteMission()
@@ -91,13 +171,6 @@ void AVGMissionBase::CompleteMission()
 
 void AVGMissionBase::NotifyMissionCompleted()
 {
-	// Subsystem에 완료 보고
-	if (UVGMissionSubsystem* MissionSubsystem =
-		GetWorld()->GetSubsystem<UVGMissionSubsystem>())
-	{
-		MissionSubsystem->OnMissionCompleted(MissionID);
-	}
-
 	// UI 및 외부 시스템용 델리게이트 브로드캐스트
 	OnMissionCompleted.Broadcast(MissionID);
 }

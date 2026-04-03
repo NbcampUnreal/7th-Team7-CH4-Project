@@ -9,6 +9,31 @@ AVGMissionItemBase::AVGMissionItemBase()
 	bReplicates = true;
 }
 
+void AVGMissionItemBase::SetOwnerMission(AVGMissionBase* InOwnerMission)
+{
+	if (!InOwnerMission)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[%s] SetOwnerMission - OwnerMission is missing."), *GetName());
+		return;
+	}
+	
+	OwnerMission = InOwnerMission;
+	UE_LOG(LogTemp, Display, TEXT("[%s] SetOwnerMission - OwnerMission is %s"), *GetName(), *OwnerMission->GetName());
+}
+
+void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	ItemStateTag = NewStateTag;
+	OnRep_ItemStateTag();
+	
+	OnItemStateChanged.Broadcast(this, NewStateTag);
+}
+
 bool AVGMissionItemBase::CanInteractWith(AVGCharacterBase* Interactor) const
 {
 	return Super::CanInteractWith(Interactor);
@@ -82,7 +107,7 @@ void AVGMissionItemBase::ReportConditionMet()
 		return;
 	}
 
-	OwnerMission->OnConditionMet();
+	OwnerMission->OnConditionMet(this);
 }
 
 // -----------------------------------------------
@@ -93,4 +118,9 @@ void AVGMissionItemBase::OnRep_Carrier()
 {
 	// TODO: 캐리 상태 변경에 따른 시각적 피드백 처리
 	//       (예: 피킹 이펙트 재생, 아웃라인 제거 등)
+}
+
+void AVGMissionItemBase::OnRep_ItemStateTag()
+{
+	// Todo State 변경에 따른 피드백 처리
 }
