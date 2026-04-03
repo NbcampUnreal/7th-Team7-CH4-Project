@@ -18,11 +18,11 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::PressureGimmick, "Mission.Gimmick.Ty
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::StatueGimmick, "Mission.Gimmick.Type.Statue");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::LeverGimmick, "Mission.Gimmick.Type.Lever");
 
-// 장비 상태 태그 정의
-UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Equipped_State_Weapon, "State.Equipped.Weapon");
-UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Equipped_State_Shield, "State.Equipped.Shield");
-UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Equipped_State_TwoHanded, "State.Equipped.TwoHanded");
-UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Equipped_State_MissionItem, "State.Equipped.MissionItem");
+// 장비 태그 정의
+UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_OneHand, "Item.Type.Weapon.OneHand");
+UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_TwoHand, "Item.Type.Weapon.TwoHand");
+UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_Shield, "Item.Type.Weapon.Shield");
+UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Item_Mission, "Item.Type.Special.Mission");
 
 VGGameplayTags::VGGameplayTags()
 {
