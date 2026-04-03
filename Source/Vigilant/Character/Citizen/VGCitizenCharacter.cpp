@@ -37,13 +37,21 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		if (InteractAction)
+		{
 			EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::Interact);
-
+		}
 		if (DropAction)
+		{
 			EnhancedInput->BindAction(DropAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::DropItem);
-
+		}
 		if (SlotSelectAction)
+		{
 			EnhancedInput->BindAction(SlotSelectAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::SelectSlot);
+		}
+		if (DodgeAction)
+		{
+			EnhancedInput->BindAction(DodgeAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::Dodge);
+		}
 	}
 }
 
@@ -125,4 +133,8 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Warning, TEXT("오른손 슬롯 활성화"));
 		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
 	}
+}
+
+void AVGCitizenCharacter::Dodge()
+{
 }

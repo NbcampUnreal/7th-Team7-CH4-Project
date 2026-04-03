@@ -60,6 +60,9 @@ protected:
 	// 슬롯 선택(1, 2) 입력 액션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* SlotSelectAction;
+	//구르기
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* DodgeAction;
 	// 현재 활성화된 슬롯을 기억할 변수 (기본값: 오른손)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	EVGEquipmentSlot ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
@@ -70,4 +73,6 @@ protected:
 	void DropItem();
 	// 슬롯 선택 실행 함수
 	void SelectSlot(const FInputActionValue& Value);
+	
+	void Dodge();
 };
