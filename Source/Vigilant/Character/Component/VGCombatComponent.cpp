@@ -250,6 +250,10 @@ void UVGCombatComponent::StartMeleeTrace()
 	// TODO: 구현 예정
 }
 
+void UVGCombatComponent::TickMeleeTrace()
+{
+}
+
 void UVGCombatComponent::StopMeleeTrace()
 {
 	//  TODO: 구현 예정

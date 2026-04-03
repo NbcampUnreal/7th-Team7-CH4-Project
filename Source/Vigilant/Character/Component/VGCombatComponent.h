@@ -32,6 +32,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
 	void StartMeleeTrace();
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
+	void TickMeleeTrace();
+	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
 	void StopMeleeTrace();
 	
 	// --- 
