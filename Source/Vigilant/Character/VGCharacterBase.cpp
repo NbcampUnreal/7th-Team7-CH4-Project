@@ -93,14 +93,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
-	{
-		//구르기상태는 이동불가
-		return;
-	}
+
 	
 	if (GetController() != nullptr)
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 3,FColor::Red, TEXT("움직임"));
 		const FVector2D MovementVector = Value.Get<FVector2D>();
 
 		// find out which way is forward

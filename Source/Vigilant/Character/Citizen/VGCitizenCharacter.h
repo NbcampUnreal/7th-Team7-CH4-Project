@@ -38,8 +38,6 @@ public:
 public:
 	AVGCitizenCharacter();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character|Tags")
-	FGameplayTagContainer CharacterGameplayTags;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
@@ -74,9 +72,14 @@ protected:
 	// 슬롯 선택 실행 함수
 	void SelectSlot(const FInputActionValue& Value);
 	
+	//base의 무브 함수 재정의
+	virtual void Move(const FInputActionValue& Value) override;
+	
 	void Dodge();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dodge")
 	TObjectPtr<UAnimMontage> DodgeAnimation;
+	
 	UFUNCTION()
 	void OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled = false);
 };

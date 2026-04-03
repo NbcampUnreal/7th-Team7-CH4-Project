@@ -11,17 +11,17 @@
 
 void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
-	TagContainer = CharacterGameplayTags;
+	TagContainer = CharacterTags;
 }
 
 void AVGCitizenCharacter::AddGameplayTag(FGameplayTag TagToAdd)
 {
-	CharacterGameplayTags.AddTag(TagToAdd);
+	CharacterTags.AddTag(TagToAdd);
 }
 
 void AVGCitizenCharacter::RemoveGameplayTag(FGameplayTag TagToRemove)
 {
-	CharacterGameplayTags.RemoveTag(TagToRemove);
+	CharacterTags.RemoveTag(TagToRemove);
 }
 
 AVGCitizenCharacter::AVGCitizenCharacter()
@@ -136,16 +136,29 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 	}
 }
 
+void AVGCitizenCharacter::Move(const FInputActionValue& Value)
+{
+	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
+	{
+		//구르기상태는 이동불가
+		GEngine->AddOnScreenDebugMessage(-1, 3,FColor::Red, TEXT("움직이면안됨"));
+		return;
+	}
+	
+	Super::Move(Value);
+	
+}
+
 void AVGCitizenCharacter::Dodge()
 {
 	// 특정 태그 보유시 리턴, 추가가능
-	if (CharacterGameplayTags.HasTag(VigilantCharacter::Dodge))
+	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
 	{
 		return;
 	}
 
 
-	CharacterGameplayTags.AddTag(VigilantCharacter::Dodge);
+	CharacterTags.AddTag(VigilantCharacter::Dodge);
 
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
@@ -164,7 +177,7 @@ void AVGCitizenCharacter::Dodge()
 void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled)
 {
 	
-	CharacterGameplayTags.RemoveTag(VigilantCharacter::Dodge);
+	CharacterTags.RemoveTag(VigilantCharacter::Dodge);
 	if (bWasCancelled == true)
 	{
 		//회피가 불명의 이유로 중단되었을때 로직

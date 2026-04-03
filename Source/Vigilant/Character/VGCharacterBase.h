@@ -78,7 +78,7 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// Input Handlers
-	void Move(const FInputActionValue& Value);
+	virtual void Move(const FInputActionValue& Value);
 	void StartJump(const FInputActionValue& Value);
 	void StopJump(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
