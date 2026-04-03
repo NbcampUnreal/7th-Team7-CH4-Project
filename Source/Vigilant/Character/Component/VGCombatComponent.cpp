@@ -3,6 +3,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/Character.h"
+#include "DrawDebugHelpers.h"
 
 UVGCombatComponent::UVGCombatComponent()
 {
@@ -51,7 +52,7 @@ void UVGCombatComponent::TryLightAttack()
 	{
 		return;
 	}
-	
+
 	// 1. 콤보 윈도우 안에 있다면: 버퍼가 인풋이 됨
 	if (bCanChainCombo)
 	{
@@ -62,18 +63,18 @@ void UVGCombatComponent::TryLightAttack()
 		}
 		return;
 	}
-	
+
 	// 2. 이미 공격중이고, 콤보 윈도우 안에 없다면: 공격 입력 무시됨
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->LightAttackMontage))
 	{
 		return;
 	}
-	
+
 	// 3. 새로운 공격
 	CurrentComboIndex = 0;
 	PerformAttack(false);
-	
+
 	if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
 	{
 		Server_TryAttack(false, CurrentComboIndex);
@@ -88,7 +89,7 @@ void UVGCombatComponent::TryHeavyAttack()
 	{
 		return;
 	}
-	
+
 	if (bCanChainCombo)
 	{
 		if (!bHasBufferedAttack)
@@ -98,21 +99,20 @@ void UVGCombatComponent::TryHeavyAttack()
 		}
 		return;
 	}
-	
+
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->HeavyAttackMontage))
 	{
 		return;
 	}
-	
+
 	CurrentComboIndex = 0;
 	PerformAttack(true);
-	
+
 	if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
 	{
 		Server_TryAttack(true, CurrentComboIndex);
 	}
-	
 }
 
 void UVGCombatComponent::PerformAttack(bool bIsHeavy)
@@ -122,13 +122,13 @@ void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 	{
 		return;
 	}
-	
+
 	UAnimMontage* MontageToPlay = bIsHeavy ? Data->HeavyAttackMontage : Data->LightAttackMontage;
 	if (!MontageToPlay)
 	{
 		return;
 	}
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter)
 	{
@@ -149,7 +149,7 @@ void UVGCombatComponent::OnComboWindowOpened()
 	{
 		return;
 	}
-	
+
 	bCanChainCombo = true;
 	bHasBufferedAttack = false;
 }
@@ -161,16 +161,16 @@ void UVGCombatComponent::OnComboWindowClosed()
 	{
 		return;
 	}
-	
+
 	bCanChainCombo = false;
-	
+
 	if (bHasBufferedAttack)
 	{
 		CurrentComboIndex++;
 		bHasBufferedAttack = false;
-		
+
 		PerformAttack(bIsBufferedAttackHeavy);
-		
+
 		if (!OwnerPawn->HasAuthority())
 		{
 			Server_TryAttack(bIsBufferedAttackHeavy, CurrentComboIndex);
@@ -191,9 +191,9 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 {
 	CurrentComboIndex = ExpectedComboIndex;
 	PerformAttack(bIsHeavy);
-	
+
 	// Multicast
-	UVGWeaponDataAsset *Data = GetCurrentCombatData();
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (Data)
 	{
 		UAnimMontage* MontageToPlay = bIsHeavy ? Data->HeavyAttackMontage : Data->LightAttackMontage;
@@ -220,19 +220,19 @@ void UVGCombatComponent::Client_CancelAttackPrediction_Implementation()
 
 
 void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage* MontageToPlay, FName SectionName,
-	float PlayRate)
+                                                                    float PlayRate)
 {
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (!OwnerPawn)
 	{
 		return;
 	}
-	
+
 	if (OwnerPawn->IsLocallyControlled() || (OwnerPawn->HasAuthority() && IsNetMode(NM_DedicatedServer)))
 	{
 		return;
 	}
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (OwnerCharacter)
 	{
@@ -247,11 +247,68 @@ void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage
 
 void UVGCombatComponent::StartMeleeTrace()
 {
-	// TODO: 구현 예정
+	HitActorsThisSwing.Empty();
 }
 
 void UVGCombatComponent::TickMeleeTrace()
 {
+	AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return;
+	}
+	
+	if (!Owner->HasAuthority())
+	{
+		return;
+	}
+	
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	if (!Data)
+	{
+		return;
+	}
+
+	FVector StartLoc = Owner->GetActorLocation();
+	FVector ForwardVector = Owner->GetActorForwardVector();
+	FVector EndLoc = StartLoc + (ForwardVector * 150.0f);
+	float AttackRadius = 45.0f;
+
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(AttackRadius);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(Owner);
+
+	TArray<FHitResult> HitResults;
+
+	bool bHit = GetWorld()->SweepMultiByChannel(
+		HitResults,
+		StartLoc,
+		EndLoc,
+		FQuat::Identity,
+		ECC_Pawn,
+		Sphere,
+		QueryParams
+	);
+
+	// 디버깅
+	/**
+	 *FColor DrawColor = bHit ? FColor::Green : FColor::Red;
+	DrawDebugCapsule(GetWorld(), StartLoc + (EndLoc - StartLoc) * 0.5f, FVector::Distance(StartLoc, EndLoc) * 0.5f,
+					 AttackRadius, ForwardVector.Rotation().Quaternion(), DrawColor, false, 2.0f);
+	 */
+	
+	if (bHit)
+	{
+		for (const FHitResult& HitResult : HitResults)
+		{
+			AActor* HitActor = HitResult.GetActor();
+			if (HitActor && !HitActorsThisSwing.Contains(HitActor))
+			{
+				HitActorsThisSwing.Add(HitActor);
+				UE_LOG(LogTemp, Warning, TEXT("[Server] HitActor: %s"), *HitActor->GetName());
+			}
+		}
+	}
 }
 
 void UVGCombatComponent::StopMeleeTrace()
