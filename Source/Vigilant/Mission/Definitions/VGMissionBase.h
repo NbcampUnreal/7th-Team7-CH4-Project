@@ -35,6 +35,7 @@ public:
 	virtual void CompleteMission();
 	void NotifyMissionCompleted();
 	
+	FString GetMissionDecription() const {return MissionDecription;}
 protected:
 	virtual void BeginPlay() override;
 	
@@ -57,13 +58,6 @@ protected:
 	virtual bool CheckMissionCondition(AActor* Reporter);
 	
 public:
-	// 에디터에서 이 미션에 사용될 기믹과 아이템을 직접 지정
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")
-	TArray<TObjectPtr<AVGMissionGimmickBase>> MissionGimmicks;
-	
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")
-	TArray<TObjectPtr<AVGMissionItemBase>> MissionItems;
-	
 	UPROPERTY(BlueprintAssignable)
 	FOnMissionCompleted OnMissionCompleted;
 	
@@ -71,6 +65,13 @@ public:
 	FOnMissionStateChanged OnMissionStateChanged;
 
 protected:
+	// 에디터에서 이 미션에 사용될 기믹과 아이템을 직접 지정
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")
+	TArray<TObjectPtr<AVGMissionGimmickBase>> MissionGimmicks;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")
+	TArray<TObjectPtr<AVGMissionItemBase>> MissionItems;
+	
 	// For TimeAttack
 	UPROPERTY(EditDefaultsOnly, Category = "Mission|TimeAttack")
 	float TimeLimit = 30.f;
@@ -92,4 +93,7 @@ protected:
 	
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
 	int32 MissionID = -1;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
+	FString MissionDecription;
 };

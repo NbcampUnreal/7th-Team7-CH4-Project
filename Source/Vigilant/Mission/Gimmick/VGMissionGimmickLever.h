@@ -2,11 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "VGMissionGimmickBase.h"
-#include "Interaction/VGInteractable.h"
 #include "VGMissionGimmickLever.generated.h"
 
 UCLASS()
-class VIGILANT_API AVGMissionGimmickLever : public AVGMissionGimmickBase, public IVGInteractable
+class VIGILANT_API AVGMissionGimmickLever : public AVGMissionGimmickBase
 {
 	GENERATED_BODY()
 
@@ -17,12 +16,10 @@ public:
 	bool IsActivated() const;
 	
 	// 상호작용할 때마다 On/Off 토글
-	virtual bool CanInteract_Implementation(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteract_Implementation(AVGCharacterBase* Interactor) override;
+	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 
 protected:
-	virtual void BeginPlay() override;
-
 	void Toggle();
 	
 	virtual void OnRep_GimmickStateTag() override;

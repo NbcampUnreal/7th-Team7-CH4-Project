@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "Interaction/VGInteractableActorBase.h"
 #include "Mission/VGMissionObjectInterface.h"
+#include "Equipment/VGEquippableActor.h"
 #include "VGMissionItemBase.generated.h"
 
 class AVGMissionBase;
@@ -17,7 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FGameplayTag, NewStateTag);
 
 UCLASS(Abstract)
-class VIGILANT_API AVGMissionItemBase : public AVGInteractableActorBase, public IVGMissionObjectInterface
+class VIGILANT_API AVGMissionItemBase : public AVGEquippableActor, public IVGMissionObjectInterface
 {
 	GENERATED_BODY()
 
@@ -37,10 +38,6 @@ public:
 	virtual void SetStateTag(FGameplayTag NewStateTag) override;
 	
 protected:
-	// IVGInteractable 구현
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor);
-
 	// 줍기 — 서버 전용
 	virtual void OnPickedUp(AVGCharacterBase* NewCarrier);
 
@@ -58,10 +55,6 @@ public:
 	FOnItemStateChanged OnItemStateChanged;
 	
 protected:
-	// 조건 충족 시 보고할 대상 미션 — 에디터에서 지정
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
-	TObjectPtr<AVGMissionBase> OwnerMission;
-
 	// 현재 이 아이템을 들고 있는 캐릭터
 	// Replicated: 아이템이 캐릭터를 따라 움직이는 시각 처리를 모든 클라이언트에 동기화
 	UPROPERTY(ReplicatedUsing = OnRep_Carrier)

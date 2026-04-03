@@ -70,7 +70,7 @@ AVGMissionBase* UVGMissionSubsystem::GetMissionsByID(int32 MissionID) const
 	return nullptr;
 }
 
-TArray<AVGMissionBase*> UVGMissionSubsystem::GetAllMissions() const
+const TArray<AVGMissionBase*>& UVGMissionSubsystem::GetAllMissions() const
 {
 	return RegisteredMissions;
 }

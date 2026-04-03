@@ -4,19 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "VGMissionGimmickBase.h"
-#include "Interaction/VGInteractable.h"
 #include "VGMissionGimmickStatue.generated.h"
 
 // VGMissionGimmickStatue.h
 UCLASS()
-class VIGILANT_API AVGMissionGimmickStatue : public AVGMissionGimmickBase, public IVGInteractable
+class VIGILANT_API AVGMissionGimmickStatue : public AVGMissionGimmickBase
 {
 	GENERATED_BODY()
 public:
 	AVGMissionGimmickStatue();
 	
-	virtual bool CanInteract_Implementation(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteract_Implementation(AVGCharacterBase* Interactor) override;
+	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 
 protected:
 	virtual void BeginPlay() override;

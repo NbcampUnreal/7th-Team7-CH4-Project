@@ -22,16 +22,6 @@ void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
 	OnItemStateChanged.Broadcast(this, NewStateTag);
 }
 
-bool AVGMissionItemBase::CanInteractWith(AVGCharacterBase* Interactor) const
-{
-	return Super::CanInteractWith(Interactor);
-}
-
-void AVGMissionItemBase::OnInteractWith(AVGCharacterBase* Interactor)
-{
-	Super::OnInteractWith(Interactor);
-}
-
 void AVGMissionItemBase::GetLifetimeReplicatedProps(
 	TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -53,9 +43,6 @@ void AVGMissionItemBase::OnPickedUp(AVGCharacterBase* NewCarrier)
 	}
 
 	Carrier = NewCarrier;
-
-	// 아이템이 캐릭터를 따라 움직이도록 Attach
-	// TODO: EquipComponent와 연계할 것
 	
 	// Carrier가 변경되었으므로 OnRep 수동 호출
 	OnRep_Carrier();
@@ -69,12 +56,7 @@ void AVGMissionItemBase::OnDropped()
 	}
 
 	Carrier = nullptr;
-
-	// 아이템을 월드에 분리
-	// TODO: EquipComponent와 연계할 것
-
-	// TODO: 내려놓을 위치 보정 (캐릭터 발 앞 등) 필요 시 SetActorLocation 추가
-
+	
 	OnRep_Carrier();
 }
 

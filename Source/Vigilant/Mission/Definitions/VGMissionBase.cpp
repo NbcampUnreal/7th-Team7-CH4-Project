@@ -157,6 +157,7 @@ void AVGMissionBase::CompleteMission()
 	}
     
 	SetMissionState(VigilantMissionTags::MissionCompleted);
+	GetWorldTimerManager().ClearTimer(MissionTimerHandle);
 }
 
 void AVGMissionBase::NotifyMissionCompleted()

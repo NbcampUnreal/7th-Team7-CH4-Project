@@ -6,9 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
 #include "Mission/VGMissionObjectInterface.h"
+#include "Interaction/VGInteractableActorBase.h"
 #include "VGMissionGimmickBase.generated.h"
-
-class AVGMissionBase;
 
 // Gimmick 상태 변경 시 어떤 기믹의 상태가 외부에 변했는지 알리기
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
@@ -17,7 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FGameplayTag, NewStateTag); 
 
 UCLASS()
-class VIGILANT_API AVGMissionGimmickBase : public AActor, public IVGMissionObjectInterface
+class VIGILANT_API AVGMissionGimmickBase : public AVGInteractableActorBase, public IVGMissionObjectInterface
 {
 	GENERATED_BODY()
 
@@ -28,6 +27,9 @@ public:
 	// 상속
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 	
 	// 미션 실패 시 리셋
 	UFUNCTION()
@@ -63,6 +65,13 @@ protected:
 	// BeginPlay에서 MissionBase가 자동 부여 — 에디터 지정 불필요
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Mission|Gimmick")
 	int32 GimmickIndex = -1;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	UParticleSystem* InactiveParticle;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	UParticleSystem* ActiveParticle;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	UParticleSystem* CompleteParticle;
 	
 private:
 	UMaterialInstanceDynamic* DynamicMaterialInstance;

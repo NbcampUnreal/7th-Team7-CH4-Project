@@ -1,6 +1,5 @@
 ﻿#include "VGMissionGimmickBase.h"
 #include "Net/UnrealNetwork.h"
-#include "Mission/Definitions/VGMissionBase.h"
 #include "Common/VGGameplayTags.h"
 
 AVGMissionGimmickBase::AVGMissionGimmickBase()
@@ -17,6 +16,15 @@ void AVGMissionGimmickBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ThisClass, GimmickStateTag);
+}
+
+bool AVGMissionGimmickBase::CanInteractWith(AVGCharacterBase* Interactor) const
+{
+	return false;
+}
+
+void AVGMissionGimmickBase::OnInteractWith(AVGCharacterBase* Interactor)
+{
 }
 
 void AVGMissionGimmickBase::ResetGimmickState()

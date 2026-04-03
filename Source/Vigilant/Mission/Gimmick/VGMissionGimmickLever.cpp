@@ -1,5 +1,6 @@
 ﻿#include "VGMissionGimmickLever.h"
 #include "Common/VGGameplayTags.h"
+#include "Character/VGCharacterBase.h"
 
 AVGMissionGimmickLever::AVGMissionGimmickLever()
 {
@@ -11,7 +12,7 @@ bool AVGMissionGimmickLever::IsActivated() const
 	return (GimmickStateTag == VigilantMissionTags::GimmickActive);
 }
 
-bool AVGMissionGimmickLever::CanInteract_Implementation(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
 {
 	if (bIsOneWay && IsActivated())
 	{
@@ -21,7 +22,7 @@ bool AVGMissionGimmickLever::CanInteract_Implementation(AVGCharacterBase* Intera
 	return true;
 }
 
-void AVGMissionGimmickLever::OnInteract_Implementation(AVGCharacterBase* Interactor)
+void AVGMissionGimmickLever::OnInteractWith(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority())
 	{
@@ -29,6 +30,13 @@ void AVGMissionGimmickLever::OnInteract_Implementation(AVGCharacterBase* Interac
 	}
 
 	Toggle();
+	// 상호작용한 플레이어에게만 이펙트 요청
+	// Interactor의 PlayerController를 통해 Client RPC 호출
+	if (APlayerController* PC =
+		Cast<APlayerController>(Interactor->GetController()))
+	{
+		// PC->Client_PlayInteractEffect(GetActorLocation());
+	}
 }
 
 void AVGMissionGimmickLever::Toggle()
@@ -51,11 +59,4 @@ void AVGMissionGimmickLever::Toggle()
 void AVGMissionGimmickLever::OnRep_GimmickStateTag()
 {
 	Super::OnRep_GimmickStateTag();
-}
-
-// Called when the game starts or when spawned
-void AVGMissionGimmickLever::BeginPlay()
-{
-	Super::BeginPlay();
-	
 }

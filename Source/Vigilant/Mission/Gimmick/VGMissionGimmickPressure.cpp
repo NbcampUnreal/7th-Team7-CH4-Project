@@ -59,7 +59,12 @@ void AVGMissionGimmickPressure::OnReleased()
 	{
 		return;
 	}
-
+	
+	if (bToggleMode)
+	{
+		return;
+	}
+	
 	// 이미 완료된 경우 상태 되돌리지 않음
 	if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
 	{
