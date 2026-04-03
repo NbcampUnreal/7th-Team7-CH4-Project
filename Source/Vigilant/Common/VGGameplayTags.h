@@ -61,13 +61,6 @@ namespace VigilantRoleTags
 // 플레이어 상태 및 행동 제어용
 namespace VigilantStateTags
 {
-	// 행동 제한
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(DisableAttack);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(DisableInteract);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(DisableMove);
-	
-	// 특수 상태
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Invincible);          // 무적
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(DuelParticipant);  // 막고라 당사자
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(DuelSpectator);    // 막고라 관람객
 	

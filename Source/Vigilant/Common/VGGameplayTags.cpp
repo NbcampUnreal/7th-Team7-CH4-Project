@@ -31,13 +31,7 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantRoleTags::Mafia,		  "Role.Player.Mafia");
 UE_DEFINE_GAMEPLAY_TAG(VigilantRoleTags::Alive,		  "Role.Status.Alive");
 UE_DEFINE_GAMEPLAY_TAG(VigilantRoleTags::Dead,		  "Role.Status.Dead");
 
-// 플레이어 상태 및 행동 제어
-UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::DisableAttack,   "State.Action.Disable.Attack");
-UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::DisableInteract, "State.Action.Disable.Interact");
-UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::DisableMove,     "State.Action.Disable.Move");
-
 // 플레이어 특수 상태
-UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::Invincible,      "State.Condition.Invincible");
 UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::DuelParticipant, "State.Condition.Duel.Participant");
 UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::DuelSpectator,   "State.Condition.Duel.Spectator");
 
