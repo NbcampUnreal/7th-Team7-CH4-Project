@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
-#include "Interaction/VGInteractableActorBase.h"
 #include "Mission/VGMissionObjectInterface.h"
 #include "VGMissionGimmickBase.generated.h"
 
@@ -18,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FGameplayTag, NewStateTag); 
 
 UCLASS()
-class VIGILANT_API AVGMissionGimmickBase : public AVGInteractableActorBase, public IVGMissionObjectInterface
+class VIGILANT_API AVGMissionGimmickBase : public AActor, public IVGMissionObjectInterface
 {
 	GENERATED_BODY()
 
@@ -37,17 +36,10 @@ public:
 	FGameplayTag GetStateTag() { return GimmickStateTag; }
 	void SetStateTag(FGameplayTag NewStateTag);
 	
-	void SetOwnerMission(AVGMissionBase* InOwnerMission);
-	
-	// 조건 충족 시 자식 클래스에서 호출 -> OwnerMission에 보고
-	virtual void ReportConditionMet();
-	
+	void SetGimmickIndex(int32 NewGimmickIndex);
+	int32 GetGimmickIndex() {return GimmickIndex;}
+
 protected:
-	// IVGInteractable 구현
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor);
-	
-	
 	UFUNCTION()
 	virtual void OnRep_GimmickStateTag();
 	
@@ -60,10 +52,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	
-	// 조건 충족 시 보고할 대상 미션 — 에디터에서 지정
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
-	TObjectPtr<AVGMissionBase> OwnerMission;
-	
 	// 기믹 현재 타입 태그
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Gimmick")
 	FGameplayTag GimmickTypeTag;
@@ -71,6 +59,10 @@ protected:
 	// 기믹 현재 상태 태그
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickStateTag)
 	FGameplayTag GimmickStateTag;
+	
+	// BeginPlay에서 MissionBase가 자동 부여 — 에디터 지정 불필요
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Mission|Gimmick")
+	int32 GimmickIndex = -1;
 	
 private:
 	UMaterialInstanceDynamic* DynamicMaterialInstance;

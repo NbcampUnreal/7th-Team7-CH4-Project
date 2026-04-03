@@ -11,7 +11,7 @@ bool AVGMissionGimmickLever::IsActivated() const
 	return (GimmickStateTag == VigilantMissionTags::GimmickActive);
 }
 
-bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickLever::CanInteract_Implementation(AVGCharacterBase* Interactor) const
 {
 	if (bIsOneWay && IsActivated())
 	{
@@ -21,7 +21,7 @@ bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
 	return true;
 }
 
-void AVGMissionGimmickLever::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickLever::OnInteract_Implementation(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority())
 	{
@@ -45,7 +45,6 @@ void AVGMissionGimmickLever::Toggle()
 	else
 	{
 		SetStateTag(VigilantMissionTags::GimmickActive);
-		ReportConditionMet();
 	}
 }
 
@@ -60,4 +59,3 @@ void AVGMissionGimmickLever::BeginPlay()
 	Super::BeginPlay();
 	
 }
-

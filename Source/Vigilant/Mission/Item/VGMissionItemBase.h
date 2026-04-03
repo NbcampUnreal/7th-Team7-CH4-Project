@@ -33,12 +33,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsCarried() const { return Carrier != nullptr; }
 
-	
-	virtual void SetOwnerMission(AVGMissionBase* InOwnerMission) override;
-	
-	// 목표 위치 도달 등 조건 충족 시 자식 클래스에서 호출
-	void ReportConditionMet();
-
 	virtual FGameplayTag GetStateTag() override { return ItemStateTag; }
 	virtual void SetStateTag(FGameplayTag NewStateTag) override;
 	

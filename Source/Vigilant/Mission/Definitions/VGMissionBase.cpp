@@ -1,7 +1,7 @@
 ﻿#include "VGMissionBase.h"
-#include "Gimmick/VGMissionGimmickBase.h"
-#include "Item/VGMissionItemBase.h"
-#include "VGMissionSubsystem.h"
+#include "Mission/Gimmick/VGMissionGimmickBase.h"
+#include "Mission/Item/VGMissionItemBase.h"
+#include "Mission/VGMissionSubsystem.h"
 #include "Net/UnrealNetwork.h"
 #include "Common/VGGameplayTags.h"
 
@@ -34,11 +34,12 @@ void AVGMissionBase::BeginPlay()
 		}
 		
 		// 에디터에서 등록된 기믹들에 바인딩
-		for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
+		for (int32 i = 0; i < MissionGimmicks.Num(); i++)
 		{
+			AVGMissionGimmickBase* Gimmick = MissionGimmicks[i];
 			if (Gimmick)
 			{
-				Gimmick->SetOwnerMission(this);
+				Gimmick->SetGimmickIndex(i); // 자동 인덱스 부여
 				Gimmick->OnGimmickStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnGimmickStateChanged);
 			}
@@ -49,7 +50,6 @@ void AVGMissionBase::BeginPlay()
 		{
 			if (Item)
 			{
-				Item->SetOwnerMission(this);
 				Item->OnItemStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnItemStateChanged);
 			}
@@ -71,6 +71,12 @@ void AVGMissionBase::SetMissionState(FGameplayTag NewStateTag)
 	
 	// 모든 상태 전환을 외부에 전달
     OnMissionStateChanged.Broadcast(MissionID, NewStateTag);
+	
+	// 완료 상태를 외부에 전달
+	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
+	{
+		NotifyMissionCompleted();
+	}
 }
 
 bool AVGMissionBase::HasMissionTag(FGameplayTag Tag) const
@@ -91,25 +97,6 @@ bool AVGMissionBase::HasMissionTag(FGameplayTag Tag) const
 int32 AVGMissionBase::GetMissionID() const
 {
 	return MissionID;
-}
-
-void AVGMissionBase::OnConditionMet(AActor* Reporter)
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-	
-	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
-	{
-		return;
-	}
-	
-	// 판정은 자식한테 위임
-	if (CheckMissionCondition(Reporter))
-	{
-		CompleteMission();
-	}
 }
 
 void AVGMissionBase::OnRep_CurrentStateTag()
@@ -142,7 +129,6 @@ void AVGMissionBase::OnRep_CurrentStateTag()
 
 void AVGMissionBase::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
 {
-	
 }
 
 void AVGMissionBase::OnItemStateChanged(AVGMissionItemBase* Gimmick, FGameplayTag Tag)
@@ -165,12 +151,17 @@ void AVGMissionBase::CompleteMission()
 		return;
 	}
 	
-    SetMissionState(VigilantMissionTags::MissionCompleted);
-	NotifyMissionCompleted();
+	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
+	{
+		return;
+	}
+    
+	SetMissionState(VigilantMissionTags::MissionCompleted);
 }
 
 void AVGMissionBase::NotifyMissionCompleted()
 {
+	UE_LOG(LogTemp, Log, TEXT("[%s] Mission Completed!"), *GetName());
 	// UI 및 외부 시스템용 델리게이트 브로드캐스트
 	OnMissionCompleted.Broadcast(MissionID);
 }

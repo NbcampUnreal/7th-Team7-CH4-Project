@@ -1,10 +1,7 @@
 ﻿#include "VGMissionPressureSequence.h"
-
-#include "SNegativeActionButton.h"
-#include "Gimmick/VGMissionGimmickPressure.h"
+#include "Mission/Gimmick/VGMissionGimmickPressure.h"
 #include "Common/VGGameplayTags.h"
-#include "EditorState/EditorState.h"
-#include "Gimmick/VGMissionGimmickBase.h"
+#include "Mission/Gimmick/VGMissionGimmickBase.h"
 
 AVGMissionPressureSequence::AVGMissionPressureSequence()
 {
@@ -13,27 +10,36 @@ AVGMissionPressureSequence::AVGMissionPressureSequence()
 	CurrentSequenceIndex = 0;
 }
 
-bool AVGMissionPressureSequence::CheckMissionCondition(AActor* Reporter)
+void AVGMissionPressureSequence::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[PressureSeq] %s Request CheckClear"), *Reporter->GetName());
+	if (Tag != VigilantMissionTags::GimmickActive)
+	{
+		return;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("[PressureSeq] %s Request CheckClear"), *Gimmick->GetName());
 	
 	AVGMissionGimmickPressure* Pressure =
-		Cast<AVGMissionGimmickPressure>(Reporter);
+		Cast<AVGMissionGimmickPressure>(Gimmick);
         
 	if (!Pressure)
 	{
-		return false;
+		return;
 	}
-	return CheckSequenceOrder(Pressure);
+	
+	if (CheckSequenceOrder(Pressure))
+	{
+		SetMissionState(VigilantMissionTags::MissionCompleted);
+	}
 }
 
 bool AVGMissionPressureSequence::CheckSequenceOrder(AVGMissionGimmickPressure* Pressure)
 {
 	UE_LOG(LogTemp, Warning,
 		TEXT("[PressureSeq] Reported index=%d | Expected=%d"),
-		Pressure->GetSequenceIndex(), CurrentSequenceIndex);
+		Pressure->GetGimmickIndex(), CurrentSequenceIndex);
 	
-	if (Pressure->GetSequenceIndex() != CurrentSequenceIndex)
+	if (Pressure->GetGimmickIndex() != CurrentSequenceIndex)
 	{
 		// 순서 틀림 — 모든 발판 상태 초기화
 		UE_LOG(LogTemp, Warning, TEXT("[PressureSeq] WRONG ORDER → Reset all"));

@@ -1,26 +1,53 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "VGMissionGimmickStatue.h"
+#include "Net/UnrealNetwork.h"
 
-
-#include "VGMissionGimmickStatue.h"
-
-
-// Sets default values
 AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 }
 
-// Called when the game starts or when spawned
+bool AVGMissionGimmickStatue::CanInteract_Implementation(AVGCharacterBase* Interactor) const
+{
+	return IVGInteractable::CanInteract_Implementation(Interactor);
+}
+
+void AVGMissionGimmickStatue::OnInteract_Implementation(AVGCharacterBase* Interactor)
+{
+	IVGInteractable::OnInteract_Implementation(Interactor);
+}
+
 void AVGMissionGimmickStatue::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
-// Called every frame
 void AVGMissionGimmickStatue::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
+void AVGMissionGimmickStatue::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(ThisClass, TargetAngle);
+}
+
+void AVGMissionGimmickStatue::OnRep_GimmickStateTag()
+{
+	Super::OnRep_GimmickStateTag();
+}
+
+void AVGMissionGimmickStatue::RotateToTarget()
+{
+}
+
+bool AVGMissionGimmickStatue::IsAtAnswerAngle() const
+{
+	return false;
+}
+
+void AVGMissionGimmickStatue::OnRep_TargetAngle()
+{
+}

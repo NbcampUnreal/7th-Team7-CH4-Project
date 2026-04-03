@@ -1,5 +1,5 @@
 ﻿#include "VGMissionItemBase.h"
-#include "Mission/VGMissionBase.h"
+#include "Mission/Definitions/VGMissionBase.h"
 #include "Character/VGCharacterBase.h"
 #include "Net/UnrealNetwork.h"
 
@@ -7,18 +7,6 @@ AVGMissionItemBase::AVGMissionItemBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
-}
-
-void AVGMissionItemBase::SetOwnerMission(AVGMissionBase* InOwnerMission)
-{
-	if (!InOwnerMission)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] SetOwnerMission - OwnerMission is missing."), *GetName());
-		return;
-	}
-	
-	OwnerMission = InOwnerMission;
-	UE_LOG(LogTemp, Display, TEXT("[%s] SetOwnerMission - OwnerMission is %s"), *GetName(), *OwnerMission->GetName());
 }
 
 void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
@@ -50,9 +38,8 @@ void AVGMissionItemBase::GetLifetimeReplicatedProps(
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, Carrier);
+	DOREPLIFETIME(ThisClass, ItemStateTag);
 }
-
-
 
 // -----------------------------------------------
 // 줍기 / 내려놓기 — 서버 전용
@@ -89,25 +76,6 @@ void AVGMissionItemBase::OnDropped()
 	// TODO: 내려놓을 위치 보정 (캐릭터 발 앞 등) 필요 시 SetActorLocation 추가
 
 	OnRep_Carrier();
-}
-
-// -----------------------------------------------
-// 조건 충족 보고 — 자식 클래스에서 호출
-// -----------------------------------------------
-
-void AVGMissionItemBase::ReportConditionMet()
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-
-	if (!OwnerMission)
-	{
-		return;
-	}
-
-	OwnerMission->OnConditionMet(this);
 }
 
 // -----------------------------------------------

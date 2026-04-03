@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "GameplayTagContainer.h"
-#include "Mission/VGMissionBase.h"
+#include "Mission/Definitions/VGMissionBase.h"
 #include "VGMissionSubsystem.generated.h"
 
 class AVGMissionBase;

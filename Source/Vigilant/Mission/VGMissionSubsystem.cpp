@@ -1,5 +1,5 @@
 ﻿#include "VGMissionSubsystem.h"
-#include "VGMissionBase.h"
+#include "Mission/Definitions/VGMissionBase.h"
 
 void UVGMissionSubsystem::RegisterMission(AVGMissionBase* Mission)
 {

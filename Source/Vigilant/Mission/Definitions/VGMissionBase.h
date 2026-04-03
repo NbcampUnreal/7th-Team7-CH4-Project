@@ -31,10 +31,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetMissionID() const;
 	
-	// Gimmick/Item → 여기로 보고
-	// Reporter가 누군지 알면 자식에서 캐스팅해서 판정
-	virtual void OnConditionMet(AActor* Reporter);
-	
 	// 완료 처리 — Base에서 담당
 	virtual void CompleteMission();
 	void NotifyMissionCompleted();

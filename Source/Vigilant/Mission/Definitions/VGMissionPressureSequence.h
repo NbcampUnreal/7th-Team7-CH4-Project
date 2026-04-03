@@ -15,8 +15,8 @@ public:
 	AVGMissionPressureSequence();
 	
 protected:
-	virtual bool CheckMissionCondition(AActor* Reporter) override;
-	
+	virtual void OnGimmickStateChanged(
+		AVGMissionGimmickBase* Gimmick, FGameplayTag Tag) override;
 private:
 	bool CheckSequenceOrder(AVGMissionGimmickPressure* Pressure);
 	
