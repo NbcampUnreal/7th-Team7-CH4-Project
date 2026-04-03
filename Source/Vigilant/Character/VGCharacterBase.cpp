@@ -1,16 +1,18 @@
 #include "Character/VGCharacterBase.h"
-
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
-#include "Component/VGCombatComponent.h"
-#include "Core/VGPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Equipment/VGEquippableActor.h"
 #include "DrawDebugHelpers.h"
-
+#include "Component/VGCombatComponent.h"
 AVGCharacterBase::AVGCharacterBase()
+: MoveAction(nullptr),
+  JumpAction(nullptr),
+  LookAction(nullptr),
+  SprintAction(nullptr),
+  CameraZoomAction(nullptr)
 {
+	
 	PrimaryActorTick.bCanEverTick = false;
 
 	// Configure Character Movement
@@ -44,48 +46,47 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		if (AVGPlayerController* PlayerController = Cast<AVGPlayerController>(GetController()))
-		{
-			if (PlayerController->MoveAction)
+			if (MoveAction)
 			{
-				EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered, this,
+				EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this,
 				                          &AVGCharacterBase::Move);
 			}
 
-			if (PlayerController->LookAction)
+			if (LookAction)
 			{
-				EnhancedInput->BindAction(PlayerController->LookAction, ETriggerEvent::Triggered, this,
+				EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this,
 				                          &AVGCharacterBase::Look);
 			}
 
-			if (PlayerController->JumpAction)
+			if (JumpAction)
 			{
-				EnhancedInput->BindAction(PlayerController->JumpAction, ETriggerEvent::Started, this,
+				EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::StartJump);
-				EnhancedInput->BindAction(PlayerController->JumpAction, ETriggerEvent::Completed, this,
+				EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this,
 				                          &AVGCharacterBase::StopJump);
 			}
 
-			if (PlayerController->SprintAction)
+			if (SprintAction)
 			{
-				EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Started, this,
+				EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::StartSprint);
-				EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Completed, this,
+				EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
 				                          &AVGCharacterBase::StopSprint);
 			}
+			
 
-			if (PlayerController->LightAttackAction)
+			if (CombatComponent->LightAttackAction)
 			{
-				EnhancedInput->BindAction(PlayerController->LightAttackAction, ETriggerEvent::Started, this,
+				EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::LightAttack);
 			}
 
-			if (PlayerController->HeavyAttackAction)
+			if (CombatComponent->HeavyAttackAction)
 			{
-				EnhancedInput->BindAction(PlayerController->HeavyAttackAction, ETriggerEvent::Started, this,
+				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::HeavyAttack);
 			}
-		}
+		
 	}
 }
 

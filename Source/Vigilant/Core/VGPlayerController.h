@@ -13,34 +13,14 @@ class VIGILANT_API AVGPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 	// Input
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
-	TObjectPtr<UInputMappingContext> InputMappingContext;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
-	TObjectPtr<UInputAction> JumpAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
-	TObjectPtr<UInputAction> MoveAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
-	TObjectPtr<UInputAction> LookAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
-	TObjectPtr<UInputAction> SprintAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
-	TObjectPtr<UInputAction> CameraZoomAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
-	TObjectPtr<UInputAction> LightAttackAction;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
-	TObjectPtr<UInputAction> HeavyAttackAction;
 
 	// functions
 public:
 	AVGPlayerController();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputMappingContext> InputMappingContext;
 	
 	virtual void BeginPlay() override;
 	virtual void AcknowledgePossession(class APawn* P) override; //LifeCycle함수 - 빙의 후 (클라이언트전용) 

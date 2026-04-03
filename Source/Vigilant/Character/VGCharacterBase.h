@@ -4,6 +4,7 @@
 #include "GameFramework/Character.h"
 #include "VGCharacterBase.generated.h"
 
+class UInputAction;
 class UCameraComponent;
 class UVGCombatComponent;
 class USpringArmComponent;
@@ -50,7 +51,23 @@ protected:
 	// Functions
 public:
 	AVGCharacterBase();
-	
+
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputAction> JumpAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputAction> MoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputAction> LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputAction> CameraZoomAction;
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
