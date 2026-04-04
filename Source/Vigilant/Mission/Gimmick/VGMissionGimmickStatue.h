@@ -27,9 +27,11 @@ protected:
 	virtual void OnRep_GimmickStateTag() override;
 
 private:
-	void RotateToTarget();
-	bool IsAtAnswerAngle() const;
+	void RotateToTarget(float DeltaTime);
 
+	// 정답 확인용
+	bool IsAtAnswerAngle() const;
+	
 	UFUNCTION()
 	void OnRep_TargetAngle();
 
@@ -54,9 +56,6 @@ protected:
 	// 현재 목표 각도 — Replicated
 	UPROPERTY(ReplicatedUsing = OnRep_TargetAngle)
 	float TargetAngle = 0.f;
-
-	// 회전 중 플래그 — 클라이언트 로컬
-	bool bIsRotating = false;
 
 	// 회전 속도
 	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Statue")
