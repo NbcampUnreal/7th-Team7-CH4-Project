@@ -84,5 +84,8 @@ private:
 	// Hit Detection State
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AActor>> HitActorsThisSwing;
+	
+	UPROPERTY(Transient)
+	TMap<FName, FVector> PreviousSocketLocations;
 
 };

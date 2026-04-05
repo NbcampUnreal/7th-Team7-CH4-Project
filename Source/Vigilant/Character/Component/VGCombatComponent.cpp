@@ -248,19 +248,31 @@ void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage
 
 void UVGCombatComponent::StartMeleeTrace()
 {
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter || !OwnerCharacter->IsLocallyControlled())
 	{
 		return;
 	}
 
 	HitActorsThisSwing.Empty();
+	PreviousSocketLocations.Empty();
+
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	if (Data && OwnerCharacter->GetMesh())
+	{
+		// Data Asset에 정의된 모든 소켓의 시작 위치 기록
+		for (const FName& SocketName : Data->HitboxSocketNames)
+		{
+			FVector StartLoc = OwnerCharacter->GetMesh()->GetSocketLocation(SocketName);
+			PreviousSocketLocations.Add(SocketName, StartLoc);
+		}
+	}
 }
 
 void UVGCombatComponent::TickMeleeTrace()
 {
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter || !OwnerCharacter->IsLocallyControlled())
 	{
 		return;
 	}
@@ -271,45 +283,53 @@ void UVGCombatComponent::TickMeleeTrace()
 		return;
 	}
 
-	FVector StartLoc = OwnerPawn->GetActorLocation();
-	FVector ForwardVector = OwnerPawn->GetActorForwardVector();
-	FVector EndLoc = StartLoc + (ForwardVector * 150.0f);
-	float AttackRadius = 45.0f;
-
+	float AttackRadius = 20.0f;
 	FCollisionShape Sphere = FCollisionShape::MakeSphere(AttackRadius);
+
 	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(OwnerPawn);
+	QueryParams.AddIgnoredActor(OwnerCharacter);
+	// QueryParams.bTraceComplex = true;
 
-	TArray<FHitResult> HitResults;
-
-	bool bHit = GetWorld()->SweepMultiByChannel(
-		HitResults,
-		StartLoc,
-		EndLoc,
-		FQuat::Identity,
-		ECC_Pawn,
-		Sphere,
-		QueryParams
-	);
-
-	// 디버깅
-	/**
-	 *FColor DrawColor = bHit ? FColor::Green : FColor::Red;
-	DrawDebugCapsule(GetWorld(), StartLoc + (EndLoc - StartLoc) * 0.5f, FVector::Distance(StartLoc, EndLoc) * 0.5f,
-					 AttackRadius, ForwardVector.Rotation().Quaternion(), DrawColor, false, 2.0f);
-	 */
-
-	if (bHit)
+	for (const FName& SocketName : Data->HitboxSocketNames)
 	{
-		for (const FHitResult& HitResult : HitResults)
+		if (!PreviousSocketLocations.Contains(SocketName))
 		{
-			AActor* HitActor = HitResult.GetActor();
-			if (HitActor && !HitActorsThisSwing.Contains(HitActor))
+			continue;
+		}
+
+		FVector PreviousLoc = PreviousSocketLocations[SocketName];
+		FVector CurrentLoc = OwnerCharacter->GetMesh()->GetSocketLocation(SocketName);
+
+		TArray<FHitResult> HitResults;
+
+		bool bHit = GetWorld()->SweepMultiByChannel(
+			HitResults,
+			PreviousLoc,
+			CurrentLoc,
+			FQuat::Identity,
+			ECC_Pawn,
+			Sphere,
+			QueryParams
+		);
+		DrawDebugCapsule(GetWorld(), PreviousLoc + (CurrentLoc - PreviousLoc) * 0.5f,
+		                 FVector::Distance(PreviousLoc, CurrentLoc) * 0.5f, AttackRadius,
+		                 (CurrentLoc - PreviousLoc).Rotation().Quaternion(), bHit ? FColor::Green : FColor::Red, false,
+		                 2.0f);
+
+		if (bHit)
+		{
+			for (const FHitResult& HitResult : HitResults)
 			{
-				HitActorsThisSwing.Add(HitActor);
-				Server_ProcessHit(HitActor);
+				AActor* HitActor = HitResult.GetActor();
+				if (HitActor && !HitActorsThisSwing.Contains(HitActor))
+				{
+					HitActorsThisSwing.Add(HitActor);
+					Server_ProcessHit(HitActor);
+				}
 			}
 		}
+		
+		PreviousSocketLocations[SocketName] = CurrentLoc;
 	}
 }
 
@@ -320,7 +340,7 @@ void UVGCombatComponent::StopMeleeTrace()
 	{
 		return;
 	}
-	
+
 	HitActorsThisSwing.Empty();
 }
 
@@ -345,9 +365,9 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 		if (StatComp)
 		{
 			StatComp->ApplyDamage(Data->BaseDamage);
-			
+
 			UE_LOG(LogTemp, Warning, TEXT("[Server] Validated Client Hit on: %s, Applying %f Damage! Current HP: %f"),
-				   *HitActor->GetName(), Data->BaseDamage, StatComp->GetCurrentHP());
+			       *HitActor->GetName(), Data->BaseDamage, StatComp->GetCurrentHP());
 		}
 	}
 }
