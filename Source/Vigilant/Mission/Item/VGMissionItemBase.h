@@ -10,6 +10,7 @@
 
 class AVGMissionBase;
 class AVGCharacterBase;
+class UVGMissionItemDataAsset;
 
 // Gimmick 상태 변경 시 어떤 기믹의 상태가 외부에 변했는지 알리기
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
@@ -25,24 +26,32 @@ class VIGILANT_API AVGMissionItemBase : public AVGEquippableActor, public IVGMis
 public:
 	AVGMissionItemBase();
 	
-	UFUNCTION(BlueprintCallable)
-	AVGCharacterBase* GetCarrier() const { return Carrier; }
-	
 	virtual void GetLifetimeReplicatedProps(
 			TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION(BlueprintCallable)
+	AVGCharacterBase* GetCarrier() const { return Carrier; }
+	
+	UFUNCTION(BlueprintCallable)
 	bool IsCarried() const { return Carrier != nullptr; }
 
+	// IVGMissionObjectInterface
 	virtual FGameplayTag GetStateTag() override { return ItemStateTag; }
 	virtual void SetStateTag(FGameplayTag NewStateTag) override;
+	
+	// 상호작용 — 줍기 진입점
+	UFUNCTION(BlueprintCallable)
+	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void OnInteractWith(AVGCharacterBase* Interactor);
+	
+	// 내려놓기 — EquipComponent에서 호출
+	virtual void OnDropped();
 	
 protected:
 	// 줍기 — 서버 전용
 	virtual void OnPickedUp(AVGCharacterBase* NewCarrier);
-
-	// 내려놓기 — 서버 전용
-	virtual void OnDropped();
 
 	UFUNCTION()
 	virtual void OnRep_Carrier();
@@ -54,7 +63,14 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnItemStateChanged OnItemStateChanged;
 	
+	// DataAsset — 메시, 소켓 정보 등
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<UVGMissionItemDataAsset> ItemDataAsset;
+	
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
+    TObjectPtr<UStaticMeshComponent> MeshComponent;
+	
 	// 현재 이 아이템을 들고 있는 캐릭터
 	// Replicated: 아이템이 캐릭터를 따라 움직이는 시각 처리를 모든 클라이언트에 동기화
 	UPROPERTY(ReplicatedUsing = OnRep_Carrier)

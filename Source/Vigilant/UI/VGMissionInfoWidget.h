@@ -16,7 +16,7 @@ class VIGILANT_API UVGMissionInfoWidget : public UUserWidget
 public:
 	void RegisterMission(AVGMissionBase* Mission);
 	
-	void OnRep_MissionStateChanged(int32 MissionID, FGameplayTag NewStateTag);
+	void HandleMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag);
 	
 protected:
 	UPROPERTY(meta=(BindWidget))

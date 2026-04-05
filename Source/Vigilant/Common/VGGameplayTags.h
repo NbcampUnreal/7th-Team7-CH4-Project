@@ -50,6 +50,15 @@ namespace VigilantMissionTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PressureGimmick);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(StatueGimmick);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(LeverGimmick);
+	// 미션 아이템 상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemInactive);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemCarried);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemPlaced); 
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemUsed); 
+	// 미션 아이템 타입
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(KeyItem);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CarryItem);
+	
 }
 
 namespace VigilantEquipmentTags

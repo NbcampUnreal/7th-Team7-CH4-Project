@@ -11,7 +11,7 @@ void UVGMissionInfoWidget::RegisterMission(AVGMissionBase* Mission)
 	}
 	
 	MissionDescriptionText->SetText(FText::FromString(Mission->GetMissionDecription()));
-	Mission->OnMissionStateChanged.AddDynamic(this, &UVGMissionInfoWidget::OnRep_MissionStateChanged);
+	Mission->OnMissionStateChanged.AddDynamic(this, &UVGMissionInfoWidget::HandleMissionStateChanged);
 }
 
 void UVGMissionInfoWidget::OnRep_MissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)

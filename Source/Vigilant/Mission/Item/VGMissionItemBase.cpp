@@ -2,6 +2,8 @@
 #include "Mission/Definitions/VGMissionBase.h"
 #include "Character/VGCharacterBase.h"
 #include "Net/UnrealNetwork.h"
+#include "Common/VGGameplayTags.h"
+#include "Character/Component/VGEquipmentComponent.h"
 
 AVGMissionItemBase::AVGMissionItemBase()
 {
@@ -20,6 +22,38 @@ void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
 	OnRep_ItemStateTag();
 	
 	OnItemStateChanged.Broadcast(this, NewStateTag);
+}
+
+bool AVGMissionItemBase::CanInteractWith(AVGCharacterBase* Interactor) const
+{
+	// 이미 누군가 들고 있으면 상호작용 불가
+	if (IsCarried()) return false;
+
+	// 이미 사용됐거나 놓인 상태면 불가
+	if (ItemStateTag != VigilantMissionTags::ItemInactive) return false;
+
+	return true;
+}
+
+void AVGMissionItemBase::OnInteractWith(AVGCharacterBase* Interactor)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	if (!CanInteractWith(Interactor))
+	{
+		return;
+	}
+	
+	// Interactor의 EquipmentComponent를 찾아 장착 요청
+	if (UVGEquipmentComponent* EquipComp =
+		Interactor->FindComponentByClass<UVGEquipmentComponent>())
+	{
+		// EquipmentComponent에서 슬롯 처리 및 Attach
+		EquipComp->Server_EquipItem(this, EVGEquipmentType::MissionItem);
+		OnPickedUp(Interactor);
+	}
 }
 
 void AVGMissionItemBase::GetLifetimeReplicatedProps(
@@ -44,6 +78,7 @@ void AVGMissionItemBase::OnPickedUp(AVGCharacterBase* NewCarrier)
 
 	Carrier = NewCarrier;
 	
+	SetStateTag(VigilantMissionTags::ItemCarried);
 	// Carrier가 변경되었으므로 OnRep 수동 호출
 	OnRep_Carrier();
 }
@@ -56,7 +91,7 @@ void AVGMissionItemBase::OnDropped()
 	}
 
 	Carrier = nullptr;
-	
+    SetStateTag(VigilantMissionTags::ItemInactive);
 	OnRep_Carrier();
 }
 

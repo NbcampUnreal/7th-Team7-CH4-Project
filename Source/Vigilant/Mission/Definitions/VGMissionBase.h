@@ -35,7 +35,7 @@ public:
 	virtual void CompleteMission();
 	void NotifyMissionCompleted();
 	
-	FString GetMissionDecription() const {return MissionDecription;}
+	FString GetMissionDescription() const {return MissionDescription;}
 protected:
 	virtual void BeginPlay() override;
 	
@@ -95,5 +95,5 @@ protected:
 	int32 MissionID = -1;
 	
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
-	FString MissionDecription;
+	FString MissionDescription;
 };
