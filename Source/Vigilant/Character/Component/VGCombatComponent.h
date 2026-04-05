@@ -18,6 +18,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetActiveCombatData(UVGWeaponDataAsset* NewData);
 	
+	// --- Test ---
+	UFUNCTION(Server, Reliable)
+	void Server_SetActiveCombatData(UVGWeaponDataAsset* NewData);
+	
 	// --- Inputs ---
 	void TryLightAttack();
 	void TryHeavyAttack();

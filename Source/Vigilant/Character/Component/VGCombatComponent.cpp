@@ -4,7 +4,9 @@
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/Character.h"
 #include "DrawDebugHelpers.h"
+#include "VGEquipmentComponent.h"
 #include "VGStatComponent.h"
+#include "Equipment/VGWeapon.h"
 
 UVGCombatComponent::UVGCombatComponent()
 {
@@ -18,6 +20,11 @@ void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData)
 	{
 		ActiveCombatData = NewData;
 	}
+}
+
+void UVGCombatComponent::Server_SetActiveCombatData_Implementation(UVGWeaponDataAsset* NewData)
+{
+	SetActiveCombatData(NewData);
 }
 
 void UVGCombatComponent::BeginPlay()
@@ -258,14 +265,35 @@ void UVGCombatComponent::StartMeleeTrace()
 	PreviousSocketLocations.Empty();
 
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
-	if (Data && OwnerCharacter->GetMesh())
+	if (!Data)
 	{
-		// Data Asset에 정의된 모든 소켓의 시작 위치 기록
-		for (const FName& SocketName : Data->HitboxSocketNames)
+		return;
+	}
+
+	// --- Test ---
+	UMeshComponent* TraceMesh = OwnerCharacter->GetMesh();
+
+	if (UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>())
+	{
+		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
 		{
-			FVector StartLoc = OwnerCharacter->GetMesh()->GetSocketLocation(SocketName);
-			PreviousSocketLocations.Add(SocketName, StartLoc);
+			if (UMeshComponent* WeaponMesh = EquippedWeapon->GetWeaponMesh())
+			{
+				TraceMesh = WeaponMesh;
+			}
 		}
+	}
+
+	if (!TraceMesh)
+	{
+		return;
+	}
+
+	// Data Asset에 정의된 모든 소켓의 시작 위치 기록
+	for (const FName& SocketName : Data->HitboxSocketNames)
+	{
+		FVector StartLoc = TraceMesh->GetSocketLocation(SocketName);
+		PreviousSocketLocations.Add(SocketName, StartLoc);
 	}
 }
 
@@ -283,9 +311,30 @@ void UVGCombatComponent::TickMeleeTrace()
 		return;
 	}
 
+	// --- Test ---
+	// 트레이스할 메시 결정: 기본값 주먹
+	UMeshComponent* TraceMesh = OwnerCharacter->GetMesh();
+
+	UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>();
+	if (EquipComp && EquipComp->RightHandItem)
+	{
+		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
+		{
+			if (EquippedWeapon->GetWeaponMesh())
+			{
+				TraceMesh = EquippedWeapon->GetWeaponMesh();
+			}
+		}
+	}
+	// ---
+
+	if (!TraceMesh)
+	{
+		return;
+	}
+
 	float AttackRadius = 20.0f;
 	FCollisionShape Sphere = FCollisionShape::MakeSphere(AttackRadius);
-
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(OwnerCharacter);
 	// QueryParams.bTraceComplex = true;
@@ -298,7 +347,7 @@ void UVGCombatComponent::TickMeleeTrace()
 		}
 
 		FVector PreviousLoc = PreviousSocketLocations[SocketName];
-		FVector CurrentLoc = OwnerCharacter->GetMesh()->GetSocketLocation(SocketName);
+		FVector CurrentLoc = TraceMesh->GetSocketLocation(SocketName);
 
 		TArray<FHitResult> HitResults;
 
@@ -328,7 +377,7 @@ void UVGCombatComponent::TickMeleeTrace()
 				}
 			}
 		}
-		
+
 		PreviousSocketLocations[SocketName] = CurrentLoc;
 	}
 }

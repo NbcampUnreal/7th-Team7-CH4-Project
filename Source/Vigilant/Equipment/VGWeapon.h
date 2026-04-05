@@ -2,9 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Equipment/VGEquippableActor.h"
-#include "Components/StaticMeshComponent.h"
 #include "VGWeapon.generated.h"
 
+class UStaticMeshComponent;
+class UVGWeaponDataAsset;
 
 UCLASS()
 class VIGILANT_API AVGWeapon : public AVGEquippableActor
@@ -18,7 +19,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	UStaticMeshComponent* GetWeaponMesh() const {return WeaponMesh;}
 	
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	UVGWeaponDataAsset* GetWeaponData() const {return WeaponData;}
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TObjectPtr<UVGWeaponDataAsset> WeaponData;
 };
