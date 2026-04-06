@@ -1,25 +1,25 @@
-﻿#include "VGMissionStatueAlign.h"
-#include "Common/VGGameplayTags.h"
+﻿#include "VGMissionAllGimmicksClear.h"
 #include "Mission/Gimmick/VGMissionGimmickBase.h"
+#include "Common/VGGameplayTags.h"
 
-AVGMissionStatueAlign::AVGMissionStatueAlign()
+AVGMissionAllGimmicksClear::AVGMissionAllGimmicksClear()
 {
 	PrimaryActorTick.bCanEverTick = false;
 }
 
-void AVGMissionStatueAlign::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
+void AVGMissionAllGimmicksClear::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
 {
 	Super::OnGimmickStateChanged(Gimmick, Tag);
 	if (Tag == VigilantMissionTags::GimmickCompleted)
 	{
-		if (AreAllStatuesAligned())
+		if (AreAllGimmickCompleted())
 		{
 			CompleteMission();
 		}
 	}
 }
 
-bool AVGMissionStatueAlign::AreAllStatuesAligned() const
+bool AVGMissionAllGimmicksClear::AreAllGimmickCompleted() const
 {
 	for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
 	{
@@ -35,4 +35,6 @@ bool AVGMissionStatueAlign::AreAllStatuesAligned() const
 	}
 	return true;
 }
+
+
 
