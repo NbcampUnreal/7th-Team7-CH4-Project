@@ -34,8 +34,12 @@ public:
 
 	// functions
 public:
+	
 	AVGPlayerController();
 	
 	virtual void BeginPlay() override;
+	
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Vigilant|Lobby")
+	void Server_SetReady(bool bReady);
 	
 };
