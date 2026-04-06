@@ -25,9 +25,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TArray<AVGMissionBase*> GetMissionsByTag(FGameplayTag TypeTag) const;
 	
-	// ID로 미션 찾기
+	// [Fix] 단일 객체 반환이므로 함수명 단수로 수정
 	UFUNCTION(BlueprintCallable)
-	AVGMissionBase* GetMissionsByID(int32 MissionID) const;
+	AVGMissionBase* GetMissionByID(int32 MissionID) const;
 	
 	UFUNCTION(BlueprintCallable)
 	const TArray<AVGMissionBase*>& GetAllMissions() const;

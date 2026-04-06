@@ -131,7 +131,7 @@ void AVGMissionBase::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGame
 {
 }
 
-void AVGMissionBase::OnItemStateChanged(AVGMissionItemBase* Gimmick, FGameplayTag Tag)
+void AVGMissionBase::OnItemStateChanged(AVGMissionItemBase* Item, FGameplayTag Tag)
 {
 }
 

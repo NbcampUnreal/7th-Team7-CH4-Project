@@ -13,7 +13,7 @@ public:
 	AVGMissionStatueAlign();
 
 protected:
-	UFUNCTION()
+	// [Fix] Base 클래스에서 이미 UFUNCTION() 선언됨 — override에 중복 지정 제거
 	virtual void OnGimmickStateChanged(
 		AVGMissionGimmickBase* Gimmick, FGameplayTag Tag) override;
 
