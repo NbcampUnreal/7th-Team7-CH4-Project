@@ -25,8 +25,6 @@ public:
 	float BaseDefense = 50.0f;
 
 	// 공격 스탯
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
-	float BaseDamage = 50.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack")
 	float AttackRadius = 500.0f;
