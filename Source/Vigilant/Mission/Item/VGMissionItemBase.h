@@ -36,7 +36,8 @@ public:
 	bool IsCarried() const { return Carrier != nullptr; }
 
 	// IVGMissionObjectInterface
-	virtual FGameplayTag GetStateTag() override { return ItemStateTag; }
+	// [Fix] IVGMissionObjectInterface — const 추가
+	virtual FGameplayTag GetStateTag() const override { return ItemStateTag; }
 	virtual void SetStateTag(FGameplayTag NewStateTag) override;
 	
 	// 상호작용 — 줍기 진입점

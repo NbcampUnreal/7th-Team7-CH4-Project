@@ -29,7 +29,7 @@ void AVGMissionPressureSequence::OnGimmickStateChanged(AVGMissionGimmickBase* Gi
 	
 	if (CheckSequenceOrder(Pressure))
 	{
-		SetMissionState(VigilantMissionTags::MissionCompleted);
+		CompleteMission();
 	}
 }
 
@@ -46,7 +46,11 @@ bool AVGMissionPressureSequence::CheckSequenceOrder(AVGMissionGimmickPressure* P
 		CurrentSequenceIndex = 0;
 		for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
 		{
-			Gimmick->ResetGimmickState();
+			// [Fix] null 체크 추가 — 에디터에서 배열 요소가 비어있을 수 있음
+			if (Gimmick)
+			{
+				Gimmick->ResetGimmickState();
+			}
 		}
 		return false;
 	}

@@ -18,5 +18,5 @@ protected:
 private:
 	void StartTimer();
 	void OnTimerExpired();
-	bool AreAllGimmicActive() const;
+	bool AreAllGimmickActive() const; // [Fix] 오타 수정: Gimmic → Gimmicks
 };
