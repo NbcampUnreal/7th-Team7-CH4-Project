@@ -77,8 +77,7 @@ void AVGGameMode::CheckAllPlayersReady()
 {
 	if (!GameState || GameState->PlayerArray.Num() == 0) return;
 	
-	int32 MinimumPlayersNeeded = 2;
-	
+	// [Fix] 하드코딩된 로컬 변수 제거 → 멤버 UPROPERTY(MinimumPlayersNeeded) 사용
 	if (GameState->PlayerArray.Num() < MinimumPlayersNeeded) return;
 	
 	bool bAllReady = true;
@@ -94,7 +93,7 @@ void AVGGameMode::CheckAllPlayersReady()
 	
 	if (bAllReady)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 전원 레디 완료, 직업 분배"))
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 전원 레디 완료, 직업 분배"));  // [Fix] 세미콜론 누락
 		AssignRolesAndStartGame();
 	}
 }

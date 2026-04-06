@@ -42,11 +42,16 @@ void UVGDuelPhase::ExecutePhaseResult()
 
 bool UVGDuelPhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject)
 {
-	if (InteractableObject->IsA((AVGCharacterBase::StaticClass())))
+	// [Fix] null 체크 추가 + 불필요한 이중 괄호 제거
+	if (!InteractableObject)
 	{
 		return false;
 	}
 	
+	if (InteractableObject->IsA(AVGCharacterBase::StaticClass()))
+	{
+		return false;
+	}
 	
 	return true;
 }

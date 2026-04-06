@@ -24,6 +24,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Phase")
 	TSubclassOf<class UVGPhaseBase> DuelPhaseClass;
 	
+	// [Fix] 최소 플레이어 수를 에디터에서 조정 가능하도록 UPROPERTY 추가
+	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Lobby")
+	int32 MinimumPlayersNeeded = 2;
+	
 public:
 	
 	UPROPERTY(Transient)

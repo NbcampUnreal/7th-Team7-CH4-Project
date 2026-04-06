@@ -15,7 +15,8 @@ public:
 	
 	AVGPlayerState();
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Vigilant|Tags")
+	// [Fix] 서버에서 변경한 태그가 클라이언트에 동기화되도록 Replicated 추가
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "Vigilant|Tags")
 	FGameplayTagContainer PlayerTags;
 	// 태그 변경 헬퍼 함수(더하기)
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tags")
