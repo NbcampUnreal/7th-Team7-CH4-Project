@@ -40,11 +40,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void PopPhase();
 	
-	void AssignRoles();
-	
 	void CheckWinCondition();
 	
 	void StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target);
+	
+	void CheckAllPlayersReady();
+	
+	void AssignRolesAndStartGame();
 	
 	// 이벤트 중개소
 	void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim);

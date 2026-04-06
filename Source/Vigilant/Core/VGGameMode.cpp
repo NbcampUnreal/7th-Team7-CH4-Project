@@ -1,6 +1,10 @@
 #include "Core/VGGameMode.h"
 #include "gameframework/PlayerController.h"
+#include "GameFramework/GameStateBase.h"
 #include "Core/GamePhases/VGPhaseBase.h"
+#include "Core/VGPlayerState.h"
+#include "Algo/RandomShuffle.h"
+#include "Common/VGGameplayTags.h"
 
 
 void AVGGameMode::BeginPlay()
@@ -9,10 +13,6 @@ void AVGGameMode::BeginPlay()
 	
 	UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 게임 시작 페이즈 세팅"));
 	
-	if (InitialPhase != nullptr)
-	{
-		PushPhase(InitialPhase);
-	}
 }
 
 void AVGGameMode::PostLogin(APlayerController* NewPlayer)
@@ -59,10 +59,6 @@ void AVGGameMode::PopPhase()
 
 
 
-void AVGGameMode::AssignRoles()
-{
-}
-
 void AVGGameMode::CheckWinCondition()
 {
 }
@@ -75,6 +71,63 @@ void AVGGameMode::StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase*
 	DuelTarget = Target;
 	
 	PushPhase(DuelPhaseClass);
+}
+
+void AVGGameMode::CheckAllPlayersReady()
+{
+	if (!GameState || GameState->PlayerArray.Num() == 0) return;
+	
+	int32 MinimumPlayersNeeded = 2;
+	
+	if (GameState->PlayerArray.Num() < MinimumPlayersNeeded) return;
+	
+	bool bAllReady = true;
+	for (APlayerState* PlayerState : GameState->PlayerArray)
+	{
+		AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState);
+		if (VGPlayerState && !VGPlayerState->bIsReady)
+		{
+			bAllReady = false;
+			break;
+		}
+	}
+	
+	if (bAllReady)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 전원 레디 완료, 직업 분배"))
+		AssignRolesAndStartGame();
+	}
+}
+
+void AVGGameMode::AssignRolesAndStartGame()
+{
+	TArray<APlayerState*> Players = GameState->PlayerArray;
+	int32 PlayerCount = Players.Num();
+	
+	TArray<FGameplayTag> RolePool;
+	
+	RolePool.Add(VigilantRoleTags::Mafia);
+	for (int32 i = 1; i < PlayerCount; ++i)
+	{
+		RolePool.Add(VigilantRoleTags::Citizen);
+	}
+	
+	Algo::RandomShuffle(RolePool);
+	
+	for (int32 i = 0; i <PlayerCount; ++i)
+	{
+		AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(Players[i]);
+		if (VGPlayerState)
+		{
+			VGPlayerState->Client_ReceiveRole(RolePool[i]);
+			VGPlayerState->AddPlayerTag(RolePool[i]);
+		}
+	}
+	
+	if (InitialPhase != nullptr)
+	{
+		PushPhase(InitialPhase);
+	}
 }
 
 void AVGGameMode::OnMissionCleared(int32 TimeReducedAmount)
