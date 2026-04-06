@@ -3,11 +3,14 @@
 #include "Character/VGCharacterBase.h"
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Mission/Item/VGMissionItemCarry.h"
+#include "Mission/Item/VGMissionItemBase.h"
 #include "Data/VGMissionItemDataAsset.h"
 
 AVGMissionGimmickAltar::AVGMissionGimmickAltar()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	
+	GimmickTypeTag = VigilantMissionTags::AltarGimmick;
 }
 
 bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const

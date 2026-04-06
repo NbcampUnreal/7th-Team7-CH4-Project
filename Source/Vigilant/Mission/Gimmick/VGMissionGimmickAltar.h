@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "VGMissionGimmickBase.h"
+#include "Character/Component/VGEquipmentComponent.h"
 #include "VGMissionGimmickAltar.generated.h"
+
+class AVGMissionItemBase;
 
 UCLASS()
 class VIGILANT_API AVGMissionGimmickAltar : public AVGMissionGimmickBase

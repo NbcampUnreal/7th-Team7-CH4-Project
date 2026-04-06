@@ -7,6 +7,7 @@ AVGMissionGimmickPressure::AVGMissionGimmickPressure()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	
+	GimmickTypeTag = VigilantMissionTags::PressureGimmick;
 	TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
 	TriggerBox->SetupAttachment(RootComponent);
 	
@@ -33,7 +34,7 @@ void AVGMissionGimmickPressure::OnRep_GimmickStateTag()
 	Super::OnRep_GimmickStateTag();
 	
 	// Todo : 발판 눌림 /해제 시각 피드백
-	UE_LOG(LogTemp, Warning, TEXT("[Pressure:%s] CurrentStae : %s"), *GetName(), *GimmickStateTag.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("[Pressure:%s] CurrentState : %s"), *GetName(), *GimmickStateTag.ToString());
 }
 
 void AVGMissionGimmickPressure::OnPressed()

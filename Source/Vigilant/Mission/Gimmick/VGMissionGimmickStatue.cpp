@@ -9,6 +9,7 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	bReplicates = true;
+	GimmickTypeTag = VigilantMissionTags::StatueGimmick;
 }
 
 bool AVGMissionGimmickStatue::CanInteractWith(AVGCharacterBase* Interactor) const

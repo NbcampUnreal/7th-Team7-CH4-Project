@@ -5,6 +5,7 @@
 AVGMissionGimmickLever::AVGMissionGimmickLever()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	GimmickTypeTag = VigilantMissionTags::LeverGimmick;
 }
 
 bool AVGMissionGimmickLever::IsActivated() const

@@ -24,6 +24,8 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::GimmickCompleted, "Mission.Gimmick.S
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::PressureGimmick, "Mission.Gimmick.Type.Pressure");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::StatueGimmick, "Mission.Gimmick.Type.Statue");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::LeverGimmick, "Mission.Gimmick.Type.Lever");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ChestGimmick, "Mission.Gimmick.Type.Chest");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::AltarGimmick, "Mission.Gimmick.Type.Altar");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemInactive, "Mission.Item.State.Inactive");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemCarried, "Mission.Item.State.Carried");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemPlaced, "Mission.Item.State.Placed");

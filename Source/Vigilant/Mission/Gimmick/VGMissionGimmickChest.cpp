@@ -7,6 +7,7 @@
 AVGMissionGimmickChest::AVGMissionGimmickChest()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	GimmickTypeTag = VigilantMissionTags::ChestGimmick;
 }
 
 bool AVGMissionGimmickChest::CanInteractWith(AVGCharacterBase* Interactor) const
