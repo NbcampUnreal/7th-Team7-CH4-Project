@@ -99,9 +99,6 @@ bool AVGMissionGimmickAltar::TryPlaceItemFromSlot(UVGEquipmentComponent* EquipCo
 	CarryItem->PlaceOnTarget(this);
 	PlacedItem = CarryItem;
 
-	// 제단 완료 처리
-	SetStateTag(VigilantMissionTags::GimmickCompleted);
-
 	return true;
 }
 
