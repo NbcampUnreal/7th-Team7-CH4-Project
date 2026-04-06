@@ -2,14 +2,10 @@
 #include "EnhancedInputSubsystems.h"
 #include "Core/VGGameMode.h"
 #include "Core/VGPlayerState.h"
+#include "Subsystem/VGUIManagerSubsystem.h"
 
 AVGPlayerController::AVGPlayerController()
-	: InputMappingContext(nullptr),
-	  MoveAction(nullptr),
-	  JumpAction(nullptr),
-	  LookAction(nullptr),
-	  SprintAction(nullptr),
-	  CameraZoomAction(nullptr)
+	:InputMappingContext(nullptr)
 {
 }
 
@@ -44,5 +40,15 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		VGGameMode->CheckAllPlayersReady();
+  }
+}
+
+void AVGPlayerController::AcknowledgePossession(class APawn* P)
+{
+	Super::AcknowledgePossession(P);
+	if (IsLocalPlayerController() && GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
+	{
+		UVGUIManagerSubsystem* UISubsystem = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>();
+		UISubsystem->ShowHUD();
 	}
 }

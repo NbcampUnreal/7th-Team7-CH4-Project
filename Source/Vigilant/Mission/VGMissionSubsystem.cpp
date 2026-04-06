@@ -13,10 +13,13 @@ void UVGMissionSubsystem::RegisterMission(AVGMissionBase* Mission)
 		RegisteredMissions.AddUnique(Mission);
 		// 완료 이벤트 - 진행도 계산용
 		Mission->OnMissionCompleted.AddDynamic(this, &UVGMissionSubsystem::OnMissionCompleted);
+		
 		// 상태 전환 이벤트 - 맵 표시 / HUD 갱신용
-		// Subsystem의 OnMissionStateChanged으로 MissionBase의 델리게이트를 구독
-		Mission->OnMissionStateChanged.AddDynamic(this, &UVGMissionSubsystem::OnMissionStateChanged);
+		Mission->OnMissionStateChanged.AddDynamic(this, &UVGMissionSubsystem::HandleMissionStateChanged);
 	}
+	UE_LOG(LogTemp, Warning,
+		TEXT("[Subsystem] Registered Mission: %s (ID=%d)"),
+		*Mission->GetName(), Mission->GetMissionID());
 }
 
 void UVGMissionSubsystem::OnMissionCompleted(int32 MissionID)
@@ -32,6 +35,7 @@ void UVGMissionSubsystem::OnMissionCompleted(int32 MissionID)
 	// 전체 완료 시
 	if (CompletedMissions.Num() == RegisteredMissions.Num())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("All Mission Clear!"));
 		OnAllMissionCompleted.Broadcast();
 	}
 }
@@ -95,7 +99,7 @@ float UVGMissionSubsystem::GetMissionProgress() const
 	return static_cast<float>(CompletedMissions.Num()) / RegisteredMissions.Num();
 }
 
-void UVGMissionSubsystem::OnMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)
+void UVGMissionSubsystem::HandleMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)
 {
-	
+	OnMissionStateChanged.Broadcast(MissionID, NewStateTag);
 }

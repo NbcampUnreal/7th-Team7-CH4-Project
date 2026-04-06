@@ -20,6 +20,18 @@ namespace VigilantTags
 	
 }
 
+namespace VigilantCharacter
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dodge);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Invincible);
+	
+	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedLeftHand);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedRightHand);
+}
+
+
+
 namespace VigilantMissionTags
 {
 	// 미션 상태
@@ -31,7 +43,7 @@ namespace VigilantMissionTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CooperativeMission);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CombatMission);
 	// 미션 기믹 상태
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GimmickInative);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GimmickInactive);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GimmickActive);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GimmickCompleted);
 	// 미션 기믹 타입
@@ -68,6 +80,14 @@ namespace VigilantStateTags
 	// UE_DECLARE_GAMEPLAY_TAG_EXTERN(PenaltyChatBan);        // 채팅 금지
 }
 
+namespace VigilantEquipmentTags
+{
+	// 장비 태그 선언
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_OneHand);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_TwoHand);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_Shield);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Mission);
+}
 class VIGILANT_API VGGameplayTags
 {
 public:

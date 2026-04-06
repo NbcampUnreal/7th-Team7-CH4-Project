@@ -1,13 +1,21 @@
 #include "Character/VGCharacterBase.h"
-
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
-#include "Core/VGPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Common/VGGameplayTags.h"
+#include "Component/VGCombatComponent.h"
+#include "Component/VGStatComponent.h"
 
 AVGCharacterBase::AVGCharacterBase()
+: JumpAction(nullptr),
+  MoveAction(nullptr),
+  LookAction(nullptr),
+  SprintAction(nullptr),
+  CameraZoomAction(nullptr)
 {
+	
 	PrimaryActorTick.bCanEverTick = false;
 
 	// Configure Character Movement
@@ -26,6 +34,12 @@ AVGCharacterBase::AVGCharacterBase()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+	
+	// create the combat component
+	CombatComponent = CreateDefaultSubobject<UVGCombatComponent>(TEXT("CombatComponent"));
+	
+	// create the stat component
+	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
 }
 
 void AVGCharacterBase::BeginPlay()
@@ -38,37 +52,58 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		if (AVGPlayerController* PlayerController = Cast<AVGPlayerController>(GetController()))
-		{
-			if (PlayerController->MoveAction)
-				EnhancedInput->BindAction(PlayerController->MoveAction, ETriggerEvent::Triggered, this,
-				                          &AVGCharacterBase::Move);
-
-			if (PlayerController->LookAction)
-				EnhancedInput->BindAction(PlayerController->LookAction, ETriggerEvent::Triggered, this,
-				                          &AVGCharacterBase::Look);
-
-			if (PlayerController->JumpAction)
+			if (MoveAction)
 			{
-				EnhancedInput->BindAction(PlayerController->JumpAction, ETriggerEvent::Started, this,
+				EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this,
+				                          &AVGCharacterBase::Move);
+			}
+
+			if (LookAction)
+			{
+				EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this,
+				                          &AVGCharacterBase::Look);
+			}
+
+			if (JumpAction)
+			{
+				EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::StartJump);
-				EnhancedInput->BindAction(PlayerController->JumpAction, ETriggerEvent::Completed, this,
+				EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this,
 				                          &AVGCharacterBase::StopJump);
 			}
 
-			if (PlayerController->SprintAction)
+			if (SprintAction)
 			{
-				EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Started, this,
+				EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::StartSprint);
-				EnhancedInput->BindAction(PlayerController->SprintAction, ETriggerEvent::Completed, this,
+				EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
 				                          &AVGCharacterBase::StopSprint);
 			}
-		}
+			
+
+			if (CombatComponent->LightAttackAction)
+			{
+				EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
+				                          &AVGCharacterBase::LightAttack);
+			}
+
+			if (CombatComponent->HeavyAttackAction)
+			{
+				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
+				                          &AVGCharacterBase::HeavyAttack);
+			}
+		
 	}
 }
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
+	{
+		//구르기상태는 이동불가
+		return;
+	}
+	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -119,6 +154,22 @@ void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 
 void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
 {
+}
+
+void AVGCharacterBase::LightAttack(const FInputActionValue& Value)
+{
+	if (CombatComponent)
+	{
+		CombatComponent->TryLightAttack();
+	}
+}
+
+void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
+{
+	if (CombatComponent)
+	{
+		CombatComponent->TryHeavyAttack();
+	}
 }
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
