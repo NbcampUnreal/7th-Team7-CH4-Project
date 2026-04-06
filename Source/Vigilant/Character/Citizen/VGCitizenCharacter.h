@@ -38,6 +38,7 @@ public:
 public:
 	AVGCitizenCharacter();
 	
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
@@ -76,6 +77,14 @@ protected:
 	virtual void Move(const FInputActionValue& Value) override;
 	
 	void Dodge();
+	
+	UFUNCTION(Server, Reliable)
+	void Server_Dodge(FVector Direction);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_Dodge();
+	void PerformDodgeAction(const FVector& Direction);
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
 	float DodgeForce = 600.0f; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")

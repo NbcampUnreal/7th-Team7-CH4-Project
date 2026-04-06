@@ -10,6 +10,7 @@
 #include "Common/VGGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+#pragma region Interfaces GameplayTag
 void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
 	TagContainer = CharacterTags;
@@ -24,6 +25,7 @@ void AVGCitizenCharacter::RemoveGameplayTag(FGameplayTag TagToRemove)
 {
 	CharacterTags.RemoveTag(TagToRemove);
 }
+#pragma endregion
 
 AVGCitizenCharacter::AVGCitizenCharacter()
 {
@@ -36,6 +38,11 @@ AVGCitizenCharacter::AVGCitizenCharacter()
 	ModifyFriction = 2.f;
 	// 장비 컴포넌트 생성
 	EquipmentComponent = CreateDefaultSubobject<UVGEquipmentComponent>(TEXT("EquipmentComponent"));
+}
+
+void AVGCitizenCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
 void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -164,7 +171,31 @@ void AVGCitizenCharacter::Dodge()
 		return;
 	}
 
+	CharacterTags.AddTag(VigilantCharacter::Dodge);
+	//방향 계산
+	FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
+	if(DodgeDirection.IsNearlyZero())
+	{
+		DodgeDirection = GetActorForwardVector();
+	}
+	DodgeDirection.Normalize();
+	
+	//RPC 호출 부분
+	if (!HasAuthority()) // 서버가 아니면
+	{
+		PerformDodgeAction(DodgeDirection); // 실제 로직 실행 - 클라가 구른다.
+		Server_Dodge(DodgeDirection); //서버에서 계산할 함수 실행
+	}
+	else //서버면 - 리슨서버 대비용 구문
+	{
+		PerformDodgeAction(DodgeDirection); //실제 로직 실행 - 마찰력과 위치를 중점
+		Multicast_Dodge(); // 멀티캐스트 실행
+	}
+	
+}
 
+void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
+{
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
 
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
@@ -176,18 +207,13 @@ void AVGCitizenCharacter::Dodge()
 		AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutStarted, DodgeAnimation);
 		
 		//루트모션이 아닌 직접 날리자.. 멀티플레이상황에서는 루트모션이 버벅거림
-		FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
+	
 		
-		if(DodgeDirection.IsNearlyZero())
-		{
-			DodgeDirection = GetActorForwardVector();
-		}
-		DodgeDirection.Normalize();
-		FVector DodgeVelocity = DodgeDirection*DodgeForce;
+		FVector DodgeVelocity = Direction*DodgeForce;
 		DodgeVelocity.Z = DodgeZForce;
 		LaunchCharacter(DodgeVelocity,true,true);
 		
-		FRotator DodgeRotattion = DodgeDirection.Rotation();
+		FRotator DodgeRotattion = Direction.Rotation();
 		DodgeRotattion.Pitch = 0.f;
 		DodgeRotattion.Roll = 0.f;
 		SetActorRotation(DodgeRotattion);
@@ -195,6 +221,24 @@ void AVGCitizenCharacter::Dodge()
 		GetCharacterMovement()->GroundFriction = ModifyFriction;
 		GetCharacterMovement()->GroundFriction;
 	}
+}
+
+void AVGCitizenCharacter::Multicast_Dodge_Implementation()
+{
+	//다른 클라이언트에서는 애니매이션만 재생
+	if (!IsLocallyControlled()&&!HasAuthority()) // 서버도 로컬도 아닐때, 즉 이 액터가 Simulated일때
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(DodgeAnimation);
+		}
+	}
+}
+
+void AVGCitizenCharacter::Server_Dodge_Implementation(FVector Direction)
+{
+	PerformDodgeAction(Direction);
+	Multicast_Dodge();
 }
 
 
