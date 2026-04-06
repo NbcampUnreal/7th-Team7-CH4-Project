@@ -4,10 +4,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
+#include "Component/VGStatComponent.h"
+
 AVGCharacterBase::AVGCharacterBase()
-: MoveAction(nullptr),
-  JumpAction(nullptr),
+: JumpAction(nullptr),
+  MoveAction(nullptr),
   LookAction(nullptr),
   SprintAction(nullptr),
   CameraZoomAction(nullptr)
@@ -34,6 +37,9 @@ AVGCharacterBase::AVGCharacterBase()
 	
 	// create the combat component
 	CombatComponent = CreateDefaultSubobject<UVGCombatComponent>(TEXT("CombatComponent"));
+	
+	// create the stat component
+	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
 }
 
 void AVGCharacterBase::BeginPlay()
@@ -92,6 +98,12 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
+	{
+		//구르기상태는 이동불가
+		return;
+	}
+	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();
