@@ -18,7 +18,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetActiveCombatData(UVGWeaponDataAsset* NewData);
 	
-	// --- Test ---
+	// --- 임시: 전투 데이터 설정을 위한 서버 RPC ---
 	UFUNCTION(Server, Reliable)
 	void Server_SetActiveCombatData(UVGWeaponDataAsset* NewData);
 	

@@ -360,11 +360,26 @@ void UVGCombatComponent::TickMeleeTrace()
 			Sphere,
 			QueryParams
 		);
-		DrawDebugCapsule(GetWorld(), PreviousLoc + (CurrentLoc - PreviousLoc) * 0.5f,
-		                 FVector::Distance(PreviousLoc, CurrentLoc) * 0.5f, AttackRadius,
-		                 (CurrentLoc - PreviousLoc).Rotation().Quaternion(), bHit ? FColor::Green : FColor::Red, false,
-		                 2.0f);
-
+		
+		// --- Debug ---
+		FVector TraceVector = CurrentLoc - PreviousLoc;
+		float TraceLength = TraceVector.Size();
+		if (TraceLength > KINDA_SMALL_NUMBER)
+		{
+			FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVector).ToQuat();
+			DrawDebugCapsule(
+				GetWorld(),
+				PreviousLoc + (TraceVector * 0.5f),
+				(TraceLength * 0.5f) + AttackRadius,
+				AttackRadius,
+				CapsuleRot,
+				bHit ? FColor::Green : FColor::Red,
+				false,
+				2.0f
+			);
+		}
+		// ---
+		
 		if (bHit)
 		{
 			for (const FHitResult& HitResult : HitResults)
