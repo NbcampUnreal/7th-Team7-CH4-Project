@@ -51,6 +51,8 @@ public:
 	virtual void OnDropped();
 	
 protected:
+	virtual void BeginPlay() override;
+	
 	// 줍기 — 서버 전용
 	virtual void OnPickedUp(AVGCharacterBase* NewCarrier);
 

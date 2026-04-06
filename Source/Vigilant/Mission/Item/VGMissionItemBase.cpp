@@ -4,11 +4,15 @@
 #include "Net/UnrealNetwork.h"
 #include "Common/VGGameplayTags.h"
 #include "Character/Component/VGEquipmentComponent.h"
+#include "Data/VGMissionItemDataAsset.h"
 
 AVGMissionItemBase::AVGMissionItemBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
+	SetRootComponent(MeshComponent);
 }
 
 void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
@@ -93,6 +97,17 @@ void AVGMissionItemBase::OnDropped()
 	Carrier = nullptr;
     SetStateTag(VigilantMissionTags::ItemInactive);
 	OnRep_Carrier();
+}
+
+void AVGMissionItemBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (ItemDataAsset)
+	{
+		UStaticMesh* Mesh = ItemDataAsset->ItemMesh;
+		MeshComponent->SetStaticMesh(Mesh);
+	}
 }
 
 // -----------------------------------------------
