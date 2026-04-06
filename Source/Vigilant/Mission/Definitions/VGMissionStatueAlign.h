@@ -13,7 +13,6 @@ public:
 	AVGMissionStatueAlign();
 
 protected:
-	UFUNCTION()
 	virtual void OnGimmickStateChanged(
 		AVGMissionGimmickBase* Gimmick, FGameplayTag Tag) override;
 
