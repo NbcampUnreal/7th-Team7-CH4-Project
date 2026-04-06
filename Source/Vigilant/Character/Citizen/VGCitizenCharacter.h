@@ -60,6 +60,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* DodgeAction;
 
+	// 캐릭터의 이동 상태(걷기, 낙하 등)가 변할 때마다 엔진이 호출해 주는 함수
+	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 	
 	// 상호작용 실행 함수
 	void Interact();
@@ -88,6 +90,8 @@ protected:
 	float ModifyFriction;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dodge|Force")
 	float OriginalFriction; // 기본값 8.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
+	float Breakingfriction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dodge")
 	TObjectPtr<UAnimMontage> DodgeAnimation;
 	

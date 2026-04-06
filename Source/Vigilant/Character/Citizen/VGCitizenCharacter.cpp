@@ -34,8 +34,9 @@ AVGCitizenCharacter::AVGCitizenCharacter()
 	SprintSpeed = 900.f;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	
+	GetCharacterMovement()->BrakingDecelerationWalking = 1024.f;
 	OriginalFriction = GetCharacterMovement()->GroundFriction;
-	ModifyFriction = 2.f;
+	ModifyFriction = 0.f;
 	// 장비 컴포넌트 생성
 	EquipmentComponent = CreateDefaultSubobject<UVGEquipmentComponent>(TEXT("EquipmentComponent"));
 }
@@ -68,6 +69,25 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 		{
 			EnhancedInput->BindAction(DodgeAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::Dodge);
 		}
+	}
+}
+
+void AVGCitizenCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+	// 
+	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
+	{
+		
+		CharacterTags.AddTag(VigilantCharacter::Falling); 
+        
+
+	}
+	// PreMovementMode 이전 상태를 뜻함
+	else if (PrevMovementMode == MOVE_Falling)
+	{
+		// 공중 상태 태그 제거
+		CharacterTags.RemoveTag(VigilantCharacter::Falling);
 	}
 }
 
@@ -120,6 +140,11 @@ void AVGCitizenCharacter::Dodge()
 	{
 		return;
 	}
+	if (CharacterTags.HasTag(VigilantCharacter::Falling))
+	{
+		return;
+	}
+	
 
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
 	//방향 계산
@@ -162,10 +187,10 @@ void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
 		DodgeVelocity.Z = DodgeZForce;
 		LaunchCharacter(DodgeVelocity,true,true);
 		
-		FRotator DodgeRotattion = Direction.Rotation();
-		DodgeRotattion.Pitch = 0.f;
-		DodgeRotattion.Roll = 0.f;
-		SetActorRotation(DodgeRotattion);
+		FRotator DodgeRotation = Direction.Rotation();
+		DodgeRotation.Pitch = 0.f;
+		DodgeRotation.Roll = 0.f;
+		SetActorRotation(DodgeRotation);
 		//구르기 느낌을 위한 마찰력 조절
 		GetCharacterMovement()->GroundFriction = ModifyFriction;
 		GetCharacterMovement()->GroundFriction;

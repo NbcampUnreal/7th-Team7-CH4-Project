@@ -92,6 +92,7 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
+//빙의 후 클라이언트만 실행하는 생명주기 함수
 void AVGCharacterBase::PawnClientRestart()
 {
 	Super::PawnClientRestart();
@@ -104,6 +105,8 @@ void AVGCharacterBase::PawnClientRestart()
 			PlayerController->PlayerCameraManager->ViewPitchMin = -45.f;
 		}
 	}
+	
+	
 }
 
 
