@@ -71,6 +71,8 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 
 void AVGCitizenCharacter::Interact()
 {
+	// 특정 상황에 (태그보유) 리턴 하는 로직 추가 하는 부분
+	// ^_^
 	if (EquipmentComponent)
 	{
 		EquipmentComponent->Interact();
@@ -79,6 +81,8 @@ void AVGCitizenCharacter::Interact()
 
 void AVGCitizenCharacter::DropItem()
 {
+	// 특정 상황에 (태그보유) 리턴 하는 로직 추가 하는 부분
+	// ^_^
 	if (EquipmentComponent)
 	{
 		EquipmentComponent->DropItem();
