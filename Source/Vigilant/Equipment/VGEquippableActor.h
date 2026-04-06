@@ -1,26 +1,23 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Interaction/VGInteractableActorBase.h"
 #include "VGEquippableActor.generated.h"
 
+class UVGEquipmentDataAsset;
+
 UCLASS()
-class VIGILANT_API AVGEquippableActor : public AActor
+class VIGILANT_API AVGEquippableActor : public AVGInteractableActorBase
 {
 	GENERATED_BODY()
 	
-public:	
-	// Sets default values for this actor's properties
+public:
 	AVGEquippableActor();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
+	TObjectPtr<UVGEquipmentDataAsset> EquipmentData;
 };
