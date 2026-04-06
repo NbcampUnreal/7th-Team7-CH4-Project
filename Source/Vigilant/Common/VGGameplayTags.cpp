@@ -31,6 +31,25 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_TwoHand, "Item.Type.Weapon.
 UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_Shield, "Item.Type.Weapon.Shield");
 UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Item_Mission, "Item.Type.Special.Mission");
 
+// 게임 페이즈 관련
+UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseMission, "Phase.State.Mission");
+UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseDuel,    "Phase.State.Duel");
+UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseVote,    "Phase.State.Vote");
+UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseCombat,  "Phase.State.Combat");
+
+// 플레이어 역할 및 상태
+UE_DEFINE_GAMEPLAY_TAG(VigilantRoleTags::Citizen,	  "Role.Player.Citizen");
+UE_DEFINE_GAMEPLAY_TAG(VigilantRoleTags::Mafia,		  "Role.Player.Mafia");
+UE_DEFINE_GAMEPLAY_TAG(VigilantRoleTags::Alive,		  "Role.Status.Alive");
+UE_DEFINE_GAMEPLAY_TAG(VigilantRoleTags::Dead,		  "Role.Status.Dead");
+
+// 플레이어 특수 상태
+UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::DuelParticipant, "State.Condition.Duel.Participant");
+UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::DuelSpectator,   "State.Condition.Duel.Spectator");
+
+// 막고라 패널티 (후에 사용하면 주석 제거)
+// UE_DEFINE_GAMEPLAY_TAG(VigilantStateTags::PenaltyChatBan, "State.Penalty.ChatBan");
+
 VGGameplayTags::VGGameplayTags()
 {
 }

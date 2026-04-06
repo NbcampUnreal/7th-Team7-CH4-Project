@@ -18,6 +18,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetActiveCombatData(UVGWeaponDataAsset* NewData);
 	
+	// --- 임시: 전투 데이터 설정을 위한 서버 RPC ---
+	UFUNCTION(Server, Reliable)
+	void Server_SetActiveCombatData(UVGWeaponDataAsset* NewData);
+	
 	// --- Inputs ---
 	void TryLightAttack();
 	void TryHeavyAttack();
@@ -84,5 +88,8 @@ private:
 	// Hit Detection State
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AActor>> HitActorsThisSwing;
+	
+	UPROPERTY(Transient)
+	TMap<FName, FVector> PreviousSocketLocations;
 
 };

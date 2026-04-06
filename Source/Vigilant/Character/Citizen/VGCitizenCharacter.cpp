@@ -7,7 +7,9 @@
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Character/Component/VGCombatComponent.h"
 #include "Common/VGGameplayTags.h"
+#include "Equipment/VGWeapon.h"
 
 void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
@@ -72,7 +74,7 @@ void AVGCitizenCharacter::Interact()
     FCollisionShape SphereShape = FCollisionShape::MakeSphere(30.0f);
 
     bool bHit = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, SphereShape, CollisionParams);
-
+	
     // 디버그 그리기
     DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 2.0f);
     if (bHit)
@@ -95,6 +97,16 @@ void AVGCitizenCharacter::Interact()
 
             if (TypeToEquip == EVGEquipmentType::Weapon)
             {
+            	// --- 임시: 전투 데이터 설정 ---
+            	if (AVGWeapon* Weapon = Cast<AVGWeapon>(EquippableItem))
+            	{
+            		if (UVGCombatComponent* CombatComp = FindComponentByClass<UVGCombatComponent>())
+            		{
+            			CombatComp->Server_SetActiveCombatData(Weapon->GetWeaponData());
+            		}
+            	}
+            	// ----------------------------
+            	
                 ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
                 UE_LOG(LogTemp, Warning, TEXT("무기 장착 활성화 슬롯이 [오른손]으로 강제 전환"));
                 OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
@@ -115,6 +127,16 @@ void AVGCitizenCharacter::DropItem()
 	{
 		EquipmentComponent->Server_DropItem(ActiveEquipmentSlot);
 		UE_LOG(LogTemp, Log, TEXT("현재 활성화된 슬롯의 아이템 버리기"));
+		
+		// --- 임시: 전투 데이터 리셋 ---
+		if (ActiveEquipmentSlot == EVGEquipmentSlot::RightHand || ActiveEquipmentSlot == EVGEquipmentSlot::BothHands)
+		{
+			if (UVGCombatComponent* CombatComp = FindComponentByClass<UVGCombatComponent>())
+			{
+				CombatComp->Server_SetActiveCombatData(nullptr);
+			}
+		}
+		// ----------------------------
 	}
 }
 
