@@ -3,9 +3,7 @@
 
 #include "Character/Citizen/VGCitizenCharacter.h"
 #include "Character/Component/VGEquipmentComponent.h"
-#include "Equipment/VGEquippableActor.h"
 #include "EnhancedInputComponent.h"
-#include "Camera/CameraComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Common/VGGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
