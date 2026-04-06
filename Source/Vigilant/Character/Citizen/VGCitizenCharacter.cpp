@@ -73,81 +73,26 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 
 void AVGCitizenCharacter::Interact()
 {
-	if (!IsLocallyControlled()) return;
-    if (FollowCamera == nullptr || EquipmentComponent == nullptr) return;
-
-    FVector StartLocation = FollowCamera->GetComponentLocation();
-    FVector ForwardVector = FollowCamera->GetForwardVector();
-    FVector EndLocation = StartLocation + (ForwardVector * 1500.0f);
-
-    FHitResult HitResult;
-    FCollisionQueryParams CollisionParams;
-    CollisionParams.AddIgnoredActor(this);
-
-    FCollisionShape SphereShape = FCollisionShape::MakeSphere(30.0f);
-
-    bool bHit = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, SphereShape, CollisionParams);
-
-    // 디버그 그리기
-    DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 2.0f);
-    if (bHit)
-        DrawDebugSphere(GetWorld(), HitResult.Location, 30.0f, 16, FColor::Green, false, 2.0f);
-    else
-        DrawDebugSphere(GetWorld(), EndLocation, 30.0f, 16, FColor::Red, false, 2.0f);
-
-    if (bHit)
-    {
-        AActor* HitActor = HitResult.GetActor();
-        if (AVGEquippableActor* EquippableItem = Cast<AVGEquippableActor>(HitActor))
-        {
-            EVGEquipmentType TypeToEquip = EVGEquipmentType::Weapon;
-            if (EquippableItem->GetName().Contains("Mission"))
-            {
-                TypeToEquip = EVGEquipmentType::MissionItem;
-            }
-
-            EquipmentComponent->Server_EquipItem(EquippableItem, TypeToEquip);
-
-            if (TypeToEquip == EVGEquipmentType::Weapon)
-            {
-                ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
-                UE_LOG(LogTemp, Warning, TEXT("무기 장착 활성화 슬롯이 [오른손]으로 강제 전환"));
-                OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
-            }
-            else if (TypeToEquip == EVGEquipmentType::Shield)
-            {
-                ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
-                UE_LOG(LogTemp, Warning, TEXT("방패 장착 활성화 슬롯이 [왼손]으로 강제 전환"));
-                OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
-            }
-        }
-    }
+	if (EquipmentComponent)
+	{
+		EquipmentComponent->Interact();
+	}
 }
 
 void AVGCitizenCharacter::DropItem()
 {
 	if (EquipmentComponent)
 	{
-		EquipmentComponent->Server_DropItem(ActiveEquipmentSlot);
-		UE_LOG(LogTemp, Log, TEXT("현재 활성화된 슬롯의 아이템 버리기"));
+		EquipmentComponent->DropItem();
 	}
 }
 
 void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 {
 	float SlotNumber = Value.Get<float>();
-
-	if (FMath::IsNearlyEqual(SlotNumber, 1.0f))
+	if (EquipmentComponent)
 	{
-		ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
-		UE_LOG(LogTemp, Warning, TEXT("왼손 슬롯 활성화"));
-		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
-	}
-	else if (FMath::IsNearlyEqual(SlotNumber, 2.0f))
-	{
-		ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
-		UE_LOG(LogTemp, Warning, TEXT("오른손 슬롯 활성화"));
-		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
+		EquipmentComponent->SelectSlot(SlotNumber);
 	}
 }
 
@@ -163,6 +108,7 @@ void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 	
 }
 
+#pragma region 구르기 로직 및 RPC
 void AVGCitizenCharacter::Dodge()
 {
 	// 특정 태그 보유시 리턴, 추가가능
@@ -193,7 +139,6 @@ void AVGCitizenCharacter::Dodge()
 	}
 	
 }
-
 void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
 {
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
@@ -222,7 +167,6 @@ void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
 		GetCharacterMovement()->GroundFriction;
 	}
 }
-
 void AVGCitizenCharacter::Multicast_Dodge_Implementation()
 {
 	//다른 클라이언트에서는 애니매이션만 재생
@@ -234,13 +178,12 @@ void AVGCitizenCharacter::Multicast_Dodge_Implementation()
 		}
 	}
 }
-
 void AVGCitizenCharacter::Server_Dodge_Implementation(FVector Direction)
 {
 	PerformDodgeAction(Direction);
 	Multicast_Dodge();
 }
-
+#pragma endregion 김형백 
 
 void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled)
 {

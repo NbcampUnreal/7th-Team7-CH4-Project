@@ -13,8 +13,7 @@ class UVGEquipmentComponent;
 class UInputAction;
 struct FInputActionValue;
 
-// 델리게이트 선언
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentSlotChangedSignature, EVGEquipmentSlot, NewActiveSlot);
+
 
 UCLASS()
 class VIGILANT_API AVGCitizenCharacter : 
@@ -43,9 +42,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
 	
-	// UI(블루프린트)에서 이벤트로 끌어다 쓸 수 있는 델리게이트 변수
-	UPROPERTY(BlueprintAssignable, Category = "Equipment|Events")
-	FOnEquipmentSlotChangedSignature OnEquipmentSlotChanged;
+
 	
 protected:
 	
@@ -62,9 +59,7 @@ protected:
 	//구르기
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* DodgeAction;
-	// 현재 활성화된 슬롯을 기억할 변수 (기본값: 오른손)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
-	EVGEquipmentSlot ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
+
 	
 	// 상호작용 실행 함수
 	void Interact();
