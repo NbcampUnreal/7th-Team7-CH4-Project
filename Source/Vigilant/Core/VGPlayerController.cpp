@@ -1,5 +1,7 @@
 #include "Core/VGPlayerController.h"
 #include "EnhancedInputSubsystems.h"
+#include "Core/VGGameMode.h"
+#include "Core/VGPlayerState.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 
 AVGPlayerController::AVGPlayerController()
@@ -26,6 +28,19 @@ void AVGPlayerController::BeginPlay()
 			}
 		}
 	}
+}
+
+void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
+{
+	if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
+	{
+		VGPlayerState->bIsReady = bReady;
+	}
+	
+	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		VGGameMode->CheckAllPlayersReady();
+  }
 }
 
 void AVGPlayerController::AcknowledgePossession(class APawn* P)

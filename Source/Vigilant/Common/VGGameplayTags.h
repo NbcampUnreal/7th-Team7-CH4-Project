@@ -63,6 +63,34 @@ namespace VigilantMissionTags
 	
 }
 
+// 게임 페이즈 관리용
+namespace VigilantPhaseTags 
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseMission);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseDuel);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseVote);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseCombat);
+}
+
+// 플레이어 역할 및 죽음 관리용
+namespace VigilantRoleTags
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Citizen);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Mafia);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Alive);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dead);
+}
+
+// 플레이어 상태 및 행동 제어용
+namespace VigilantStateTags
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(DuelParticipant);  // 막고라 당사자
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(DuelSpectator);    // 막고라 관람객
+	
+	// 막고라 패널티 (후에 필요하면 주석 제거)
+	// UE_DECLARE_GAMEPLAY_TAG_EXTERN(PenaltyChatBan);        // 채팅 금지
+}
+
 namespace VigilantEquipmentTags
 {
 	// 장비 태그 선언
