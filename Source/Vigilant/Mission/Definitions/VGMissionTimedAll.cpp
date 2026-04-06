@@ -20,7 +20,7 @@ void AVGMissionTimedAll::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, F
 		SetMissionState(VigilantMissionTags::MissionActive);
 	}
 	
-	if (AreAllGimmicActive())
+	if (AreAllGimmicksActive())
 	{
 		CompleteMission();
 	}
@@ -48,7 +48,7 @@ void AVGMissionTimedAll::OnTimerExpired()
 	}
 }
 
-bool AVGMissionTimedAll::AreAllGimmicActive() const
+bool AVGMissionTimedAll::AreAllGimmicksActive() const
 {
 	for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
 	{

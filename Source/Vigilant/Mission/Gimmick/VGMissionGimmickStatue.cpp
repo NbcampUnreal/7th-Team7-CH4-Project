@@ -5,7 +5,9 @@
 
 AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	// [Fix] bCanEverTick이 false면 SetActorTickEnabled(true)가 무시되어 회전이 동작하지 않음
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 	bReplicates = true;
 }
 

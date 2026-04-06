@@ -49,10 +49,10 @@ protected:
 	virtual void OnGimmickStateChanged(
 		AVGMissionGimmickBase* Gimmick, FGameplayTag Tag);
 	
-	// 어떤 Gimmick이 변경되었는지 확인하기
+	// 어떤 Item이 변경되었는지 확인하기
 	UFUNCTION()
 	virtual void OnItemStateChanged(
-		AVGMissionItemBase* Gimmick, FGameplayTag Tag);
+		AVGMissionItemBase* Item, FGameplayTag Tag);  // [Fix] 파라미터명 Gimmick → Item
 	
 	/// 자식이 override — 달성 조건 판정
 	virtual bool CheckMissionCondition(AActor* Reporter);

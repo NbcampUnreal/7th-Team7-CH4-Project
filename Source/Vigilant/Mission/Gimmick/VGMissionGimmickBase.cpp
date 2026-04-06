@@ -69,10 +69,15 @@ void AVGMissionGimmickBase::SetStateTag(FGameplayTag NewStateTag)
 
 void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 {
-	// Todo State 변경에 따른 피드백 처리
 	if (!DynamicMaterialInstance)
 	{
-		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MeshComponent->GetMaterial(0), this);
+		// [Fix] 메시에 머티리얼이 없을 경우 GetMaterial(0)이 nullptr → Create 크래시 방지
+		UMaterialInterface* BaseMaterial = MeshComponent ? MeshComponent->GetMaterial(0) : nullptr;
+		if (!BaseMaterial)
+		{
+			return;
+		}
+		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(BaseMaterial, this);
 		MeshComponent->SetMaterial(0, DynamicMaterialInstance);
 	}
 	

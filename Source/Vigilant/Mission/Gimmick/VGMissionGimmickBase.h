@@ -35,11 +35,12 @@ public:
 	UFUNCTION()
 	virtual void ResetGimmickState();
 	
-	FGameplayTag GetStateTag() { return GimmickStateTag; }
-	void SetStateTag(FGameplayTag NewStateTag);
+	// [Fix] 인터페이스(IVGMissionObjectInterface) 구현에 virtual/override/const 명시
+	virtual FGameplayTag GetStateTag() const override { return GimmickStateTag; }
+	virtual void SetStateTag(FGameplayTag NewStateTag) override;
 	
 	void SetGimmickIndex(int32 NewGimmickIndex);
-	int32 GetGimmickIndex() {return GimmickIndex;}
+	int32 GetGimmickIndex() const {return GimmickIndex;}
 
 protected:
 	UFUNCTION()
