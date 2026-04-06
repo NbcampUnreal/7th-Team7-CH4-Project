@@ -2,12 +2,9 @@
 
 
 #include "VGBossCharacter.h"
-#include "DrawDebugHelpers.h"
-#include "EnhancedInputComponent.h"
 #include "Character/Component/VGCombatComponent.h"
 #include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 AVGBossCharacter::AVGBossCharacter()
@@ -27,13 +24,11 @@ void AVGBossCharacter::BeginPlay()
 	if (BossData != nullptr)
 	{
 		CurrentHealth = BossData->BaseHealth;
-		AttackDamage = BossData->BaseDamage;
-		AttackRadius = BossData->AttackRadius;
-		AttackMontage = BossData->AttackMontage;
-		NormalSpeed = BossData->BossNormalSpeed;
-		SprintSpeed = BossData->BossSprintSpeed;
 		
-		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+		if (GetCharacterMovement())
+		{
+			GetCharacterMovement()->MaxWalkSpeed = BossData->BossNormalSpeed;
+		}
 	}
 }
 
@@ -42,7 +37,6 @@ void AVGBossCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(AVGBossCharacter, CurrentHealth);
-	DOREPLIFETIME(AVGBossCharacter, AttackDamage);
 }
 
 void AVGBossCharacter::InitializeBossStats(float InCalculatedHealth, float InCalculatedDamage)
@@ -51,8 +45,7 @@ void AVGBossCharacter::InitializeBossStats(float InCalculatedHealth, float InCal
 	if (HasAuthority())
 	{
 		CurrentHealth = InCalculatedHealth;
-		AttackDamage = InCalculatedDamage;
 		
-		UE_LOG(LogTemp, Log, TEXT("보스 스탯 - 체력: %f, 공격력: %f"), CurrentHealth, AttackDamage);
+		UE_LOG(LogTemp, Log, TEXT("보스 스탯 - 체력: %f, 공격력: %f"), CurrentHealth, InCalculatedDamage);
 	}
 }
