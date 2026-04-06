@@ -18,6 +18,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetActiveCombatData(UVGWeaponDataAsset* NewData);
 	
+	// --- 임시: 전투 데이터 설정을 위한 서버 RPC ---
+	UFUNCTION(Server, Reliable)
+	void Server_SetActiveCombatData(UVGWeaponDataAsset* NewData);
+	
 	// --- Inputs ---
 	void TryLightAttack();
 	void TryHeavyAttack();
@@ -31,6 +35,8 @@ public:
 	// --- Hit Detection Anim Notify Hooks ---
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
 	void StartMeleeTrace();
+	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
+	void TickMeleeTrace();
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
 	void StopMeleeTrace();
 	
@@ -48,6 +54,9 @@ protected:
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_TryAttack(bool bIsHeavy, int32 ExpectedComboIndex);
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ProcessHit(AActor* HitActor);
 	
 	UFUNCTION(Client, Reliable)
 	void Client_CancelAttackPrediction();
@@ -77,8 +86,10 @@ private:
 	bool bIsBufferedAttackHeavy = false;
 	
 	// Hit Detection State
-	UPROPERTY()
-	TSet<TObjectPtr<AActor>> HitActorsThisSwing;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<AActor>> HitActorsThisSwing;
 	
-	
+	UPROPERTY(Transient)
+	TMap<FName, FVector> PreviousSocketLocations;
+
 };

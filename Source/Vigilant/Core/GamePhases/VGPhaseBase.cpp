@@ -1,5 +1,60 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Core/GamePhases/VGPhaseBase.h"
+#include "Core/VGGameMode.h"
 
+void UVGPhaseBase::InitializePhase(AVGGameMode* InGameMode)
+{
+	GameModeRef = InGameMode;
+}
+
+void UVGPhaseBase::EnterPhase()
+{
+	FString PhaseName = GetClass()->GetName();
+	UE_LOG(LogTemp, Warning, TEXT("[VGPhaseBase] %s 진입 (EnterPhase)"), *PhaseName);
+}
+
+void UVGPhaseBase::ExitPhase()
+{
+	FString PhaseName = GetClass()->GetName();
+	UE_LOG(LogTemp, Warning, TEXT("[VGPhaseBase] %s 종료 (ExitPhase)"), *PhaseName);
+}
+
+void UVGPhaseBase::PausePhase()
+{
+}
+
+void UVGPhaseBase::ResumePhase()
+{
+}
+
+bool UVGPhaseBase::CheckPhaseEndCondition()
+{
+	return false;
+}
+
+void UVGPhaseBase::ExecutePhaseResult()
+{
+}
+
+bool UVGPhaseBase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target)
+{
+	return true;
+}
+
+bool UVGPhaseBase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target)
+{
+	return true;
+}
+
+bool UVGPhaseBase::CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject)
+{
+	return true;
+}
+
+void UVGPhaseBase::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim)
+{
+}
+
+void UVGPhaseBase::OnMissionCleared(int32 TimeReducedAmount)
+{
+	
+}

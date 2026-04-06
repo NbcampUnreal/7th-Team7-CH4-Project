@@ -5,8 +5,10 @@
 #include "Character/Component/VGEquipmentComponent.h"
 #include "EnhancedInputComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Character/Component/VGCombatComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
 
 #pragma region Interfaces GameplayTag
 void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const

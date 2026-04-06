@@ -6,6 +6,8 @@
 #include "DrawDebugHelpers.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
+#include "Component/VGStatComponent.h"
+
 AVGCharacterBase::AVGCharacterBase()
 : JumpAction(nullptr),
   MoveAction(nullptr),
@@ -35,6 +37,9 @@ AVGCharacterBase::AVGCharacterBase()
 	
 	// create the combat component
 	CombatComponent = CreateDefaultSubobject<UVGCombatComponent>(TEXT("CombatComponent"));
+	
+	// create the stat component
+	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
 }
 
 void AVGCharacterBase::BeginPlay()
