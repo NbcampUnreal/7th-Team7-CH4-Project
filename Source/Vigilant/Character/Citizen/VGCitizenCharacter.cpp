@@ -30,8 +30,8 @@ void AVGCitizenCharacter::RemoveGameplayTag(FGameplayTag TagToRemove)
 AVGCitizenCharacter::AVGCitizenCharacter()
 {
 	//속도 조정
-	NormalSpeed = 320.f;
-	SprintSpeed = 500.f;
+	NormalSpeed = 600.f;
+	SprintSpeed = 900.f;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	
 	OriginalFriction = GetCharacterMovement()->GroundFriction;
