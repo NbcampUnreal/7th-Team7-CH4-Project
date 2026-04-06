@@ -10,11 +10,11 @@ void UVGMissionInfoWidget::RegisterMission(AVGMissionBase* Mission)
 		return;
 	}
 	
-	MissionDescriptionText->SetText(FText::FromString(Mission->GetMissionDecription()));
+	MissionDescriptionText->SetText(FText::FromString(Mission->GetMissionDescription()));
 	Mission->OnMissionStateChanged.AddDynamic(this, &UVGMissionInfoWidget::HandleMissionStateChanged);
 }
 
-void UVGMissionInfoWidget::OnRep_MissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)
+void UVGMissionInfoWidget::HandleMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)
 {
 	FLinearColor TextColor;
 	if (NewStateTag == VigilantMissionTags::MissionCompleted)

@@ -2,11 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "VGMissionGimmickBase.h"
+#include "Character/Component/VGEquipmentComponent.h"
 #include "VGMissionGimmickChest.generated.h"
 
 class AVGEquippableActor;
 class UBGEquipmentComponent;
-enum class EVGEquipmentSlot;
 
 UCLASS()
 class VIGILANT_API AVGMissionGimmickChest : public AVGMissionGimmickBase

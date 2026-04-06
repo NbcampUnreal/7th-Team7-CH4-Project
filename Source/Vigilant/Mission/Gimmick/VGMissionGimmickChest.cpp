@@ -1,7 +1,6 @@
 ﻿#include "VGMissionGimmickChest.h"
 #include "Common/VGGameplayTags.h"
 #include "Character/VGCharacterBase.h"
-#include "Character/Component/VGEquipmentComponent.h"
 #include "Mission/Item/VGMissionItemBase.h"
 #include "Data/VGMissionItemDataAsset.h"
 
