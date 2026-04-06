@@ -47,54 +47,63 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-			if (MoveAction)
-			{
-				EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this,
-				                          &AVGCharacterBase::Move);
-			}
-
-			if (LookAction)
-			{
-				EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this,
-				                          &AVGCharacterBase::Look);
-			}
-
-			if (JumpAction)
-			{
-				EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this,
-				                          &AVGCharacterBase::StartJump);
-				EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this,
-				                          &AVGCharacterBase::StopJump);
-			}
-
-			if (SprintAction)
-			{
-				EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this,
-				                          &AVGCharacterBase::StartSprint);
-				EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
-				                          &AVGCharacterBase::StopSprint);
-			}
-			
-
-			if (CombatComponent->LightAttackAction)
-			{
-				EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
-				                          &AVGCharacterBase::LightAttack);
-			}
-
-			if (CombatComponent->HeavyAttackAction)
-			{
-				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
-				                          &AVGCharacterBase::HeavyAttack);
-			}
+		if (MoveAction)
+		{
+			EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this,
+			                          &AVGCharacterBase::Move);
+		}
+		if (LookAction)
+		{
+			EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this,
+			                          &AVGCharacterBase::Look);
+		}
+		if (JumpAction)
+		{
+			EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this,
+			                          &AVGCharacterBase::StartJump);
+			EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this,
+			                          &AVGCharacterBase::StopJump);
+		}
+		if (SprintAction)
+		{
+			EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this,
+			                          &AVGCharacterBase::StartSprint);
+			EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
+			                          &AVGCharacterBase::StopSprint);
+		}
 		
+		
+		if (CombatComponent->LightAttackAction)
+		{
+			EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
+			                          &AVGCharacterBase::LightAttack);
+		}
+
+		if (CombatComponent->HeavyAttackAction)
+		{
+			EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
+			                          &AVGCharacterBase::HeavyAttack);
+		}
 	}
 }
 
+void AVGCharacterBase::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+	//카메라 각도 제한
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (PlayerController->PlayerCameraManager)
+		{
+			PlayerController->PlayerCameraManager->ViewPitchMax = 60.f;
+			PlayerController->PlayerCameraManager->ViewPitchMin = -45.f;
+		}
+	}
+}
+
+
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
-
-	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();

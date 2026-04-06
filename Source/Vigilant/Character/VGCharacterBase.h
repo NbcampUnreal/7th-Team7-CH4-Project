@@ -76,6 +76,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void PawnClientRestart() override;
 	
 	// Input Handlers
 	virtual void Move(const FInputActionValue& Value);
