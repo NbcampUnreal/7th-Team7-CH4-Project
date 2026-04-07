@@ -78,16 +78,20 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		}
 		
 		
-		if (CombatComponent->LightAttackAction)
+		// [Fix] CombatComponent null 체크 추가 — 컴포넌트 생성 실패 시 크래시 방지
+		if (CombatComponent)
 		{
-			EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
-			                          &AVGCharacterBase::LightAttack);
-		}
+			if (CombatComponent->LightAttackAction)
+			{
+				EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
+				                          &AVGCharacterBase::LightAttack);
+			}
 
-		if (CombatComponent->HeavyAttackAction)
-		{
-			EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
-			                          &AVGCharacterBase::HeavyAttack);
+			if (CombatComponent->HeavyAttackAction)
+			{
+				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
+				                          &AVGCharacterBase::HeavyAttack);
+			}
 		}
 	}
 }

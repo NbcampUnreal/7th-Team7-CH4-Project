@@ -121,8 +121,8 @@ void AVGCitizenCharacter::Dodge()
 		return;
 	}
 
-	CharacterTags.AddTag(VigilantCharacter::Dodge);
-	//방향 계산
+	// [Fix] PerformDodgeAction 내부에서도 태그를 추가하므로 여기서 중복 추가 제거
+	// 방향 계산
 	FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
 	if(DodgeDirection.IsNearlyZero())
 	{
@@ -158,17 +158,18 @@ void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
 		//루트모션이 아닌 직접 날리자.. 멀티플레이상황에서는 루트모션이 버벅거림
 	
 		
-		FVector DodgeVelocity = Direction*DodgeForce;
+		FVector DodgeVelocity = Direction * DodgeForce;
 		DodgeVelocity.Z = DodgeZForce;
-		LaunchCharacter(DodgeVelocity,true,true);
+		LaunchCharacter(DodgeVelocity, true, true);
 		
-		FRotator DodgeRotattion = Direction.Rotation();
-		DodgeRotattion.Pitch = 0.f;
-		DodgeRotattion.Roll = 0.f;
-		SetActorRotation(DodgeRotattion);
-		//구르기 느낌을 위한 마찰력 조절
+		// [Fix] DodgeRotattion → DodgeRotation 오타 수정
+		FRotator DodgeRotation = Direction.Rotation();
+		DodgeRotation.Pitch = 0.f;
+		DodgeRotation.Roll = 0.f;
+		SetActorRotation(DodgeRotation);
+		
 		GetCharacterMovement()->GroundFriction = ModifyFriction;
-		GetCharacterMovement()->GroundFriction;
+		// [Fix] GroundFriction 읽기만 하는 무효 구문 제거 (no-op)
 	}
 }
 void AVGCitizenCharacter::Multicast_Dodge_Implementation()

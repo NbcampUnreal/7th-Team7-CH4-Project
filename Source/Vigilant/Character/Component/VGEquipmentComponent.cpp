@@ -58,6 +58,7 @@ void UVGEquipmentComponent::Interact()
         AActor* HitActor = HitResult.GetActor();
         if (AVGEquippableActor* EquippableItem = Cast<AVGEquippableActor>(HitActor))
         {
+            // [Fix] 이름 문자열 기반 타입 판별은 취약함 — GameplayTag 또는 클래스 타입 체크로 교체 권장
             EVGEquipmentType TypeToEquip = EVGEquipmentType::Weapon;
             if (EquippableItem->GetName().Contains("Mission"))
             {
@@ -238,12 +239,12 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
         
 		UE_LOG(LogTemp, Log, TEXT("서버: 양손 무기 버리기 완료 (양손 슬롯 해제)"));
 	}
-	// 한손 아이템(무기, 방패 등)일 경우 
+	// [Fix] 왼손은 Shield/MissionItem, 오른손은 OneHand/MissionItem — 슬롯별 올바른 태그 제거
 	else
 	{
 		if (SlotToDrop == EVGEquipmentSlot::LeftHand)
 		{
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_OneHand);
+			EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_Shield);
 			EquipmentTags.RemoveTag(VigilantEquipmentTags::Item_Mission);
 			LeftHandItem = nullptr;
 		}
