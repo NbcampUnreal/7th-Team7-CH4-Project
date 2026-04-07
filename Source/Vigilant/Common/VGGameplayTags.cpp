@@ -10,6 +10,10 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Invincible, "Character.State.Invincibl
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedLeftHand, "Character.State.Occupied.Left");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Occupied.Right");
 
+// 보스 태그 정의
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::Casting, "Boss.State.Casting");
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::SkillCooldown_Q, "Boss.Skill.Cooldown.Q");
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::SkillCooldown_E, "Boss.Skill.Cooldown.E");
 
 //UE_DEFINE_GAMEPLAY_TAG(VigilantTags::Sprint, "Character.Action.Movable.Sprint");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::MissionInactive, "Mission.State.Inactive");
