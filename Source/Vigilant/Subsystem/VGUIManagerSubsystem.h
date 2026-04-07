@@ -6,6 +6,7 @@
 #include "Subsystems/LocalPlayerSubsystem.h"
 #include "VGUIManagerSubsystem.generated.h"
 
+class UVGHUDWidget;
 /**
  * 
  */
@@ -16,13 +17,18 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	GENERATED_BODY()
 	
 
-	UPROPERTY(EditDefaultsOnly, Category = "HUDClass")
-	TObjectPtr<UUserWidget> CurrentHUDWidget;
+	UPROPERTY(Transient)
+	TObjectPtr<UVGHUDWidget> CurrentHUDWidget;
 	public:
-	
+	UFUNCTION(BlueprintPure)
+	UVGHUDWidget* GetCurrentHUDWidget() const {return CurrentHUDWidget;}
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	
+	UFUNCTION()
+	void OnStaminaUpdate(float NewValue, float MaxValue);
+	UFUNCTION()
+	void OnHealthUpdate(float NewValue, float MaxValue);
 	
 	void ShowHUD();
 	void HideHUD();

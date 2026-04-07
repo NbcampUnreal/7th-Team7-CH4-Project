@@ -7,6 +7,8 @@
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
 #include "Component/VGStatComponent.h"
+#include "Subsystem/VGUIManagerSubsystem.h"
+#include "UI/VGHUDWidget.h"
 
 AVGCharacterBase::AVGCharacterBase()
 : JumpAction(nullptr),
@@ -55,39 +57,41 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		if (MoveAction)
 		{
 			EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this,
-			                          &AVGCharacterBase::Move);
+									  &AVGCharacterBase::Move);
 		}
 		if (LookAction)
 		{
 			EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this,
-			                          &AVGCharacterBase::Look);
+									  &AVGCharacterBase::Look);
 		}
 		if (JumpAction)
 		{
 			EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this,
-			                          &AVGCharacterBase::StartJump);
+									  &AVGCharacterBase::StartJump);
 			EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this,
-			                          &AVGCharacterBase::StopJump);
+									  &AVGCharacterBase::StopJump);
 		}
 		if (SprintAction)
 		{
 			EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this,
-			                          &AVGCharacterBase::StartSprint);
+									  &AVGCharacterBase::StartSprint);
 			EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
-			                          &AVGCharacterBase::StopSprint);
+									  &AVGCharacterBase::StopSprint);
 		}
 		
-		
-		if (CombatComponent->LightAttackAction)
+		if (CombatComponent)
 		{
-			EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
-			                          &AVGCharacterBase::LightAttack);
-		}
+			if (CombatComponent->LightAttackAction)
+			{
+				EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
+										  &AVGCharacterBase::LightAttack);
+			}
 
-		if (CombatComponent->HeavyAttackAction)
-		{
-			EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
-			                          &AVGCharacterBase::HeavyAttack);
+			if (CombatComponent->HeavyAttackAction)
+			{
+				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
+										  &AVGCharacterBase::HeavyAttack);
+			}
 		}
 	}
 }
@@ -105,8 +109,7 @@ void AVGCharacterBase::PawnClientRestart()
 			PlayerController->PlayerCameraManager->ViewPitchMin = -45.f;
 		}
 	}
-	
-	
+
 }
 
 

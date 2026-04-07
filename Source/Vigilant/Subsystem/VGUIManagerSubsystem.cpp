@@ -8,6 +8,8 @@
 #include "Core/DeveloperSettings/VGDevelopSettings.h"
 #include "UI/VGHUDWidget.h"
 
+
+
 void UVGUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -16,6 +18,22 @@ void UVGUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UVGUIManagerSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
+}
+
+void UVGUIManagerSubsystem::OnStaminaUpdate(float NewValue, float MaxValue)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->UpdateStaminaUI(NewValue, MaxValue);
+	}
+}
+
+void UVGUIManagerSubsystem::OnHealthUpdate(float NewValue, float MaxValue)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->UpdateHealthUI(NewValue, MaxValue);
+	}
 }
 
 void UVGUIManagerSubsystem::ShowHUD()
