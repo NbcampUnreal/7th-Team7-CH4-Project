@@ -10,6 +10,23 @@
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
 
+#pragma region Interfaces GameplayTag
+void AVGCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	TagContainer = CharacterTags;
+}
+
+void AVGCharacterBase::AddGameplayTag(FGameplayTag TagToAdd)
+{
+	CharacterTags.AddTag(TagToAdd);
+}
+
+void AVGCharacterBase::RemoveGameplayTag(FGameplayTag TagToRemove)
+{
+	CharacterTags.RemoveTag(TagToRemove);
+}
+#pragma endregion
+
 AVGCharacterBase::AVGCharacterBase()
 : JumpAction(nullptr),
   MoveAction(nullptr),

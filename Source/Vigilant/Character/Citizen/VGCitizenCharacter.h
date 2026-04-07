@@ -27,12 +27,7 @@ public IGameplayTagAssetInterface
 
 	
 	
-#pragma region Interfaces Func
-public:
-	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
-	virtual void AddGameplayTag(FGameplayTag TagToAdd) override;
-	virtual void RemoveGameplayTag(FGameplayTag TagToRemove) override;
-#pragma endregion 김형백
+
 	
 public:
 	AVGCitizenCharacter();

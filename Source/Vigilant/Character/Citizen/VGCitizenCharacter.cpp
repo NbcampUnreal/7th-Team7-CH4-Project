@@ -12,22 +12,7 @@
 #include "Subsystem/VGUIManagerSubsystem.h"
 
 
-#pragma region Interfaces GameplayTag
-void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
-{
-	TagContainer = CharacterTags;
-}
 
-void AVGCitizenCharacter::AddGameplayTag(FGameplayTag TagToAdd)
-{
-	CharacterTags.AddTag(TagToAdd);
-}
-
-void AVGCitizenCharacter::RemoveGameplayTag(FGameplayTag TagToRemove)
-{
-	CharacterTags.RemoveTag(TagToRemove);
-}
-#pragma endregion
 
 AVGCitizenCharacter::AVGCitizenCharacter()
 {
