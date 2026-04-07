@@ -17,9 +17,8 @@ struct FInputActionValue;
 
 UCLASS()
 class VIGILANT_API AVGCitizenCharacter : 
-public AVGCharacterBase, 
-public IVGCharacterGameplayTagEditor,
-public IGameplayTagAssetInterface
+public AVGCharacterBase
+
 
 {
 	GENERATED_BODY()
