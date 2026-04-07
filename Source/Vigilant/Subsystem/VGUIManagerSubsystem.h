@@ -51,6 +51,7 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	
 	UFUNCTION(BlueprintCallable)
 	void ShowVote();
+	UFUNCTION(BlueprintCallable)
 	void HideVote();
 	
 	void ShowPopup();

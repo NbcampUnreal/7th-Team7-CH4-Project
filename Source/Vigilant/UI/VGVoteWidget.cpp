@@ -14,7 +14,7 @@ void UVGVoteWidget::NativeConstruct()
 	
 	if (VoteChatText)
 	{
-		VoteChatText->OnTextCommitted.AddDynamic(this, &UVGVoteWidget::OnTextCommitted);
+		VoteChatText->OnTextCommitted.AddUniqueDynamic(this, &UVGVoteWidget::OnTextCommitted);
 	}
 	
 	//VoteChatText->SetIsEnabled(false); // 만약 엔터 눌러서 채팅창 활성화를 하고싶다면!

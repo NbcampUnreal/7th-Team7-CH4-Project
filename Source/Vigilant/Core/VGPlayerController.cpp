@@ -93,7 +93,7 @@ void AVGPlayerController::Server_SendChatMessage_Implementation(const FString& C
 		AVGGameMode* GameMode = Cast<AVGGameMode>(GameModeBase);
 		if (GameMode)
 		{
-			GameMode->ProcessChatMessage(FString("임시 이름입니다 용호님 여기 나중에 플레이어 이름 받으면 넣어주세요 감사합니다."),ChatText);
+			GameMode->ProcessChatMessage(FString(TEXT("임시 이름입니다 용호님 여기 나중에 플레이어 이름 받으면 넣어주세요 감사합니다.")),ChatText);
 		}
 	}
 }

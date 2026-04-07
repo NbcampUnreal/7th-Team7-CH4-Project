@@ -11,7 +11,6 @@
 #include "UI/VGVoteWidget.h"
 
 
-
 void UVGUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -40,14 +39,13 @@ void UVGUIManagerSubsystem::OnHealthUpdate(float NewValue, float MaxValue)
 
 void UVGUIManagerSubsystem::CreateHUDWidget()
 {
-	
 	if (CurrentHUDWidget)
 	{
 		return;
 	}
 	//디벨롭세팅의 CDO를 가져온다
 	const UVGDevelopSettings* UISettings = GetDefault<UVGDevelopSettings>();
-	
+
 	if (!UISettings->UIDataAssetClass.IsNull())
 	{
 		//
@@ -56,11 +54,9 @@ void UVGUIManagerSubsystem::CreateHUDWidget()
 		{
 			CurrentHUDWidget = CreateWidget<UVGHUDWidget>(
 				GetLocalPlayer()->GetPlayerController(GetWorld())
-				,LoadedUIDataAsset->MainHUDWidgetClass
-				);
-			
+				, LoadedUIDataAsset->MainHUDWidgetClass
+			);
 		}
-
 	}
 }
 
@@ -68,7 +64,7 @@ void UVGUIManagerSubsystem::CreateVoteWidget()
 {
 	//디벨롭세팅의 CDO를 가져온다
 	const UVGDevelopSettings* UISettings = GetDefault<UVGDevelopSettings>();
-	
+
 	if (!UISettings->UIDataAssetClass.IsNull())
 	{
 		//
@@ -77,18 +73,16 @@ void UVGUIManagerSubsystem::CreateVoteWidget()
 		{
 			CurrentVoteWidget = CreateWidget<UVGVoteWidget>(
 				GetLocalPlayer()->GetPlayerController(GetWorld())
-				,LoadedUIDataAsset->VoteWidgetClass
-				);
-			
+				, LoadedUIDataAsset->VoteWidgetClass
+			);
 		}
-
 	}
 }
 
 void UVGUIManagerSubsystem::CreatePopupWidget()
 {
 	const UVGDevelopSettings* UISettings = GetDefault<UVGDevelopSettings>();
-	
+
 	if (!UISettings->UIDataAssetClass.IsNull())
 	{
 		//
@@ -97,11 +91,9 @@ void UVGUIManagerSubsystem::CreatePopupWidget()
 		{
 			CurrentPopupWidget = CreateWidget<UVGPopupWidget>(
 				GetLocalPlayer()->GetPlayerController(GetWorld())
-				,LoadedUIDataAsset->PopupWidgetClass
-				);
-			
+				, LoadedUIDataAsset->PopupWidgetClass
+			);
 		}
-
 	}
 }
 
@@ -112,7 +104,7 @@ void UVGUIManagerSubsystem::ShowHUD()
 	{
 		CreateHUDWidget();
 	}
-	
+
 	//화면에 안띄워져 있으면 띄우기
 	if (CurrentHUDWidget && !CurrentHUDWidget->IsInViewport())
 	{
@@ -157,7 +149,7 @@ void UVGUIManagerSubsystem::ShowPopup()
 	{
 		CreatePopupWidget();
 	}
-	
+
 	if (CurrentPopupWidget && !CurrentPopupWidget->IsInViewport())
 	{
 		CurrentPopupWidget->AddToViewport();
@@ -174,7 +166,6 @@ void UVGUIManagerSubsystem::HidePopup()
 
 void UVGUIManagerSubsystem::RequsetSendChatMessage(const FString& Message)
 {
-	
 	OnChatMessageRequested.Broadcast(Message);
 }
 
