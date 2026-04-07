@@ -15,7 +15,7 @@ public:
 	
 	AVGPlayerState();
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Vigilant|Tags")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Vigilant|Tags")
 	FGameplayTagContainer PlayerTags;
 	// 태그 변경 헬퍼 함수(더하기)
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tags")

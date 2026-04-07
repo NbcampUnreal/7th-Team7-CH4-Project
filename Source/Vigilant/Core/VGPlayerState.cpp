@@ -3,7 +3,6 @@
 
 AVGPlayerState::AVGPlayerState()
 {
-	bReplicates = true;
 }
 
 void AVGPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -11,6 +10,7 @@ void AVGPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(AVGPlayerState, bIsReady);
+	DOREPLIFETIME(AVGPlayerState, PlayerTags);
 }
 
 void AVGPlayerState::Client_ReceiveRole_Implementation(FGameplayTag AssignedRoleTag)
