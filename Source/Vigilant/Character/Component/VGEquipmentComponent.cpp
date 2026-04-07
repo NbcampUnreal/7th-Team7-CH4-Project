@@ -43,7 +43,7 @@ void UVGEquipmentComponent::Interact()
 
 	FVector StartLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
 	FVector ForwardVector = PlayerController->PlayerCameraManager->GetActorForwardVector();
-	FVector EndLocation = StartLocation + (ForwardVector * 300.0f);
+	FVector EndLocation = StartLocation + (ForwardVector * 700.0f);
 
 	FHitResult HitResult;
 	FCollisionQueryParams CollisionParams;
@@ -57,7 +57,6 @@ void UVGEquipmentComponent::Interact()
 	if (bHit)
 	{
 		AActor* HitActor = HitResult.GetActor();
-
 		if (HitActor && HitActor->Implements<UVGInteractable>())
 		{
 			if (IVGInteractable::Execute_CanInteract(HitActor, OwnerCharacter))

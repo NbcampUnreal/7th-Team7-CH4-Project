@@ -1,5 +1,8 @@
 #include "Equipment/VGEquippableActor.h"
 
+#include "Character/VGCharacterBase.h"
+#include "Character/Component/VGEquipmentComponent.h"
+
 AVGEquippableActor::AVGEquippableActor()
 {
  	PrimaryActorTick.bCanEverTick = false;
@@ -10,5 +13,17 @@ void AVGEquippableActor::OnInteractWith(AVGCharacterBase* Interactor)
 {
 	Super::OnInteractWith(Interactor);
 	
-	// TODO: E키가 눌리면 캐릭터의 EquipmentComponent에게 이 아이템을 줍도록 지시
+	if (Interactor)
+	{
+		if (UVGEquipmentComponent* EquipComp = Interactor->FindComponentByClass<UVGEquipmentComponent>())
+		{
+			EVGEquipmentType TempType = EVGEquipmentType::Weapon;
+			if (GetName().Contains("Mission"))
+			{
+				TempType = EVGEquipmentType::MissionItem;
+			}
+			
+			EquipComp->Server_EquipItem(this, TempType);
+		}
+	}
 }
