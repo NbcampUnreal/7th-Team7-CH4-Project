@@ -14,30 +14,22 @@ class UInputAction;
 struct FInputActionValue;
 
 
-
 UCLASS()
-class VIGILANT_API AVGCitizenCharacter : 
-public AVGCharacterBase
+class VIGILANT_API AVGCitizenCharacter :
+	public AVGCharacterBase
 
 
 {
 	GENERATED_BODY()
-	
 
-	
-	
-
-	
 public:
 	AVGCitizenCharacter();
-	
+
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
-	
 
-	
 protected:
 	virtual void PawnClientRestart() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -56,28 +48,28 @@ protected:
 
 	// 캐릭터의 이동 상태(걷기, 낙하 등)가 변할 때마다 엔진이 호출해 주는 함수
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
-	
+
 	// 상호작용 실행 함수
 	void Interact();
 	// 버리기 실행 함수
 	void DropItem();
 	// 슬롯 선택 실행 함수
 	void SelectSlot(const FInputActionValue& Value);
-	
+
 	//base의 무브 함수 재정의
 	virtual void Move(const FInputActionValue& Value) override;
-	
+
 	void Dodge();
-	
+
 	UFUNCTION(Server, Reliable)
 	void Server_Dodge(FVector Direction);
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_Dodge();
 	void PerformDodgeAction(const FVector& Direction);
-	
-	
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
-	float DodgeForce = 600.0f; 
+	float DodgeForce = 600.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
 	float DodgeZForce = 200.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
@@ -88,7 +80,7 @@ protected:
 	float Breakingfriction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dodge")
 	TObjectPtr<UAnimMontage> DodgeAnimation;
-	
+
 	UFUNCTION()
 	void OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled = false);
 };
