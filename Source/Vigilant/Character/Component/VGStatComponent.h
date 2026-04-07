@@ -33,6 +33,12 @@ public: // [1] 스탯 조작 함수 (GameMode 및 캐릭터 제어용)
     void RecoverStamina(float RecoverAmount);
     
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
+    void StartContinuousConsumeStamina(float ConsumeAmountPerSecond);
+    
+    UFUNCTION(BlueprintCallable, Category = "VG|Stat")
+    void StopContinuousConsumeStamina();
+    
+    UFUNCTION(BlueprintCallable, Category = "VG|Stat")
     void ResetStats();
     
 public: // [2] 데이터 접근 (Getter)
@@ -66,6 +72,7 @@ protected: // [4] 내부 동작 함수
     
     void RegenerateStamina();
     void StartStaminaRegenTimer();
+    void UseStaminaTick();
     
     // [5] 변수
 private: /* 체력 */
@@ -91,9 +98,15 @@ private: /* 스태미나 */
     UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Stamina")
     float StaminaRegenInterval = 0.1f; // 회복 틱 간격 (0.1초마다)
     
+    UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Stamina")
+    float StaminaConsumeInterval = 0.1f; // 스테미나 소모 틱 간격
+    
+    float ContinuousConsumeRate = 0.f; //내부 사용 변수
+    
 private: /* 타이머 핸들 */
     FTimerHandle StaminaRegenTimerHandle;
-
+    FTimerHandle StaminaContinuousConsumeTimerHandle;
+ 
 private: /* 상태 */
     UPROPERTY(ReplicatedUsing = OnRep_bIsAlive, VisibleAnywhere, Category = "VG|Stat|State")
     bool bIsAlive = true; 

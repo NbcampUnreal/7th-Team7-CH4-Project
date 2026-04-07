@@ -41,9 +41,9 @@ void UVGStatComponent::ApplyDamage(float DamageAmount)
 		return;
 	}
 
-	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, KINDA_SMALL_NUMBER, MaxHP);
+	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
 
-	if (CurrentHP <= KINDA_SMALL_NUMBER && bIsAlive)
+	if (CurrentHP <= 0.f && bIsAlive)
 	{
 		bIsAlive = false;
 		OnDead.Broadcast();
@@ -64,12 +64,17 @@ void UVGStatComponent::RecoverHP(float RecoverAmount)
 		return;
 	}
 
-	CurrentHP = FMath::Clamp(CurrentHP + RecoverAmount, KINDA_SMALL_NUMBER, MaxHP);
+	CurrentHP = FMath::Clamp(CurrentHP + RecoverAmount, 0.f, MaxHP);
 	OnHPChanged.Broadcast(CurrentHP, MaxHP);
 }
 
 void UVGStatComponent::ConsumeStamina(float ConsumeAmount)
 {
+	if (!bIsAlive)
+	{
+		return;
+	}
+	
 	if (GetOwnerRole() != ROLE_Authority)
 	{
 		return;
@@ -131,6 +136,68 @@ void UVGStatComponent::RecoverStamina(float RecoverAmount)
 	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 }
 
+void UVGStatComponent::StartContinuousConsumeStamina(float ConsumeAmountPerSecond)
+{
+	if (GetOwnerRole() != ROLE_Authority)
+	{
+		return;
+	}
+	
+	if (ContinuousConsumeRate == ConsumeAmountPerSecond)
+	{
+		return;
+	}
+
+	ContinuousConsumeRate = ConsumeAmountPerSecond;
+
+	GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(StaminaContinuousConsumeTimerHandle);
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		StaminaContinuousConsumeTimerHandle,
+		this,
+		&UVGStatComponent::UseStaminaTick,
+		StaminaConsumeInterval,
+		true
+	);
+}
+
+void UVGStatComponent::StopContinuousConsumeStamina()
+{
+	if (GetOwnerRole() != ROLE_Authority)
+	{
+		return;
+	}
+	
+
+	GetWorld()->GetTimerManager().ClearTimer(StaminaContinuousConsumeTimerHandle);
+	ContinuousConsumeRate = 0.f;
+
+	StartStaminaRegenTimer();
+}
+
+void UVGStatComponent::UseStaminaTick()
+{
+	if (!bIsAlive)
+	{
+		return;
+	}
+	
+	if (GetOwnerRole() != ROLE_Authority)
+	{
+		return;
+	}
+	
+	float ConsumeAmount = ContinuousConsumeRate * StaminaConsumeInterval;
+	CurrentStamina = FMath::Clamp(CurrentStamina - ConsumeAmount, 0.f, MaxStamina);
+	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+
+	if (CurrentStamina <= 0.f)
+	{
+		StopContinuousConsumeStamina();
+	}
+}
+
 void UVGStatComponent::ResetStats()
 {
 	if (GetOwnerRole() != ROLE_Authority)
@@ -139,10 +206,12 @@ void UVGStatComponent::ResetStats()
 	}
 	
 	GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(StaminaContinuousConsumeTimerHandle);
 	
 	CurrentHP = MaxHP;
 	CurrentStamina = MaxStamina;
 	bIsAlive = true;
+	ContinuousConsumeRate = 0.f;
 	
 	OnHPChanged.Broadcast(CurrentHP, MaxHP);
 	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
