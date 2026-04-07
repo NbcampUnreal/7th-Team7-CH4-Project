@@ -5,11 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
-#include "Interaction/VGInteractableActorBase.h"
 #include "Mission/VGMissionObjectInterface.h"
+#include "Interaction/VGInteractableActorBase.h"
 #include "VGMissionGimmickBase.generated.h"
-
-class AVGMissionBase;
 
 // Gimmick 상태 변경 시 어떤 기믹의 상태가 외부에 변했는지 알리기
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
@@ -30,24 +28,22 @@ public:
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
+	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	
 	// 미션 실패 시 리셋
 	UFUNCTION()
 	virtual void ResetGimmickState();
 	
-	FGameplayTag GetStateTag() { return GimmickStateTag; }
-	void SetStateTag(FGameplayTag NewStateTag);
+	// [Fix] 인터페이스(IVGMissionObjectInterface) 구현에 virtual/override/const 명시
+	virtual FGameplayTag GetStateTag() const override { return GimmickStateTag; }
+	virtual void SetStateTag(FGameplayTag NewStateTag) override;
 	
-	void SetOwnerMission(AVGMissionBase* InOwnerMission);
-	
-	// 조건 충족 시 자식 클래스에서 호출 -> OwnerMission에 보고
-	virtual void ReportConditionMet();
-	
+	void SetGimmickIndex(int32 NewGimmickIndex);
+	// [Fix] const 추가 - 인덱스 조회는 객체를 변경하지 않음
+	int32 GetGimmickIndex() const {return GimmickIndex;}
+
 protected:
-	// IVGInteractable 구현
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor);
-	
-	
 	UFUNCTION()
 	virtual void OnRep_GimmickStateTag();
 	
@@ -60,10 +56,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	
-	// 조건 충족 시 보고할 대상 미션 — 에디터에서 지정
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
-	TObjectPtr<AVGMissionBase> OwnerMission;
-	
 	// 기믹 현재 타입 태그
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Gimmick")
 	FGameplayTag GimmickTypeTag;
@@ -71,6 +63,17 @@ protected:
 	// 기믹 현재 상태 태그
 	UPROPERTY(ReplicatedUsing = OnRep_GimmickStateTag)
 	FGameplayTag GimmickStateTag;
+	
+	// BeginPlay에서 MissionBase가 자동 부여 — 에디터 지정 불필요
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Mission|Gimmick")
+	int32 GimmickIndex = -1;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	UParticleSystem* InactiveParticle;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	UParticleSystem* ActiveParticle;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	UParticleSystem* CompleteParticle;
 	
 private:
 	UMaterialInstanceDynamic* DynamicMaterialInstance;

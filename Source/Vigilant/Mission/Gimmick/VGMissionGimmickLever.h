@@ -15,13 +15,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Gimmick|Lever")
 	bool IsActivated() const;
 	
-protected:
-	virtual void BeginPlay() override;
-	
 	// 상호작용할 때마다 On/Off 토글
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
 	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 
+protected:
 	void Toggle();
 	
 	virtual void OnRep_GimmickStateTag() override;

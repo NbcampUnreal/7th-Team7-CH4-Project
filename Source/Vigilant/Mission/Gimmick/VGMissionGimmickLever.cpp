@@ -1,9 +1,11 @@
 ﻿#include "VGMissionGimmickLever.h"
 #include "Common/VGGameplayTags.h"
+#include "Character/VGCharacterBase.h"
 
 AVGMissionGimmickLever::AVGMissionGimmickLever()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	GimmickTypeTag = VigilantMissionTags::LeverGimmick;
 }
 
 bool AVGMissionGimmickLever::IsActivated() const
@@ -29,6 +31,13 @@ void AVGMissionGimmickLever::OnInteractWith(AVGCharacterBase* Interactor)
 	}
 
 	Toggle();
+	// 상호작용한 플레이어에게만 이펙트 요청
+	// Interactor의 PlayerController를 통해 Client RPC 호출
+	if (APlayerController* PC =
+		Cast<APlayerController>(Interactor->GetController()))
+	{
+		// PC->Client_PlayInteractEffect(GetActorLocation());
+	}
 }
 
 void AVGMissionGimmickLever::Toggle()
@@ -45,7 +54,6 @@ void AVGMissionGimmickLever::Toggle()
 	else
 	{
 		SetStateTag(VigilantMissionTags::GimmickActive);
-		ReportConditionMet();
 	}
 }
 
@@ -53,11 +61,3 @@ void AVGMissionGimmickLever::OnRep_GimmickStateTag()
 {
 	Super::OnRep_GimmickStateTag();
 }
-
-// Called when the game starts or when spawned
-void AVGMissionGimmickLever::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-

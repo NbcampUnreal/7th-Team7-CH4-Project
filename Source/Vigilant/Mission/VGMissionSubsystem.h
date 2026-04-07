@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "GameplayTagContainer.h"
-#include "Mission/VGMissionBase.h"
+#include "Mission/Definitions/VGMissionBase.h"
 #include "VGMissionSubsystem.generated.h"
 
 class AVGMissionBase;
@@ -26,11 +26,12 @@ public:
 	TArray<AVGMissionBase*> GetMissionsByTag(FGameplayTag TypeTag) const;
 	
 	// ID로 미션 찾기
+	// [Fix] 단일 객체 반환이므로 함수명 단수로 수정
 	UFUNCTION(BlueprintCallable)
-	AVGMissionBase* GetMissionsByID(int32 MissionID) const;
+	AVGMissionBase* GetMissionByID(int32 MissionID) const;
 	
 	UFUNCTION(BlueprintCallable)
-	TArray<AVGMissionBase*> GetAllMissions() const;
+	const TArray<AVGMissionBase*>& GetAllMissions() const;
 	
 	
 	// 특정 상태인 미션 개수 반환 - UI 미션 진행도에 사용
