@@ -31,14 +31,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetMissionID() const;
 	
-	// Gimmick/Item → 여기로 보고
-	// Reporter가 누군지 알면 자식에서 캐스팅해서 판정
-	virtual void OnConditionMet(AActor* Reporter);
-	
 	// 완료 처리 — Base에서 담당
 	virtual void CompleteMission();
 	void NotifyMissionCompleted();
 	
+	FString GetMissionDescription() const {return MissionDescription;}
 protected:
 	virtual void BeginPlay() override;
 	
@@ -52,22 +49,15 @@ protected:
 	virtual void OnGimmickStateChanged(
 		AVGMissionGimmickBase* Gimmick, FGameplayTag Tag);
 	
-	// 어떤 Gimmick이 변경되었는지 확인하기
+	// 어떤 Item이 변경되었는지 확인하기
 	UFUNCTION()
 	virtual void OnItemStateChanged(
-		AVGMissionItemBase* Gimmick, FGameplayTag Tag);
+		AVGMissionItemBase* Item, FGameplayTag Tag);
 	
 	/// 자식이 override — 달성 조건 판정
 	virtual bool CheckMissionCondition(AActor* Reporter);
 	
 public:
-	// 에디터에서 이 미션에 사용될 기믹과 아이템을 직접 지정
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")
-	TArray<TObjectPtr<AVGMissionGimmickBase>> MissionGimmicks;
-	
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")
-	TArray<TObjectPtr<AVGMissionItemBase>> MissionItems;
-	
 	UPROPERTY(BlueprintAssignable)
 	FOnMissionCompleted OnMissionCompleted;
 	
@@ -75,6 +65,13 @@ public:
 	FOnMissionStateChanged OnMissionStateChanged;
 
 protected:
+	// 에디터에서 이 미션에 사용될 기믹과 아이템을 직접 지정
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")
+	TArray<TObjectPtr<AVGMissionGimmickBase>> MissionGimmicks;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")
+	TArray<TObjectPtr<AVGMissionItemBase>> MissionItems;
+	
 	// For TimeAttack
 	UPROPERTY(EditDefaultsOnly, Category = "Mission|TimeAttack")
 	float TimeLimit = 30.f;
@@ -96,4 +93,7 @@ protected:
 	
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
 	int32 MissionID = -1;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
+	FString MissionDescription;
 };

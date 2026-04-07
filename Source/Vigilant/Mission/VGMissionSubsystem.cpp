@@ -1,11 +1,31 @@
 ﻿#include "VGMissionSubsystem.h"
-#include "VGMissionBase.h"
+#include "Mission/Definitions/VGMissionBase.h"
 
 void UVGMissionSubsystem::RegisterMission(AVGMissionBase* Mission)
 {
 	if (!Mission)
 	{
 		return;
+	}
+	// [Fix] MissionID 유효성 검증 — 기본값(-1)이나 중복 ID는 완료 판정 오류를 유발함
+	const int32 ID = Mission->GetMissionID();
+	if (ID < 0)
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[Subsystem] Mission '%s' has invalid MissionID(%d). 에디터에서 MissionID를 설정하세요."),
+			*Mission->GetName(), ID);
+		return;
+	}
+	
+	for (const AVGMissionBase* Existing : RegisteredMissions)
+	{
+		if (Existing && Existing->GetMissionID() == ID)
+		{
+			UE_LOG(LogTemp, Error,
+				TEXT("[Subsystem] MissionID(%d) 중복! '%s'와 '%s'. 고유 ID를 부여하세요."),
+				ID, *Existing->GetName(), *Mission->GetName());
+			return;
+		}
 	}
 	
 	if (RegisteredMissions.Contains(Mission) == false)
@@ -47,7 +67,8 @@ TArray<AVGMissionBase*> UVGMissionSubsystem::GetMissionsByTag(FGameplayTag TypeT
 	{
 		if (Mission)
 		{
-			if(Mission->HasMissionTag(TypeTag) || Mission->GetCurrentStateTag() == TypeTag)
+			// [Fix] HasMissionTag 내부에서 이미 GetCurrentStateTag() 비교를 수행하므로 중복 조건 제거
+			if(Mission->HasMissionTag(TypeTag))
 			{
 				Missions.Add(Mission);
 			}
@@ -57,11 +78,11 @@ TArray<AVGMissionBase*> UVGMissionSubsystem::GetMissionsByTag(FGameplayTag TypeT
 	return Missions;
 }
 
-AVGMissionBase* UVGMissionSubsystem::GetMissionsByID(int32 MissionID) const
+AVGMissionBase* UVGMissionSubsystem::GetMissionByID(int32 MissionID) const
 {
 	for (AVGMissionBase* Mission : RegisteredMissions)
 	{
-		if (Mission->GetMissionID() == MissionID)
+		if (Mission && Mission->GetMissionID() == MissionID)
 		{
 			return Mission;
 		}
@@ -70,7 +91,7 @@ AVGMissionBase* UVGMissionSubsystem::GetMissionsByID(int32 MissionID) const
 	return nullptr;
 }
 
-TArray<AVGMissionBase*> UVGMissionSubsystem::GetAllMissions() const
+const TArray<AVGMissionBase*>& UVGMissionSubsystem::GetAllMissions() const
 {
 	return RegisteredMissions;
 }
@@ -80,7 +101,8 @@ int32 UVGMissionSubsystem::GetMissionCountByState(FGameplayTag StateTag) const
 	int32 Count = 0;
 	for (const AVGMissionBase* Mission : RegisteredMissions)
 	{
-		if (Mission->HasMissionTag(StateTag))
+		// [Fix] HasMissionTag는 타입 태그까지 매칭하므로, 상태만 비교하도록 수정
+		if (Mission && Mission->GetCurrentStateTag() == StateTag)
 		{
 			Count++;
 		}

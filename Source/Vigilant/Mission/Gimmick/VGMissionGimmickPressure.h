@@ -16,13 +16,8 @@ class VIGILANT_API AVGMissionGimmickPressure : public AVGMissionGimmickBase
 public:
 	AVGMissionGimmickPressure();
 	
-	int32 GetSequenceIndex() const { return SequenceIndex; }
 protected:
 	virtual void BeginPlay() override;
-	
-	// IVGInteractable 구현 — 발판은 Overlap으로 감지하므로 직접 상호작용 없음
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 	
 	virtual void OnRep_GimmickStateTag() override;
 	
@@ -67,8 +62,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
 	int32 RequiredActorCount = 1;
 	
-	// 이 발판의 순서 번호 — 에디터에서 지정 (0부터 시작)
-	// 순서 무관 미션에서는 사용 안 함
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
-	int32 SequenceIndex = 0;
+	// 미션 종류에 따라 동작 방식 선택 가능하도록
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
+	bool bToggleMode = false; // true면 재밟기 시 비활성화 (마피아 방해용)
 };
