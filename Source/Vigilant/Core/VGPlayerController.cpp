@@ -52,3 +52,11 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 		UISubsystem->ShowHUD();
 	}
 }
+
+void AVGPlayerController::Server_SendChatMessage_Implementation(const FText& ChatText)
+{
+}
+
+bool AVGPlayerController::Server_SendChatMessage_Validate(const FText& ChatText)
+{
+}

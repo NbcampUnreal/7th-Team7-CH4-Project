@@ -28,4 +28,8 @@ public:
 	
 	virtual void BeginPlay() override;
 	virtual void AcknowledgePossession(class APawn* P) override; //LifeCycle함수 - 빙의 후 (클라이언트전용) 
+	
+	/** 채팅 전송을 위한 RPC*/
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SendChatMessage(const FText& ChatText);
 };
