@@ -17,7 +17,9 @@ class VIGILANT_API UVGMissionListWidget : public UUserWidget
 public:
 	void InitializeWidget();
 	
+	UFUNCTION()
 	void AddMissionWidget(AVGMissionBase* Mission);
+	
 protected:
 	UPROPERTY(meta=(BindWidget))
 	UScrollBox* MissionInfoScrollBox;

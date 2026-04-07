@@ -84,6 +84,6 @@ protected:
 	FGameplayTag ItemStateTag;
 	
 	// 아이템 타입 태크
-	UPROPERTY(ReplicatedUsing = OnRep_ItemStateTag)
+	UPROPERTY()
 	FGameplayTag ItemTypeTag;
 };
