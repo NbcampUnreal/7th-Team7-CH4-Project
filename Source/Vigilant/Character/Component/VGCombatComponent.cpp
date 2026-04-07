@@ -16,7 +16,9 @@ UVGCombatComponent::UVGCombatComponent()
 
 void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData)
 {
-	if (GetOwner()->HasAuthority())
+	// [Fix] GetOwner() null 체크 추가 — 컴포넌트 해제 직후 호출 시 크래시 방지
+	AActor* Owner = GetOwner();
+	if (Owner && Owner->HasAuthority())
 	{
 		ActiveCombatData = NewData;
 	}
@@ -61,7 +63,6 @@ void UVGCombatComponent::TryLightAttack()
 		return;
 	}
 
-	// 1. 콤보 윈도우 안에 있다면: 버퍼가 인풋이 됨
 	if (bCanChainCombo)
 	{
 		if (!bHasBufferedAttack)
@@ -72,26 +73,34 @@ void UVGCombatComponent::TryLightAttack()
 		return;
 	}
 
-	// 2. 이미 공격중이고, 콤보 윈도우 안에 없다면: 공격 입력 무시됨
+	// [Fix] GetMesh/GetAnimInstance null 체크 추가 — 메시 미설정 시 크래시 방지
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
-	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->LightAttackMontage))
+	UAnimInstance* AnimInst = OwnerCharacter->GetMesh() ? OwnerCharacter->GetMesh()->GetAnimInstance() : nullptr;
+	if (Data && AnimInst && AnimInst->Montage_IsPlaying(Data->LightAttackMontage))
 	{
 		return;
 	}
 
-	// 3. 새로운 공격
 	CurrentComboIndex = 0;
 	PerformAttack(false);
 
-	if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
+	// [Fix] Listen server host는 HasAuthority()==true이므로 Server RPC를 건너뜀
+	//       → 다른 클라이언트에 Multicast가 전송되지 않아 공격 애니메이션이 보이지 않는 문제
+	if (OwnerCharacter->IsLocallyControlled())
 	{
-		Server_TryAttack(false, CurrentComboIndex);
+		if (OwnerCharacter->HasAuthority())
+		{
+			BroadcastAttackMontage(false);
+		}
+		else
+		{
+			Server_TryAttack(false, CurrentComboIndex);
+		}
 	}
 }
 
 void UVGCombatComponent::TryHeavyAttack()
 {
-	// TODO: bIsHeavy = true로 구현
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
@@ -108,8 +117,10 @@ void UVGCombatComponent::TryHeavyAttack()
 		return;
 	}
 
+	// [Fix] GetMesh/GetAnimInstance null 체크 추가
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
-	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->HeavyAttackMontage))
+	UAnimInstance* AnimInst = OwnerCharacter->GetMesh() ? OwnerCharacter->GetMesh()->GetAnimInstance() : nullptr;
+	if (Data && AnimInst && AnimInst->Montage_IsPlaying(Data->HeavyAttackMontage))
 	{
 		return;
 	}
@@ -117,9 +128,17 @@ void UVGCombatComponent::TryHeavyAttack()
 	CurrentComboIndex = 0;
 	PerformAttack(true);
 
-	if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
+	// [Fix] Listen server host Multicast 누락 수정 (TryLightAttack과 동일)
+	if (OwnerCharacter->IsLocallyControlled())
 	{
-		Server_TryAttack(true, CurrentComboIndex);
+		if (OwnerCharacter->HasAuthority())
+		{
+			BroadcastAttackMontage(true);
+		}
+		else
+		{
+			Server_TryAttack(true, CurrentComboIndex);
+		}
 	}
 }
 
@@ -179,7 +198,12 @@ void UVGCombatComponent::OnComboWindowClosed()
 
 		PerformAttack(bIsBufferedAttackHeavy);
 
-		if (!OwnerPawn->HasAuthority())
+		// [Fix] Listen server host 콤보 연계 시에도 Multicast 전송 필요
+		if (OwnerPawn->HasAuthority())
+		{
+			BroadcastAttackMontage(bIsBufferedAttackHeavy);
+		}
+		else
 		{
 			Server_TryAttack(bIsBufferedAttackHeavy, CurrentComboIndex);
 		}
@@ -199,17 +223,21 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 {
 	CurrentComboIndex = ExpectedComboIndex;
 	PerformAttack(bIsHeavy);
+	BroadcastAttackMontage(bIsHeavy);
+}
 
-	// Multicast
+// [Fix] Listen server host용 + Server_TryAttack 공용 Multicast 헬퍼
+void UVGCombatComponent::BroadcastAttackMontage(bool bIsHeavy)
+{
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
-	if (Data)
+	if (!Data)
 	{
-		UAnimMontage* MontageToPlay = bIsHeavy ? Data->HeavyAttackMontage : Data->LightAttackMontage;
-		FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
-		FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
-
-		Multicast_PlayAttackMontage(MontageToPlay, SectionName, Data->AttackSpeed);
+		return;
 	}
+	UAnimMontage* MontageToPlay = bIsHeavy ? Data->HeavyAttackMontage : Data->LightAttackMontage;
+	FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
+	FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
+	Multicast_PlayAttackMontage(MontageToPlay, SectionName, Data->AttackSpeed);
 }
 
 bool UVGCombatComponent::Server_TryAttack_Validate(bool bIsHeavy, int32 ExpectedComboIndex)
@@ -253,6 +281,29 @@ void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage
 // ---------------------------------------------------------
 
 
+// [Fix] TraceMesh 결정 로직을 StartMeleeTrace/TickMeleeTrace에서 중복 사용 — 헬퍼로 추출
+UMeshComponent* UVGCombatComponent::GetTraceMesh() const
+{
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter)
+	{
+		return nullptr;
+	}
+
+	if (UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>())
+	{
+		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
+		{
+			if (UMeshComponent* WeaponMesh = EquippedWeapon->GetWeaponMesh())
+			{
+				return WeaponMesh;
+			}
+		}
+	}
+
+	return OwnerCharacter->GetMesh();
+}
+
 void UVGCombatComponent::StartMeleeTrace()
 {
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
@@ -270,26 +321,12 @@ void UVGCombatComponent::StartMeleeTrace()
 		return;
 	}
 
-	// --- Test ---
-	UMeshComponent* TraceMesh = OwnerCharacter->GetMesh();
-
-	if (UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>())
-	{
-		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
-		{
-			if (UMeshComponent* WeaponMesh = EquippedWeapon->GetWeaponMesh())
-			{
-				TraceMesh = WeaponMesh;
-			}
-		}
-	}
-
+	UMeshComponent* TraceMesh = GetTraceMesh();
 	if (!TraceMesh)
 	{
 		return;
 	}
 
-	// Data Asset에 정의된 모든 소켓의 시작 위치 기록
 	for (const FName& SocketName : Data->HitboxSocketNames)
 	{
 		FVector StartLoc = TraceMesh->GetSocketLocation(SocketName);
@@ -311,23 +348,7 @@ void UVGCombatComponent::TickMeleeTrace()
 		return;
 	}
 
-	// --- Test ---
-	// 트레이스할 메시 결정: 기본값 주먹
-	UMeshComponent* TraceMesh = OwnerCharacter->GetMesh();
-
-	UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>();
-	if (EquipComp && EquipComp->RightHandItem)
-	{
-		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
-		{
-			if (EquippedWeapon->GetWeaponMesh())
-			{
-				TraceMesh = EquippedWeapon->GetWeaponMesh();
-			}
-		}
-	}
-	// ---
-
+	UMeshComponent* TraceMesh = GetTraceMesh();
 	if (!TraceMesh)
 	{
 		return;
@@ -419,11 +440,9 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 		return;
 	}
 
-	// Validation
+	// [Fix] 하드코딩 300.0f → 에디터 설정 가능한 MaxHitValidationDistance 사용
 	float Distance = FVector::Distance(Owner->GetActorLocation(), HitActor->GetActorLocation());
-	float MaxAllowedDistance = 300.0f;
-
-	if (Distance <= MaxAllowedDistance)
+	if (Distance <= MaxHitValidationDistance)
 	{
 		UVGStatComponent* StatComp = HitActor->FindComponentByClass<UVGStatComponent>();
 		if (StatComp)
@@ -434,9 +453,23 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 			       *HitActor->GetName(), Data->BaseDamage, StatComp->GetCurrentHP());
 		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server] Hit rejected — distance %.1f > max %.1f"),
+		       Distance, MaxHitValidationDistance);
+	}
 }
 
+// [Fix] 항상 true → 기본 유효성 검증 추가 (자기 자신 공격 방지, null 체크)
 bool UVGCombatComponent::Server_ProcessHit_Validate(AActor* HitActor)
 {
+	if (!HitActor)
+	{
+		return false;
+	}
+	if (HitActor == GetOwner())
+	{
+		return false;
+	}
 	return true;
 }

@@ -76,6 +76,12 @@ private:
 	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	
+	// [Fix] TraceMesh 결정 로직이 StartMeleeTrace/TickMeleeTrace에서 중복 — 헬퍼로 추출
+	UMeshComponent* GetTraceMesh() const;
+	
+	// [Fix] Listen server host 공격 시 Multicast 전송을 위한 공용 헬퍼
+	void BroadcastAttackMontage(bool bIsHeavy);
+	
 	// Combat State
 	UPROPERTY(Replicated)
 	FGameplayTagContainer CurrentCombatTags;
@@ -84,6 +90,10 @@ private:
 	bool bCanChainCombo = false;
 	bool bHasBufferedAttack = false;
 	bool bIsBufferedAttackHeavy = false;
+	
+	// [Fix] 하드코딩(300.0f) → 에디터 설정 가능하도록 UPROPERTY화
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|HitValidation")
+	float MaxHitValidationDistance = 300.0f;
 	
 	// Hit Detection State
 	UPROPERTY(Transient)
