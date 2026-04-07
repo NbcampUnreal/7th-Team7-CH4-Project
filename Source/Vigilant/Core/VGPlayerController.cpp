@@ -39,8 +39,9 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 	
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 레디!"))
 		VGGameMode->CheckAllPlayersReady();
-  }
+    }
 }
 
 void AVGPlayerController::AcknowledgePossession(class APawn* P)

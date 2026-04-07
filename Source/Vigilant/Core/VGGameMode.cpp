@@ -15,11 +15,27 @@ void AVGGameMode::BeginPlay()
 	
 }
 
+void AVGGameMode::ClearDuelParticipants()
+{
+	DuelChallenger = nullptr;
+	DuelTarget = nullptr;
+}
+
 void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 	
 	
+}
+
+void AVGGameMode::TransitionToPhase(TSubclassOf<class UVGPhaseBase> NextPhase)
+{
+	PopPhase();
+	
+	if (NextPhase != nullptr)
+	{
+		PushPhase(NextPhase);
+	}
 }
 
 void AVGGameMode::PushPhase(TSubclassOf<class UVGPhaseBase> NewPhase)
@@ -77,8 +93,6 @@ void AVGGameMode::CheckAllPlayersReady()
 {
 	if (!GameState || GameState->PlayerArray.Num() == 0) return;
 	
-	int32 MinimumPlayersNeeded = 2;
-	
 	if (GameState->PlayerArray.Num() < MinimumPlayersNeeded) return;
 	
 	bool bAllReady = true;
@@ -94,7 +108,7 @@ void AVGGameMode::CheckAllPlayersReady()
 	
 	if (bAllReady)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 전원 레디 완료, 직업 분배"))
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 전원 레디 완료, 직업 분배"));
 		AssignRolesAndStartGame();
 	}
 }

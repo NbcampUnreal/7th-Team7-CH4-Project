@@ -34,9 +34,7 @@ void UVGMissionPhase::ExecutePhaseResult()
 {
 	if (GameModeRef && NextPhaseClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[VGMissionPhase] 다음 페이즈로 전환"));
-		GameModeRef->PopPhase();
-		GameModeRef->PushPhase(NextPhaseClass);
+		GameModeRef->TransitionToPhase(NextPhaseClass);
 	}
 }
 void UVGMissionPhase::PausePhase()

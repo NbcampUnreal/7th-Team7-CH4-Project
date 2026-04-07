@@ -24,15 +24,26 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Phase")
 	TSubclassOf<class UVGPhaseBase> DuelPhaseClass;
 	
-public:
-	
 	UPROPERTY(Transient)
 	AVGCharacterBase* DuelChallenger;
 	
 	UPROPERTY(Transient)
 	AVGCharacterBase* DuelTarget;
 	
+public:
+	
+	void ClearDuelParticipants();
+	
+	AVGCharacterBase* GetDuelChallenger() const { return DuelChallenger; }
+	AVGCharacterBase* GetDuelTarget() const { return DuelTarget; }
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Lobby")
+	int32 MinimumPlayersNeeded = 2;
+	
 	virtual void PostLogin(APlayerController *NewPlayer) override;
+	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
+	void TransitionToPhase(TSubclassOf<class UVGPhaseBase> NextPhase);
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void PushPhase(TSubclassOf<class UVGPhaseBase> NewPhase);

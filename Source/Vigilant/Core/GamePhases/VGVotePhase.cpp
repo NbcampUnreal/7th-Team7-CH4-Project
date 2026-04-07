@@ -31,8 +31,7 @@ void UVGVotePhase::ExecutePhaseResult()
 {
 	if (GameModeRef && NextPhaseClass)
 	{
-		GameModeRef->PopPhase();
-		GameModeRef->PushPhase(NextPhaseClass);
+		GameModeRef->TransitionToPhase(NextPhaseClass);
 	}
 }
 
