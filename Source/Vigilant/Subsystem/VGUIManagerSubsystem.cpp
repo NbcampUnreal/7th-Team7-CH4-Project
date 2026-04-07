@@ -172,8 +172,16 @@ void UVGUIManagerSubsystem::HidePopup()
 	}
 }
 
-void UVGUIManagerSubsystem::RequsetSendChatMessage(FString& Message)
+void UVGUIManagerSubsystem::RequsetSendChatMessage(const FString& Message)
 {
 	
 	OnChatMessageRequested.Broadcast(Message);
+}
+
+void UVGUIManagerSubsystem::LoggingChatMessage(const FString& Message)
+{
+	if (CurrentVoteWidget)
+	{
+		CurrentVoteWidget->AddChatMessage(Message);
+	}
 }

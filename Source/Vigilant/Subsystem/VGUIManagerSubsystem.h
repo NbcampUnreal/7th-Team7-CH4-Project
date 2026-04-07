@@ -8,7 +8,7 @@
 
 //디커플링을 위한 방송용 델리게이트
 //채팅 메시지 전달용
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChatMessageRequestedSignature, FString&, Message);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChatMessageRequestedSignature, const FString&, Message);
 
 class UVGPopupWidget;
 class UVGVoteWidget;
@@ -49,6 +49,7 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	void ShowHUD();
 	void HideHUD();
 	
+	UFUNCTION(BlueprintCallable)
 	void ShowVote();
 	void HideVote();
 	
@@ -56,9 +57,11 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	void HidePopup();
 #pragma endregion 김형백
 	//UIWidget -> UIManager로 텍스트 전달(이부분) -> PlayerController 에게 토스
-	void RequsetSendChatMessage(FString& Message);
+	void RequsetSendChatMessage(const FString& Message);
 	
 	UPROPERTY(BlueprintAssignable, Category = "VGUIManager")
 	FOnChatMessageRequestedSignature OnChatMessageRequested;
 	
+	// 마지막 단계 
+	void LoggingChatMessage(const FString& Message);
 };

@@ -5,7 +5,7 @@
 
 #include "Components/TextBlock.h"
 
-void UVGChatMessage::SetChatMessage(FString& Message)
+void UVGChatMessage::SetChatMessage(const FString& Message)
 {
 	if (ChatMessageTextBlock)
 	{

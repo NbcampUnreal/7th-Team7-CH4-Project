@@ -29,9 +29,14 @@ class VIGILANT_API UVGVoteWidget : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UScrollBox> ChatScrollBox;
 	
+	//채팅 로그 클래스
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UUserWidget> ChatMessageClass;
+	void AddChatMessage(const FString& MessageLog);
 	protected:
 	//엔터키시 채팅보냄
 	UFUNCTION()
 	void OnTextCommitted(const FText& InText, ETextCommit::Type CommitMethod);
+	
 	
 };

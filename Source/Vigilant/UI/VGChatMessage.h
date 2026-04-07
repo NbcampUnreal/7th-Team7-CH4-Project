@@ -19,6 +19,6 @@ public:
 	UTextBlock* ChatMessageTextBlock;
 	
 	UFUNCTION()
-	void SetChatMessage(FString& Message);
+	void SetChatMessage(const FString& Message);
 	
 };
