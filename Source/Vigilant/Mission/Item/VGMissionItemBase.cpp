@@ -13,6 +13,8 @@ AVGMissionItemBase::AVGMissionItemBase()
 	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
 	SetRootComponent(MeshComponent);
+	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 }
 
 void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
