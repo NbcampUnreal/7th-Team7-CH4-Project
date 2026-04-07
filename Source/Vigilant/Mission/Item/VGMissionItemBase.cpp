@@ -82,6 +82,8 @@ void AVGMissionItemBase::OnPickedUp(AVGCharacterBase* NewCarrier)
 
 	Carrier = NewCarrier;
 	
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 	SetStateTag(VigilantMissionTags::ItemCarried);
 	// Carrier가 변경되었으므로 OnRep 수동 호출
 	OnRep_Carrier();
@@ -95,6 +97,7 @@ void AVGMissionItemBase::OnDropped()
 	}
 
 	Carrier = nullptr;
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     SetStateTag(VigilantMissionTags::ItemInactive);
 	OnRep_Carrier();
 }
@@ -107,6 +110,8 @@ void AVGMissionItemBase::BeginPlay()
 	{
 		UStaticMesh* Mesh = ItemDataAsset->ItemMesh;
 		MeshComponent->SetStaticMesh(Mesh);
+		
+		ItemTypeTag = ItemDataAsset->ItemTypeTag;
 	}
 }
 
@@ -123,4 +128,12 @@ void AVGMissionItemBase::OnRep_Carrier()
 void AVGMissionItemBase::OnRep_ItemStateTag()
 {
 	// Todo State 변경에 따른 피드백 처리
+	if (ItemStateTag == VigilantMissionTags::ItemCarried)
+	{
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else if (ItemStateTag == VigilantMissionTags::ItemInactive)
+	{
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
 }
