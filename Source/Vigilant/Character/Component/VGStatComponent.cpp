@@ -41,11 +41,14 @@ void UVGStatComponent::ApplyDamage(float DamageAmount)
 		return;
 	}
 
-	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, KINDA_SMALL_NUMBER, MaxHP);
+	// [Fix] KINDA_SMALL_NUMBER(~0.0001) → 0.f — UI에서 HP가 0이 아닌 미세값으로 표시되는 문제 방지
+	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
 
-	if (CurrentHP <= KINDA_SMALL_NUMBER && bIsAlive)
+	if (CurrentHP <= 0.f && bIsAlive)
 	{
 		bIsAlive = false;
+		// [Fix] 사망 시 스태미나 재생 타이머 정리 — 죽은 캐릭터가 계속 회복하는 것 방지
+		GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
 		OnDead.Broadcast();
 	}
 	
@@ -64,7 +67,8 @@ void UVGStatComponent::RecoverHP(float RecoverAmount)
 		return;
 	}
 
-	CurrentHP = FMath::Clamp(CurrentHP + RecoverAmount, KINDA_SMALL_NUMBER, MaxHP);
+	// [Fix] KINDA_SMALL_NUMBER → 0.f — ApplyDamage와 동일하게 통일
+	CurrentHP = FMath::Clamp(CurrentHP + RecoverAmount, 0.f, MaxHP);
 	OnHPChanged.Broadcast(CurrentHP, MaxHP);
 }
 
@@ -156,7 +160,7 @@ void UVGStatComponent::OnRep_bIsAlive()
 	}
 }
 
-void UVGStatComponent::OnRep_CurrentHP(float OldHP)
+void UVGStatComponent::OnRep_CurrentHP()
 {
 	OnHPChanged.Broadcast(CurrentHP, MaxHP);
 }

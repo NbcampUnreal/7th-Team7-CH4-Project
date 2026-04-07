@@ -72,15 +72,16 @@ private: /* 체력 */
     UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Health")
     float MaxHP = 100.f;
     
+    // [Fix] 생성~BeginPlay 사이 미초기화 방지를 위해 기본값 명시
     UPROPERTY(ReplicatedUsing = OnRep_CurrentHP, VisibleAnywhere, Category = "VG|Stat|Health")
-    float CurrentHP; 
+    float CurrentHP = 0.f;
     
 private: /* 스태미나 */
     UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Stamina")
     float MaxStamina = 100.f;
 
     UPROPERTY(ReplicatedUsing = OnRep_CurrentStamina, VisibleAnywhere, Category = "VG|Stat|Stamina")
-    float CurrentStamina; 
+    float CurrentStamina = 0.f;
     
     UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Stamina")
     float StaminaRegenRate = 15.0f; // 초당 회복량
@@ -99,7 +100,8 @@ private: /* 상태 */
     bool bIsAlive = true; 
 
 private: // [6] 네트워크 동기화 콜백 함수 (OnRep)
-    UFUNCTION() void OnRep_CurrentHP(float OldHP);
+    // [Fix] OldHP 파라미터 미사용 → 제거 (필요 시 복원하여 데미지 방향 표시 등에 활용)
+    UFUNCTION() void OnRep_CurrentHP();
     UFUNCTION() void OnRep_CurrentStamina();
     UFUNCTION() void OnRep_bIsAlive();
 };
