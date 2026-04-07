@@ -9,7 +9,7 @@
 #include "UI/VGHUDWidget.h"
 #include "UI/VGPopupWidget.h"
 #include "UI/VGVoteWidget.h"
-
+#include "GameFramework/PlayerController.h"
 
 void UVGUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -133,6 +133,19 @@ void UVGUIManagerSubsystem::ShowVote()
 	{
 		CurrentVoteWidget->AddToViewport();
 	}
+	
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		// 1. 입력 모드를 UI 전용으로 설정
+		FInputModeUIOnly InputMode;
+		InputMode.SetWidgetToFocus(CurrentVoteWidget->TakeWidget());
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+        
+		PC->SetInputMode(InputMode);
+
+		// 2. 마우스 커서 활성화
+		PC->bShowMouseCursor = true;
+	}
 }
 
 void UVGUIManagerSubsystem::HideVote()
@@ -140,7 +153,18 @@ void UVGUIManagerSubsystem::HideVote()
 	if (CurrentVoteWidget->IsInViewport())
 	{
 		CurrentVoteWidget->RemoveFromParent();
+		
+		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			// 3. 입력 모드를 다시 게임 전용으로 복구
+			FInputModeGameOnly InputMode;
+			PC->SetInputMode(InputMode);
+
+			// 4. 마우스 커서 비활성화
+			PC->bShowMouseCursor = false;
+		}
 	}
+	
 }
 
 void UVGUIManagerSubsystem::ShowPopup()
