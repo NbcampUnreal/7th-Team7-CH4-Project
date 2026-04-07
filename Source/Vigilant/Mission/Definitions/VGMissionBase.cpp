@@ -9,6 +9,7 @@ AVGMissionBase::AVGMissionBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	bAlwaysRelevant = true;
 	
 	// 초기 상태는 비활성
 	CurrentStateTag = VigilantMissionTags::MissionInactive;
@@ -19,6 +20,7 @@ void AVGMissionBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ThisClass, CurrentStateTag);
+	DOREPLIFETIME(ThisClass, MissionID);
 }
 
 void AVGMissionBase::BeginPlay()
@@ -30,7 +32,7 @@ void AVGMissionBase::BeginPlay()
 		if (UVGMissionSubsystem* Subsystem =
 			GetWorld()->GetSubsystem<UVGMissionSubsystem>())
 		{
-			Subsystem->RegisterMission(this);
+			Subsystem->Server_RegisterMission(this);
 		}
 		
 		// 에디터에서 등록된 기믹들에 바인딩
@@ -124,6 +126,15 @@ void AVGMissionBase::OnRep_CurrentStateTag()
 				}
 			}
 		}
+	}
+}
+
+void AVGMissionBase::OnRep_MissionID()
+{
+	if (UVGMissionSubsystem* Subsystem =
+			GetWorld()->GetSubsystem<UVGMissionSubsystem>())
+	{
+		Subsystem->Client_RegisterMission(this);
 	}
 }
 

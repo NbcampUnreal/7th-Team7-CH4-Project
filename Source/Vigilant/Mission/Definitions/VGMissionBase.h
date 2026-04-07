@@ -44,6 +44,9 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_CurrentStateTag();
 	
+	UFUNCTION()
+	virtual void OnRep_MissionID();
+	
 	// 어떤 Gimmick이 변경되었는지 확인하기
 	UFUNCTION()
 	virtual void OnGimmickStateChanged(
@@ -91,7 +94,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Tags")
 	FGameplayTagContainer MissionTags;
 	
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission", ReplicatedUsing = OnRep_MissionID)
 	int32 MissionID = -1;
 	
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
