@@ -8,6 +8,9 @@ AVGMissionSandbag::AVGMissionSandbag()
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	
 	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
 }
 
@@ -47,10 +50,12 @@ void AVGMissionSandbag::OnHPChanged(float NewHP, float MaxHP)
 void AVGMissionSandbag::OnRep_CurrentHPRatio()
 {
 	// TODO: 위젯 업데이트 로직 or 제거
+	UE_LOG(LogTemp, Display, TEXT("CurrentHPRatio is %f"), CurrentHPRatio);
 }
 
 void AVGMissionSandbag::OnDead(AController* LastInstigator)
 {
 	// 막타 플레이어와 함께 미션에 보고
 	OnSandbagDefeated.Broadcast(LastAttacker);
+	UE_LOG(LogTemp, Display, TEXT("[%s] is dead."), *GetName());
 }

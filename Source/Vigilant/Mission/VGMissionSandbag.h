@@ -40,6 +40,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sandbag")
 	TObjectPtr<UVGStatComponent> StatComponent;
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission")
+	TObjectPtr<UStaticMeshComponent> MeshComponent;
+	
 	// 마지막으로 데미지를 준 플레이어 — 서버 전용
 	UPROPERTY()
 	TObjectPtr<AVGCharacterBase> LastAttacker;

@@ -30,18 +30,13 @@ void AVGMissionCombat::OnSandbagDefeated(AVGCharacterBase* LastAttacker)
 {
 	if (LastAttacker)
 	{
-		GiveRewardToPlayer(LastAttacker);
+		LastContributor = LastAttacker;
 	}
 	
 	if (AreAllSandbagsDefeated())
 	{
 		CompleteMission();
 	}
-}
-
-void AVGMissionCombat::GiveRewardToPlayer(AVGCharacterBase* Player)
-{
-	// TODO: 보상 지금 로직
 }
 
 bool AVGMissionCombat::AreAllSandbagsDefeated() const
