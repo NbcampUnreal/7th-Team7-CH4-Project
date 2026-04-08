@@ -8,6 +8,7 @@
 #include "VGMissionGimmickAltar.generated.h"
 
 class AVGMissionItemBase;
+class AVGMissionItemCarry;
 
 USTRUCT(BlueprintType)
 struct FVGAltarPlacementSlot

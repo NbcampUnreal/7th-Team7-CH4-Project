@@ -14,12 +14,7 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 
 bool AVGMissionGimmickStatue::CanInteractWith(AVGCharacterBase* Interactor) const
 {
-	if (GimmickStateTag != VigilantMissionTags::GimmickInactive)
-	{
-		return false;
-	}
-	
-	return true;
+	return GimmickStateTag == VigilantMissionTags::GimmickInactive;
 }
 
 void AVGMissionGimmickStatue::OnInteractWith(AVGCharacterBase* Interactor)

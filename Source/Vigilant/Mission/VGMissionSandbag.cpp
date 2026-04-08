@@ -9,7 +9,7 @@ AVGMissionSandbag::AVGMissionSandbag()
 	bReplicates = true;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	MeshComponent->SetCollisionProfileName(TEXT("Pawn"));
 	
 	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
 }
