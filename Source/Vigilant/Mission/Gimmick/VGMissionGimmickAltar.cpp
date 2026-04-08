@@ -13,21 +13,8 @@ AVGMissionGimmickAltar::AVGMissionGimmickAltar()
 	GimmickTypeTag = VigilantMissionTags::AltarGimmick;
 }
 
-bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickAltar::HasMatchingItemInHands(UVGEquipmentComponent* EquipComp, FGameplayTag RequiredItemTypeTag) const
 {
-	// 이미 아이템이 놓여있으면 불가
-	if (GimmickStateTag != VigilantMissionTags::GimmickInactive)
-	{
-		return false;
-	}
-
-	UVGEquipmentComponent* EquipComp =
-		Interactor->FindComponentByClass<UVGEquipmentComponent>();
-	if (!EquipComp)
-	{
-		return false;
-	}
-	
 	AVGMissionItemCarry* LeftItem =
 		Cast<AVGMissionItemCarry>(EquipComp->LeftHandItem);
 	if (LeftItem && LeftItem->ItemDataAsset &&
@@ -43,6 +30,32 @@ bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const
 	{
 		return true;
 	}
+	
+	return false;
+}
+
+bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const
+{
+	// 이미 아이템이 놓여있으면 불가
+	if (GimmickStateTag != VigilantMissionTags::GimmickInactive)
+	{
+		return false;
+	}
+
+	UVGEquipmentComponent* EquipComp =
+		Interactor->FindComponentByClass<UVGEquipmentComponent>();
+	if (!EquipComp)
+	{
+		return false;
+	}
+	// 빈 슬롯 중 인터랙터 보유 아이템과 매칭되는 것이 있는지 확인
+	for (const FVGAltarPlacementSlot& Slot : PlacementSlots)
+	{
+		if (Slot.IsOccupied()) continue;
+
+		if (HasMatchingItemInHands(EquipComp, Slot.RequiredItemTypeTag))
+			return true;
+	}
 
 	return false;
 }
@@ -50,12 +63,7 @@ bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const
 void AVGMissionGimmickAltar::OnInteractWith(AVGCharacterBase* Interactor)
 {
 	
-	if (!HasAuthority())
-	{
-		return;
-	}
-	
-	if (!CanInteractWith(Interactor))
+	if (!HasAuthority() || !CanInteractWith(Interactor))
 	{
 		return;
 	}
@@ -66,48 +74,70 @@ void AVGMissionGimmickAltar::OnInteractWith(AVGCharacterBase* Interactor)
 		return;
 	}
 	
-	bool bPlaced= TryPlaceItemFromSlot(
-		EquipComp, EquipComp->LeftHandItem, EVGEquipmentSlot::LeftHand);
-	
-	if (!bPlaced)
+	// 매칭되는 빈 슬롯 찾아서 채우기
+	for (FVGAltarPlacementSlot& Slot : PlacementSlots)
 	{
-		bPlaced = TryPlaceItemFromSlot(
-			EquipComp, EquipComp->RightHandItem, EVGEquipmentSlot::RightHand);
+		if (Slot.IsOccupied()) continue;
+
+		bool bPlaced = TryPlaceItemToSlot(EquipComp, Slot);
+		if (bPlaced)
+		{
+			OnGimmickInteracted.Broadcast(this, Interactor);
+			break; // 한 번에 하나씩
+		}
 	}
 	
-	if (bPlaced)
+	// 모든 슬롯이 채워졌으면 완료
+	if (AreAllSlotsFilled())
 	{
-		OnGimmickInteracted.Broadcast(this, Interactor);
+		SetStateTag(VigilantMissionTags::GimmickCompleted);
 	}
 }
 
-bool AVGMissionGimmickAltar::TryPlaceItemFromSlot(UVGEquipmentComponent* EquipComp, AVGEquippableActor* SlotItem,
-	EVGEquipmentSlot Slot)
+bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot)
 {
-	AVGMissionItemCarry* CarryItem = Cast<AVGMissionItemCarry>(SlotItem);
-	if (!CarryItem)
+	for (EVGEquipmentSlot HandSlot : 
+		 { EVGEquipmentSlot::LeftHand, EVGEquipmentSlot::RightHand })
 	{
-		return false;
-	}
-	
-	if (!CarryItem->ItemDataAsset)
-	{
-		return false;
-	}
-	
-	if (CarryItem->ItemDataAsset->ItemTypeTag != RequiredItemTypeTag)
-	{
-		return false;
-	}
+		AVGEquippableActor* HandItem = (HandSlot == EVGEquipmentSlot::LeftHand)
+			? EquipComp->LeftHandItem : EquipComp->RightHandItem;
+		if (!HandItem)
+		{
+			continue;
+		}
+		
+		AVGMissionItemCarry* CarryItem = Cast<AVGMissionItemCarry>(HandItem);
+		if (!CarryItem || !CarryItem->ItemDataAsset) continue;
+		if (CarryItem->ItemDataAsset->ItemTypeTag != Slot.RequiredItemTypeTag) continue;
 
-	// EquipComponent에서 분리
-	EquipComp->Server_DropItem(Slot);
+		EquipComp->Server_DropItem(HandSlot);
+		CarryItem->PlaceOnTarget(this);
 
-	// 제단에 부착
-	CarryItem->PlaceOnTarget(this);
-	PlacedItem = CarryItem;
-	
-	SetStateTag(VigilantMissionTags::GimmickCompleted); 
+		// 소켓 또는 오프셋으로 위치 보정
+		if (Slot.AttachSocketName != NAME_None)
+		{
+			CarryItem->AttachToComponent(
+				GetRootComponent(),
+				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+				Slot.AttachSocketName);
+		}
+		else
+		{
+			CarryItem->SetActorRelativeLocation(Slot.AttachOffset);
+		}
+
+		Slot.PlacedItem = CarryItem;
+		return true;
+	}
+	return false;
+}
+
+bool AVGMissionGimmickAltar::AreAllSlotsFilled()
+{
+	for (const FVGAltarPlacementSlot& Slot : PlacementSlots)
+	{
+		if (!Slot.IsOccupied()) return false;
+	}
 	return true;
 }
 

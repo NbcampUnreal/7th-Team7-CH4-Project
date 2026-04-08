@@ -9,6 +9,30 @@
 
 class AVGMissionItemBase;
 
+USTRUCT(BlueprintType)
+struct FVGAltarPlacementSlot
+{
+	GENERATED_BODY()
+
+	// 이 슬롯에 필요한 아이템 타입
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FGameplayTag RequiredItemTypeTag;
+
+	// 아이템이 부착될 소켓 이름 (없으면 액터 원점 기준 오프셋 사용)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName AttachSocketName = NAME_None;
+
+	// 소켓이 없을 때 사용할 상대 오프셋
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector AttachOffset = FVector::ZeroVector;
+
+	// 런타임: 현재 배치된 아이템
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
+	TObjectPtr<AVGMissionItemCarry> PlacedItem = nullptr;
+
+	bool IsOccupied() const { return PlacedItem != nullptr; }
+};
+
 UCLASS()
 class VIGILANT_API AVGMissionGimmickAltar : public AVGMissionGimmickBase
 {
@@ -17,23 +41,17 @@ class VIGILANT_API AVGMissionGimmickAltar : public AVGMissionGimmickBase
 public:
 	AVGMissionGimmickAltar();
 
+	bool HasMatchingItemInHands(UVGEquipmentComponent* EquipComp, FGameplayTag GameplayTag) const;
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
 	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 	
 private:
-	// 슬롯에서 필요한 아이템을 찾아 사용 처리
-	// 성공하면 true 반환
-	bool TryPlaceItemFromSlot(
-		UVGEquipmentComponent* EquipComp,
-		AVGEquippableActor* SlotItem,
-		EVGEquipmentSlot Slot);
+	// 슬롯에 아이템 배치 시도
+	bool TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot);
 
+	bool AreAllSlotsFilled();
 protected:
-	// 올려놓을 수 있는 아이템 타입 태그
-	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Altar")
-	FGameplayTag RequiredItemTypeTag;
-
-	// 현재 올려진 아이템
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Gimmick|Altar")
-	TObjectPtr<AVGMissionItemBase> PlacedItem;
+	// Altar 슬롯 정보
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Altar")
+	TArray<FVGAltarPlacementSlot> PlacementSlots;
 };
