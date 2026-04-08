@@ -45,6 +45,7 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_Shield, "Item.Type.Weapon.S
 UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Item_Mission, "Item.Type.Special.Mission");
 
 // 게임 페이즈 관련
+UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseLobby, "Phase.State.Lobby");
 UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseMission, "Phase.State.Mission");
 UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseDuel,    "Phase.State.Duel");
 UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseVote,    "Phase.State.Vote");

@@ -72,6 +72,7 @@ namespace VigilantMissionTags
 // 게임 페이즈 관리용
 namespace VigilantPhaseTags 
 {
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseLobby);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseMission);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseDuel);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseVote);

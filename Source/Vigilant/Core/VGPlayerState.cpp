@@ -3,7 +3,6 @@
 
 AVGPlayerState::AVGPlayerState()
 {
-	bReplicates = true;
 }
 
 void AVGPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -11,13 +10,16 @@ void AVGPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(AVGPlayerState, bIsReady);
+	DOREPLIFETIME(AVGPlayerState, PlayerStatusTags);
+	DOREPLIFETIME(AVGPlayerState, VGPlayerName);
+	DOREPLIFETIME(AVGPlayerState, EntryIndex);
 }
 
 void AVGPlayerState::Client_ReceiveRole_Implementation(FGameplayTag AssignedRoleTag)
 {
 	if (AssignedRoleTag.IsValid())
 	{
-		PlayerTags.AddTag(AssignedRoleTag);
+		PlayerStatusTags.AddTag(AssignedRoleTag);
 	}
 }
 
@@ -25,7 +27,7 @@ void AVGPlayerState::AddPlayerTag(const FGameplayTag& TagToAdd)
 {
 	if (TagToAdd.IsValid())
 	{
-		PlayerTags.AddTag(TagToAdd);
+		PlayerStatusTags.AddTag(TagToAdd);
 	}
 }
 
@@ -33,7 +35,7 @@ void AVGPlayerState::RemovePlayerTag(const FGameplayTag& TagToRemove)
 {
 	if (TagToRemove.IsValid())
 	{
-		PlayerTags.RemoveTag(TagToRemove);
+		PlayerStatusTags.RemoveTag(TagToRemove);
 	}
 }
 
@@ -41,7 +43,7 @@ bool AVGPlayerState::HasPlayerTag(const FGameplayTag& TagToCheck) const
 {
 	if (TagToCheck.IsValid())
 	{
-		return PlayerTags.HasTag(TagToCheck);
+		return PlayerStatusTags.HasTag(TagToCheck);
 	}
 	
 	return false;

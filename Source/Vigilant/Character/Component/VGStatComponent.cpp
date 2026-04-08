@@ -16,15 +16,6 @@ void UVGStatComponent::BeginPlay()
 	
 	CurrentHP = MaxHP;
 	CurrentStamina = MaxStamina;
-	
-	
-	//언리얼 제공 TakeDamage 사용시 이 바인드는 필요없음
-	//중복 데미지계산이 실행될 수 있는 위험
-	AActor* Owner = GetOwner();
-	if (Owner && Owner->HasAuthority())
-	{
-		Owner->OnTakeAnyDamage.AddDynamic(this, &UVGStatComponent::TakeDamage);
-	}
 }
 
 void UVGStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -33,36 +24,54 @@ void UVGStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(UVGStatComponent, CurrentHP);
 	DOREPLIFETIME(UVGStatComponent, bIsAlive);
-	DOREPLIFETIME(UVGStatComponent, LastDamageCauser);
+	DOREPLIFETIME(UVGStatComponent, LastInstigator);
 	
 	//현진 : 추후 스테미나 관련 기획이 생겨 다른 플레이어들 에게도 스테미너 상태를 알려야 한다면 변경필요
 	DOREPLIFETIME_CONDITION(UVGStatComponent, CurrentStamina, COND_OwnerOnly);
 }
 
-//첫번째 인자 DamagedActor는 필요없음
-//다른 인자도 사용될 때만 필요
-void UVGStatComponent::TakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
+void UVGStatComponent::TakeDamage(float DamageAmount, AController* Instigator)
 {
 	if (GetOwnerRole() != ROLE_Authority)
 	{
 		return;
 	}
 	
-	if (!bIsAlive || Damage <= KINDA_SMALL_NUMBER)
+	if (!bIsAlive || DamageAmount <= KINDA_SMALL_NUMBER)
 	{
 		return;
 	}
-	LastDamageCauser = DamageCauser;
+	LastInstigator = Instigator;
 	
-	CurrentHP = FMath::Clamp(CurrentHP - Damage, 0.f, MaxHP);
+	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
 	
 	OnHPChanged.Broadcast(CurrentHP, MaxHP);
+	
+	UE_LOG
+	(	
+		LogTemp,
+		Warning,
+		TEXT("[%s] Take Damage! / DamageAmount: %.1f / Instigator: %s / CurrentHP: %.1f"), 
+		*GetOwner()->GetName(), 
+		DamageAmount, 
+		Instigator ? *Instigator->GetName() : TEXT("Unknown"), 
+		CurrentHP
+	);
 	
 	if (CurrentHP <= 0.f && bIsAlive)
 	{
 		bIsAlive = false;
 		
-		OnDead.Broadcast(LastDamageCauser);
+		UE_LOG
+		(	
+			LogTemp,
+			Warning,
+			TEXT("[%s] Dead! / LastInstigator: %s"), 
+			*GetOwner()->GetName(), 
+			Instigator ? *Instigator->GetName() : TEXT("Unknown")
+		);
+		
+		OnDead.Broadcast(LastInstigator);
 	}
 }
 
@@ -225,7 +234,7 @@ void UVGStatComponent::ResetStats()
 	CurrentHP = MaxHP;
 	CurrentStamina = MaxStamina;
 	bIsAlive = true;
-	LastDamageCauser = nullptr;
+	LastInstigator = nullptr;
 	ContinuousConsumeRate = 0.f;
 	
 	OnHPChanged.Broadcast(CurrentHP, MaxHP);
@@ -236,7 +245,7 @@ void UVGStatComponent::OnRep_bIsAlive()
 {
 	if (!bIsAlive)
 	{
-		OnDead.Broadcast(LastDamageCauser);
+		OnDead.Broadcast(LastInstigator);
 	}
 }
 
