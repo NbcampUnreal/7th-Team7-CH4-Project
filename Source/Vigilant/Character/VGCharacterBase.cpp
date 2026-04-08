@@ -200,6 +200,15 @@ void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 	}
 }
 
+float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	//최신버전에서 TakeDamage로 변경
+	StatComponent->ApplyDamage(DamageAmount);
+}
+
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 {
 	// TODO: GameplayTag 체크 필요
