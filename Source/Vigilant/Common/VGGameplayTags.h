@@ -30,7 +30,13 @@ namespace VigilantCharacter
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedRightHand);
 }
 
-
+namespace VigilantBoss
+{
+	// 보스 스킬/상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Casting);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_Q);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_E);
+}
 
 namespace VigilantMissionTags
 {

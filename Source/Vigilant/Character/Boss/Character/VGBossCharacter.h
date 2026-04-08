@@ -20,8 +20,29 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
+	// 보스 스킬 컴포넌트
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Vigilant|Component")
+	class UVGBossSkillComponent* SkillComponent;
+	
+	// 에디터에서 할당할 보스 IMC
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vigilant|Input")
+	class UInputMappingContext* BossMappingContext;
+
+	// 에디터에서 할당할 보스 스킬 IA
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vigilant|Input")
+	class UInputAction* SkillAction_Q;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vigilant|Input")
+	class UInputAction* SkillAction_E;
 protected:
 	virtual void BeginPlay() override;
+	
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	virtual void PossessedBy(AController* NewController) override;
+	
+	void Input_SkillQ(const FInputActionValue& Value);
+	void Input_SkillE(const FInputActionValue& Value);
 	
 	// 보스 데이터 에셋 (에디터에서 할당)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data")
