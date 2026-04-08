@@ -79,21 +79,22 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 			return;
 		}
 		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(BaseMaterial, this);
-	}
-	
-	if (!DynamicMaterialInstance)
-	{
-		return;
+		if (!DynamicMaterialInstance)
+		{
+			return;
+		}
+		
+		MeshComponent->SetMaterial(0, DynamicMaterialInstance);
 	}
 	
 	FLinearColor Color = FLinearColor::White;
 	if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
 	{
-		Color = FColor::Black;
+		Color = FLinearColor::Black;
 	}
 	else if (GimmickStateTag == VigilantMissionTags::GimmickActive)
 	{
-		Color = FColor::Cyan;
+		Color = FLinearColor(0.f, 1.f, 1.f);
 	}
 	
 	DynamicMaterialInstance->SetVectorParameterValue(TEXT("Color"), Color);
