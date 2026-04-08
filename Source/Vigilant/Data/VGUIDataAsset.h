@@ -6,6 +6,9 @@
 #include "Engine/DataAsset.h"
 #include "VGUIDataAsset.generated.h"
 
+class UVGPopupWidget;
+class UVGVoteWidget;
+class UVGHUDWidget;
 /**
  * 
  */
@@ -15,11 +18,11 @@ class VIGILANT_API UVGUIDataAsset : public UPrimaryDataAsset
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
-	TSubclassOf<UUserWidget> MainHUDWidgetClass;
+	TSubclassOf<UVGHUDWidget> MainHUDWidgetClass;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
-	TSubclassOf<UUserWidget> PopupWidgetClass;
+	TSubclassOf<UVGPopupWidget> PopupWidgetClass;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
-	TSubclassOf<UUserWidget> VoteWidgetClass;
+	TSubclassOf<UVGVoteWidget> VoteWidgetClass;
 };

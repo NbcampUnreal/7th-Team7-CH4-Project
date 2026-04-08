@@ -239,6 +239,7 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 		UE_LOG(LogTemp, Log, TEXT("서버: 양손 무기 버리기 완료 (양손 슬롯 해제)"));
 	}
 	// 한손 아이템(무기, 방패 등)일 경우 
+	// 방패 태그 제거가 없음 
 	else
 	{
 		if (SlotToDrop == EVGEquipmentSlot::LeftHand)

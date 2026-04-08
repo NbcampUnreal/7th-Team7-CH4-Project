@@ -1,10 +1,13 @@
 #include "Core/VGGameMode.h"
+
+#include "EngineUtils.h"
 #include "gameframework/PlayerController.h"
 #include "GameFramework/GameStateBase.h"
 #include "Core/GamePhases/VGPhaseBase.h"
 #include "Core/VGPlayerState.h"
 #include "Algo/RandomShuffle.h"
 #include "Common/VGGameplayTags.h"
+#include "Interface/VGChatReciveInterface.h"
 
 
 void AVGGameMode::BeginPlay()
@@ -135,6 +138,23 @@ void AVGGameMode::OnMissionCleared(int32 TimeReducedAmount)
 	if (PhaseStack.Num() > 0)
 	{
 		PhaseStack.Last()->OnMissionCleared(TimeReducedAmount);
+	}
+}
+
+void AVGGameMode::ProcessChatMessage(const FString& SenderName, const FString& Message)
+{
+	// 월드에있는 플레이어 전부에게 뿌리기
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PlayerController = It->Get();
+		if (IVGChatReciveInterface* ChatReceiveInterface = Cast<IVGChatReciveInterface>(PlayerController))
+		{
+			//TODO: 가져온 이름과 메세지를 합쳐서 하나의 멧쎄지로만들기
+			FString NickNameMessage = SenderName + TEXT(" : ") + Message; // 임시
+			
+			//이 함수 구현은 플레이어 컨트롤러에 있어요~
+			ChatReceiveInterface->ReceiveChatMessage(NickNameMessage);
+		}
 	}
 }
 
