@@ -182,8 +182,10 @@ void AVGGameMode::AssignRolesAndStartGame()
 		AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(Players[i]);
 		if (VGPlayerState)
 		{
-			VGPlayerState->Client_ReceiveRole(RolePool[i]);
-			VGPlayerState->AddPlayerTag(RolePool[i]);
+			FGameplayTag AssignedRole = RolePool[i];
+			VGPlayerState->SecretRoleTag = AssignedRole;
+			// 직업 부여받은 유저에게만 자기 직업 알려줌
+			VGPlayerState->Client_ReceiveRole(AssignedRole);
 		}
 	}
 	

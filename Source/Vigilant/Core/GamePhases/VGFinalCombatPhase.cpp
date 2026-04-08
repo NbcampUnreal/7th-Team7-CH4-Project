@@ -44,7 +44,7 @@ void UVGFinalCombatPhase::EnterPhase()
         APawn* CurrentPawn = PlayerController->GetPawn();
 
         // 마피아 유저 처리 (보스로 변신)
-        if (VGPlayerState->HasPlayerTag(VigilantRoleTags::Mafia))
+        if (VGPlayerState->IsRole(VigilantRoleTags::Mafia))
         {
             if (CurrentPawn) CurrentPawn->Destroy(); 
 
@@ -110,8 +110,8 @@ bool UVGFinalCombatPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacter
 		
 		if (AttackerPlayerState && TargetPlayerState)
 		{
-			bool bAttackerIsCitizen = AttackerPlayerState->HasPlayerTag(VigilantRoleTags::Citizen);
-			bool bTargetIsCitizen = TargetPlayerState->HasPlayerTag(VigilantRoleTags::Citizen);
+			bool bAttackerIsCitizen = AttackerPlayerState->IsRole(VigilantRoleTags::Citizen);
+			bool bTargetIsCitizen = TargetPlayerState->IsRole(VigilantRoleTags::Citizen);
 			
 			if (bAttackerIsCitizen && bTargetIsCitizen)
 			{
