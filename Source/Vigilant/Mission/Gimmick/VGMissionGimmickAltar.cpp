@@ -71,8 +71,13 @@ void AVGMissionGimmickAltar::OnInteractWith(AVGCharacterBase* Interactor)
 	
 	if (!bPlaced)
 	{
-		TryPlaceItemFromSlot(
+		bPlaced = TryPlaceItemFromSlot(
 			EquipComp, EquipComp->RightHandItem, EVGEquipmentSlot::RightHand);
+	}
+	
+	if (bPlaced)
+	{
+		OnGimmickInteracted.Broadcast(this, Interactor);
 	}
 }
 
@@ -101,7 +106,8 @@ bool AVGMissionGimmickAltar::TryPlaceItemFromSlot(UVGEquipmentComponent* EquipCo
 	// 제단에 부착
 	CarryItem->PlaceOnTarget(this);
 	PlacedItem = CarryItem;
-
+	
+	SetStateTag(VigilantMissionTags::GimmickCompleted); 
 	return true;
 }
 

@@ -1,4 +1,6 @@
 ﻿#include "VGMissionGimmickPressure.h"
+
+#include "Character/VGCharacterBase.h"
 #include "Components/BoxComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Mission/Definitions/VGMissionBase.h"
@@ -82,7 +84,7 @@ void AVGMissionGimmickPressure::OnTriggerBoxBeginOverlap(UPrimitiveComponent* Ov
 	if (IsValid(TargetClass) && OtherActor->IsA(TargetClass))
 	{
 		OverlappingActors.Add(OtherActor);
-	
+		
 		if (OverlappingActors.Num() >= RequiredActorCount)
 		{
 			if (bToggleMode &&
@@ -94,6 +96,12 @@ void AVGMissionGimmickPressure::OnTriggerBoxBeginOverlap(UPrimitiveComponent* Ov
 			{
 				OnPressed();
 			}
+		}
+		
+		// 상호작용 호출이 없으니 직접 호출
+		if (AVGCharacterBase* Player = Cast<AVGCharacterBase>(OtherActor))
+		{
+			OnGimmickInteracted.Broadcast(this, Player);
 		}
 	}
 }

@@ -14,6 +14,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FOnGimmickStateChanged,
 	AVGMissionGimmickBase*, Gimmick,  // 어떤 기믹인지
 	FGameplayTag, NewStateTag); 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
+	FOnGimmickInteracted,
+	AVGMissionGimmickBase*, Gimmick,
+	AVGCharacterBase*, Interactor);
 
 UCLASS()
 class VIGILANT_API AVGMissionGimmickBase : public AVGInteractableActorBase, public IVGMissionObjectInterface
@@ -50,6 +54,8 @@ protected:
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnGimmickStateChanged OnGimmickStateChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnGimmickInteracted OnGimmickInteracted;
 	
 protected:
 	// 오브젝트 매쉬

@@ -4,6 +4,7 @@
 #include "Mission/VGMissionSubsystem.h"
 #include "Net/UnrealNetwork.h"
 #include "Common/VGGameplayTags.h"
+#include "Character/VGCharacterBase.h"
 
 AVGMissionBase::AVGMissionBase()
 {
@@ -21,6 +22,52 @@ void AVGMissionBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	
 	DOREPLIFETIME(ThisClass, CurrentStateTag);
 	DOREPLIFETIME(ThisClass, MissionID);
+}
+
+void AVGMissionBase::RegisterContributor(AVGCharacterBase* Character)
+{
+	if (!HasAuthority() || !Character) return;
+	Contributors.AddUnique(Character);
+	LastContributor = Character;
+}
+
+void AVGMissionBase::UnregisterContributor(AVGCharacterBase* Character)
+{
+	if (!HasAuthority() || !Character)
+	{
+		return;
+	}
+	
+	Contributors.Remove(Character); // TWeakObjectPtr 배열에서 제거
+    
+	// LastContributor가 제거 대상이면 갱신
+	if (LastContributor == Character)
+	{
+		LastContributor = Contributors.IsEmpty() ?
+			nullptr : Contributors.Last().Get();
+	}
+}
+
+void AVGMissionBase::ClearContributers()
+{
+	Contributors.Empty();
+	UE_LOG(LogTemp, Log, TEXT("[%s] Mission Failed. Clear Contributors."), *GetName());
+}
+
+void AVGMissionBase::OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AVGCharacterBase* Interactor)
+{
+	if (Interactor && Gimmick)
+	{
+		if (Gimmick->GetStateTag() == VigilantMissionTags::GimmickActive
+			|| Gimmick->GetStateTag() == VigilantMissionTags::GimmickCompleted)
+		{
+			RegisterContributor(Interactor);
+		}
+		else
+		{
+			UnregisterContributor(Interactor);
+		}
+	}
 }
 
 void AVGMissionBase::BeginPlay()
@@ -44,6 +91,8 @@ void AVGMissionBase::BeginPlay()
 				Gimmick->SetGimmickIndex(i); // 자동 인덱스 부여
 				Gimmick->OnGimmickStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnGimmickStateChanged);
+				Gimmick->OnGimmickInteracted.AddDynamic(
+					this, &AVGMissionBase::OnGimmickInteracted);
 			}
 		}
 		
@@ -107,25 +156,6 @@ void AVGMissionBase::OnRep_CurrentStateTag()
 	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[%s] Mission Clear!"), *GetName());
-		
-		if (HasAuthority())
-		{
-			for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
-			{
-				if (Gimmick)
-				{
-					Gimmick->SetStateTag(VigilantMissionTags::GimmickCompleted);
-				}
-			}
-		
-			for (AVGMissionItemBase* Item : MissionItems)
-			{
-				if (Item)
-				{
-					// Item->SetStateTag(VigilantMissionTags::MissionCompleted);
-				}
-			}
-		}
 	}
 }
 
@@ -155,6 +185,33 @@ bool AVGMissionBase::CheckMissionCondition(AActor* Reporter)
 	return false;
 }
 
+void AVGMissionBase::SpawnRewardItems()
+{
+	// 스폰은 서버에서만 진행
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	// 기본 구현: LastContributor 주변에 아이템 스폰
+	// 자식 클래스에서 override하여 커스텀
+	if (!LastContributor.IsValid() || RewardItemClass == nullptr)
+	{
+		return;
+	}
+	
+	FVector SpawnLocation = LastContributor->GetActorLocation()
+						  + LastContributor->GetActorForwardVector() * 100.f;
+	SpawnLocation.Z += 50.f;
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	GetWorld()->SpawnActor<AVGEquippableActor>(RewardItemClass, SpawnLocation,
+								   FRotator::ZeroRotator, Params);
+}
+
 void AVGMissionBase::CompleteMission()
 {
 	if (!HasAuthority())
@@ -168,7 +225,18 @@ void AVGMissionBase::CompleteMission()
 	}
     
 	SetMissionState(VigilantMissionTags::MissionCompleted);
+	for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
+	{
+		if (Gimmick)
+		{
+			Gimmick->SetStateTag(VigilantMissionTags::GimmickCompleted);
+		}
+	}
+	
 	GetWorldTimerManager().ClearTimer(MissionTimerHandle);
+	
+	// 보상 지급
+	SpawnRewardItems();
 }
 
 void AVGMissionBase::NotifyMissionCompleted()

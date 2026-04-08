@@ -69,7 +69,9 @@ void AVGMissionGimmickChest::OnInteractWith(AVGCharacterBase* Interactor)
 	if (bUsed)
 	{
 		SetStateTag(VigilantMissionTags::GimmickCompleted);
+		OnGimmickInteracted.Broadcast(this, Interactor);
 	}
+	
 }
 
 bool AVGMissionGimmickChest::TryUseItemFromSlot(UVGEquipmentComponent* EquipComp, AVGEquippableActor* SlotItem, EVGEquipmentSlot Slot)

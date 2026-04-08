@@ -44,6 +44,7 @@ void AVGMissionTimedAll::OnTimerExpired()
 		if (Gimmick)
 		{
 			Gimmick->ResetGimmickState();
+			ClearContributers();
 		}
 	}
 }

@@ -25,6 +25,12 @@ bool AVGMissionGimmickBase::CanInteractWith(AVGCharacterBase* Interactor) const
 
 void AVGMissionGimmickBase::OnInteractWith(AVGCharacterBase* Interactor)
 {
+	if (!CanInteractWith(Interactor))
+	{
+		return;
+	}
+	
+	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 
 void AVGMissionGimmickBase::ResetGimmickState()

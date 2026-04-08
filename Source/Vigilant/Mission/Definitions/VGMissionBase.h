@@ -3,8 +3,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
+#include "Equipment/VGEquippableActor.h"
 #include "VGMissionBase.generated.h"
 
+class AVGCharacterBase;
 class AVGMissionGimmickBase;
 class AVGMissionItemBase;
 
@@ -36,6 +38,19 @@ public:
 	void NotifyMissionCompleted();
 	
 	FString GetMissionDescription() const {return MissionDescription;}
+	
+	// 기여자 등록 — 각 Mission/Gimmick에서 상호작용 시 호출
+	virtual void RegisterContributor(AVGCharacterBase* Character);
+	// 기여자 해제 - 상호작용 시 Toggle 등으로 인해 비활성 되었을 경우
+	virtual void UnregisterContributor(AVGCharacterBase* Character);
+	
+	// 미션 초기화 시 기여자 목록 제거
+	void ClearContributers();
+	
+	// Gimmicck 상호작용 시 기여자 확인 및 등록/삭제 처리
+	UFUNCTION()
+	virtual void OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AVGCharacterBase* Interactor);
+	
 protected:
 	virtual void BeginPlay() override;
 	
@@ -59,6 +74,9 @@ protected:
 	
 	/// 자식이 override — 달성 조건 판정
 	virtual bool CheckMissionCondition(AActor* Reporter);
+	
+	// 자식이 override — 보상 아이템 클래스/위치 결정
+	virtual void SpawnRewardItems();
 	
 public:
 	UPROPERTY(BlueprintAssignable)
@@ -99,4 +117,16 @@ protected:
 	
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
 	FString MissionDescription;
+	
+	// 보상 지급 관련
+	// 미션 완료에 기여한 플레이어 목록 — 서버 전용
+	UPROPERTY()
+	TArray<TWeakObjectPtr<AVGCharacterBase>> Contributors;
+
+	// 마지막으로 기여한 플레이어 (주 보상 대상)
+	UPROPERTY()
+	TWeakObjectPtr<AVGCharacterBase> LastContributor;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Reward")
+	TSubclassOf<AVGEquippableActor> RewardItemClass;
 };
