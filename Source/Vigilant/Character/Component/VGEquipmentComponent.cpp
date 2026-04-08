@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "Character/VGCharacterBase.h"
+#include "Data/VGEquipmentDataAsset.h"
 
 UVGEquipmentComponent::UVGEquipmentComponent()
 {
@@ -53,7 +54,7 @@ void UVGEquipmentComponent::Interact()
 
 	bool bHit = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility,
 	                                             SphereShape, CollisionParams);
-	
+
 	if (bHit)
 	{
 		AActor* HitActor = HitResult.GetActor();
@@ -63,7 +64,6 @@ void UVGEquipmentComponent::Interact()
 			{
 				IVGInteractable::Execute_OnInteract(HitActor, OwnerCharacter);
 			}
-		
 		}
 	}
 }
@@ -90,19 +90,80 @@ void UVGEquipmentComponent::SelectSlot(float SlotNumber)
 	}
 }
 
+void UVGEquipmentComponent::OnRep_LefthandItem(AVGEquippableActor* OldItem)
+{
+	if (LeftHandItem)
+	{
+		HandleItemAttachment(LeftHandItem, LeftHandItem->EquipmentData->LeftHandSocketName, true);
+	}
+	else if (OldItem)
+	{
+		HandleItemAttachment(OldItem, NAME_None, false);
+	}
+	
+}
+
+void UVGEquipmentComponent::OnRep_RighthandItem(AVGEquippableActor* OldItem)
+{
+	if (RightHandItem)
+	{
+		HandleItemAttachment(RightHandItem, RightHandItem->EquipmentData->RightHandSocketName, true);
+	}
+	else if (OldItem)
+	{
+		HandleItemAttachment(OldItem, NAME_None, false);
+	}
+}
+
+void UVGEquipmentComponent::HandleItemAttachment(AVGEquippableActor* Item, FName SocketName, bool bIsEquipping)
+{
+	if (!Item)
+	{
+		return;
+	}
+
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter || !OwnerCharacter->GetMesh())
+	{
+		return;
+	}
+
+	UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(Item->GetRootComponent());
+
+	if (bIsEquipping)
+	{
+		if (RootComp)
+		{
+			RootComp->SetSimulatePhysics(false);
+			RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+		Item->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+		                        SocketName);
+	}
+	else
+	{
+		Item->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		if (RootComp)
+		{
+			RootComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			RootComp->SetSimulatePhysics(true);
+		}
+	}
+}
+
 void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* ItemToEquip)
 {
 	if (!ItemToEquip)
 	{
 		return;
 	}
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter || !OwnerCharacter->GetMesh())
 	{
 		return;
 	}
-	
+
 	// --- Validation ---
 	float Distance = FVector::Distance(OwnerCharacter->GetActorLocation(), ItemToEquip->GetActorLocation());
 	float MaxInteractDistance = 300.0f;

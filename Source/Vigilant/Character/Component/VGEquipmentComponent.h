@@ -51,11 +51,11 @@ protected:
 public:
 	// 양손 인벤토리 변수
 	// 왼손 (방패 또는 미션 아이템)
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
+	UPROPERTY(ReplicatedUsing = OnRep_LefthandItem, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
 	TObjectPtr<AVGEquippableActor> LeftHandItem;
 
 	// 오른손 (무기 또는 미션 아이템)
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
+	UPROPERTY(ReplicatedUsing = OnRep_RighthandItem, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
 	TObjectPtr<AVGEquippableActor> RightHandItem;
 	
 	// 현재 장착 상태를 나타내는 게임플레이 태그 컨테이너
@@ -87,4 +87,13 @@ public:
 	void Interact();
 	void DropItem();
 	void SelectSlot(float SlotNumber);
+	
+protected:
+	UFUNCTION()
+	void OnRep_LefthandItem(AVGEquippableActor* OldItem);
+	
+	UFUNCTION()
+	void OnRep_RighthandItem(AVGEquippableActor* OldItem);
+	
+	void HandleItemAttachment(AVGEquippableActor* Item, FName SocketName, bool bIsEquipping);
 };
