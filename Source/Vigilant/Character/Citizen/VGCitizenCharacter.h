@@ -76,8 +76,6 @@ protected:
 	float ModifyFriction;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dodge|Force")
 	float OriginalFriction; // 기본값 8.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
-	float Breakingfriction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dodge")
 	TObjectPtr<UAnimMontage> DodgeAnimation;
 

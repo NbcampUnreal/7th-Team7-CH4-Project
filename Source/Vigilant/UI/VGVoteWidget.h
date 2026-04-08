@@ -37,6 +37,9 @@ class VIGILANT_API UVGVoteWidget : public UUserWidget
 	//엔터키시 채팅보냄
 	UFUNCTION()
 	void OnTextCommitted(const FText& InText, ETextCommit::Type CommitMethod);
-	
-	
+	//투표부분
+	UFUNCTION()
+	void SetCharacterPortrait();
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Potrait")
+	TArray<TObjectPtr<UTextureRenderTarget2D>> PortraitRenderTarget;
 };

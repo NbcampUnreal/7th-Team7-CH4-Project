@@ -107,6 +107,10 @@ protected:
 	void LightAttack(const FInputActionValue& Value);
 	void HeavyAttack(const FInputActionValue& Value);
 	
+	
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, 
+		class AController* EventInstigator, AActor* DamageCauser) override;
+	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetSprinting(bool bIsSprinting);
 };
