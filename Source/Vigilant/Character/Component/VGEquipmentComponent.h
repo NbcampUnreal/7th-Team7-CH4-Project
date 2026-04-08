@@ -64,7 +64,7 @@ public:
 	
 	// 클라이언트가 서버에게 아이템 장착을 요청하는 함수
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Equipment|Action")
-	void Server_EquipItem(AVGEquippableActor* ItemToEquip, EVGEquipmentType ItemType);
+	void Server_EquipItem(AVGEquippableActor* ItemToEquip);
 	
 	// 클라이언트가 서버에게 아이템 버리기를 요청하는 함수
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Equipment|Action")

@@ -17,13 +17,7 @@ void AVGEquippableActor::OnInteractWith(AVGCharacterBase* Interactor)
 	{
 		if (UVGEquipmentComponent* EquipComp = Interactor->FindComponentByClass<UVGEquipmentComponent>())
 		{
-			EVGEquipmentType TempType = EVGEquipmentType::Weapon;
-			if (GetName().Contains("Mission"))
-			{
-				TempType = EVGEquipmentType::MissionItem;
-			}
-			
-			EquipComp->Server_EquipItem(this, TempType);
+			EquipComp->Server_EquipItem(this);
 		}
 	}
 }

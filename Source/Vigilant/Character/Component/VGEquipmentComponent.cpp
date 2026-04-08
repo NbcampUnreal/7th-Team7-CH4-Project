@@ -90,108 +90,25 @@ void UVGEquipmentComponent::SelectSlot(float SlotNumber)
 	}
 }
 
-void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* ItemToEquip, EVGEquipmentType ItemType)
+void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* ItemToEquip)
 {
-	if (ItemToEquip == nullptr) return;
-
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (OwnerCharacter == nullptr || OwnerCharacter->GetMesh() == nullptr) return;
-
-	// 아이템의 루트 컴포넌트 물리 끄기
-	if (UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(ItemToEquip->GetRootComponent()))
+	if (!ItemToEquip)
 	{
-		RootComp->SetSimulatePhysics(false);
-		RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 손에 쥔 무기에 캐릭터가 부딪히지 않게
+		return;
 	}
-
-	// 기획 규칙에 따라 슬롯 판별 및 장착
-	switch (ItemType)
+	
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter || !OwnerCharacter->GetMesh())
 	{
-	case EVGEquipmentType::Weapon:
-		// 오른손이 비어있고, 양손 무기를 들고 있지 않으면 장착 가능
-		if (RightHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
-		{
-			RightHandItem = ItemToEquip;
-
-			// 오른손 소켓에 아이템 붙이기
-			ItemToEquip->AttachToComponent(
-				OwnerCharacter->GetMesh(),
-				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-				FName("RightHandSocket")
-			);
-
-			EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_OneHand);
-			UE_LOG(LogTemp, Log, TEXT("서버: 오른손에 무기 장착 및 태그 추가 완료"));
-
-			OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
-		}
-		break;
-
-	case EVGEquipmentType::Shield:
-		// 왼손이 비어있고, 양손 무기를 들고 있지 않으면 장착 가능
-		if (LeftHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
-		{
-			LeftHandItem = ItemToEquip;
-
-			// 왼손 소켓에 아이템 붙이기
-			ItemToEquip->AttachToComponent(
-				OwnerCharacter->GetMesh(),
-				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-				FName("LeftHandSocket")
-			);
-
-			EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_Shield);
-			UE_LOG(LogTemp, Log, TEXT("서버: 왼손에 방패 장착 및 태그 추가 완료"));
-
-			OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, ItemToEquip);
-		}
-		break;
-
-	case EVGEquipmentType::TwoHandedWeapon:
-		// 양손이 모두 비어있어야 장착 가능
-		if (LeftHandItem == nullptr && RightHandItem == nullptr)
-		{
-			// 왼손,오른손 소켓에 장착
-			LeftHandItem = ItemToEquip;
-			RightHandItem = ItemToEquip;
-
-			// 시각적으로는 주 손(오른손) 소켓에 부착
-			// 왼손은 애니메이션의 IK나 전용 포즈를 통해 무기에 고정되도록 처리
-			ItemToEquip->AttachToComponent(
-				OwnerCharacter->GetMesh(),
-				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-				FName("RightHandSocket")
-			);
-
-			EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_TwoHand);
-			UE_LOG(LogTemp, Log, TEXT("서버: 양손 무기 장착 및 태그 추가 완료"));
-
-			OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
-		}
-		break;
-
-	case EVGEquipmentType::MissionItem:
-		if (LeftHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
-		{
-			LeftHandItem = ItemToEquip;
-			ItemToEquip->AttachToComponent(OwnerCharacter->GetMesh(),
-			                               FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			                               FName("LeftHandSocket"));
-			UE_LOG(LogTemp, Log, TEXT("서버: 빈 왼손에 미션 아이템 장착 완료"));
-
-			OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, ItemToEquip);
-		}
-		else if (RightHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
-		{
-			RightHandItem = ItemToEquip;
-			ItemToEquip->AttachToComponent(OwnerCharacter->GetMesh(),
-			                               FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			                               FName("RightHandSocket"));
-			UE_LOG(LogTemp, Log, TEXT("서버: 빈 오른손에 미션 아이템 장착 완료"));
-
-			OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
-		}
-		break;
+		return;
+	}
+	
+	// --- Validation ---
+	float Distance = FVector::Distance(OwnerCharacter->GetActorLocation(), ItemToEquip->GetActorLocation());
+	float MaxInteractDistance = 300.0f;
+	if (Distance > MaxInteractDistance)
+	{
+		return;
 	}
 }
 
