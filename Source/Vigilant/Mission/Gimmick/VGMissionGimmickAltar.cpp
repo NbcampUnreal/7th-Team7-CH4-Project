@@ -60,7 +60,7 @@ bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const
 	return false;
 }
 
-void AVGMissionGimmickAltar::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickAltar::Server_Interact_Implementation(AVGCharacterBase* Interactor)
 {
 	
 	if (!HasAuthority() || !CanInteractWith(Interactor))

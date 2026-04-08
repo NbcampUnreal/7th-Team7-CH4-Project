@@ -44,7 +44,7 @@ public:
 
 	bool HasMatchingItemInHands(UVGEquipmentComponent* EquipComp, FGameplayTag GameplayTag) const;
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	virtual void Server_Interact_Implementation(AVGCharacterBase* Interactor) override;
 	
 private:
 	// 슬롯에 아이템 배치 시도

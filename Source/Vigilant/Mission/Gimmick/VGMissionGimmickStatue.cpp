@@ -17,7 +17,7 @@ bool AVGMissionGimmickStatue::CanInteractWith(AVGCharacterBase* Interactor) cons
 	return GimmickStateTag == VigilantMissionTags::GimmickInactive;
 }
 
-void AVGMissionGimmickStatue::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickStatue::Server_Interact_Implementation(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority())
 	{

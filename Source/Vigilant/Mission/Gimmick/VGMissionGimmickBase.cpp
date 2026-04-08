@@ -25,11 +25,27 @@ bool AVGMissionGimmickBase::CanInteractWith(AVGCharacterBase* Interactor) const
 
 void AVGMissionGimmickBase::OnInteractWith(AVGCharacterBase* Interactor)
 {
+	if (!HasAuthority())
+	{
+		Server_Interact(Interactor);
+		return;
+	}
+	
 	if (!CanInteractWith(Interactor))
 	{
 		return;
 	}
 	
+	OnGimmickInteracted.Broadcast(this, Interactor);
+}
+
+void AVGMissionGimmickBase::Server_Interact_Implementation(AVGCharacterBase* Interactor)
+{
+	// 서버에서 재검증 후 실행
+	if (!CanInteractWith(Interactor))
+	{
+		return;
+	}
 	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 

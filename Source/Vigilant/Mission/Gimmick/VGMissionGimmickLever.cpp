@@ -23,7 +23,7 @@ bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
 	return true;
 }
 
-void AVGMissionGimmickLever::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickLever::Server_Interact_Implementation(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority())
 	{

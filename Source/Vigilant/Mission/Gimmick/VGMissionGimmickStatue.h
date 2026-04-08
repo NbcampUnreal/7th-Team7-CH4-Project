@@ -15,8 +15,8 @@ public:
 	AVGMissionGimmickStatue();
 	
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
-
+	virtual void Server_Interact_Implementation(AVGCharacterBase* Interactor) override;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -46,11 +46,11 @@ public:
 
 protected:
 	// 시작 각도 — 리셋용
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Gimmick|Statue")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
 	float InitialAngle = 0.f;
 
 	// 정답 각도 — 에디터 지정
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Gimmick|Statue")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
 	float AnswerAngle = 90.f;
 
 	// 현재 목표 각도 — Replicated

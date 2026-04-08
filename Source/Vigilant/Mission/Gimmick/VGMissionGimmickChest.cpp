@@ -44,7 +44,7 @@ bool AVGMissionGimmickChest::CanInteractWith(AVGCharacterBase* Interactor) const
 	return false;
 }
 
-void AVGMissionGimmickChest::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickChest::Server_Interact_Implementation(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority()) return;
 	if (!CanInteractWith(Interactor)) return;
