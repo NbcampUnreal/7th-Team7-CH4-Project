@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Core/VGGameState.h"
 #include "VGPhaseBase.generated.h"
 
 class AVGGameMode;
@@ -21,6 +22,13 @@ protected:
 	FTimerHandle PhaseTimerHandle;
 	
 public:
+	// 현재 페이즈 표시용
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vigilant|Phase")
+	FGameplayTag PhaseTag;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vigilant|Phase")
+	float PhaseDuration = 60.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vigilant|Phase")
+	bool bHasTimeLimit = true;
 	
 	virtual void  InitializePhase(AVGGameMode* InGameMode);
 	

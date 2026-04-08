@@ -2,6 +2,7 @@
 #include "Core/VGGameMode.h"
 #include "TimerManager.h"
 
+
 void UVGPhaseBase::InitializePhase(AVGGameMode* InGameMode)
 {
 	GameModeRef = InGameMode;
@@ -62,5 +63,4 @@ void UVGPhaseBase::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Vic
 
 void UVGPhaseBase::OnMissionCleared(int32 TimeReducedAmount)
 {
-	
 }
