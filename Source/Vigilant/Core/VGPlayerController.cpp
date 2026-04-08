@@ -34,6 +34,9 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 {
 	if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
 	{
+		// 이름 입력안하면 레디 불가능
+		if(VGPlayerState->VGPlayerName.IsEmpty()) return;
+		
 		VGPlayerState->bIsReady = bReady;
 	}
 	
@@ -42,6 +45,15 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 레디!"))
 		VGGameMode->CheckAllPlayersReady();
     }
+}
+
+void AVGPlayerController::Server_SetName_Implementation(const FString& NewName)
+{
+	if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
+	{
+		VGPlayerState->VGPlayerName = NewName;
+		UE_LOG(LogTemp, Warning, TEXT("[Server] %d번 플레이어 이름 설정: %s"), VGPlayerState->EntryIndex, *NewName);
+	}
 }
 
 void AVGPlayerController::AcknowledgePossession(class APawn* P)

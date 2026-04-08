@@ -26,6 +26,9 @@ public:
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Vigilant|Lobby")
 	void Server_SetReady(bool bReady);
 	
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Vigilant|Lobby")
+	void Server_SetName(const FString& NewName);
+	
 	virtual void BeginPlay() override;
 	virtual void AcknowledgePossession(class APawn* P) override; //LifeCycle함수 - 빙의 후 (클라이언트전용) 
 };
