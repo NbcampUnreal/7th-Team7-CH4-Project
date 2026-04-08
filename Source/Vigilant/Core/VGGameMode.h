@@ -30,6 +30,8 @@ protected:
 	UPROPERTY(Transient)
 	AVGCharacterBase* DuelTarget;
 	
+	int32 ConnectedPlayerCount = 0;
+	
 public:
 	
 	void ClearDuelParticipants();
