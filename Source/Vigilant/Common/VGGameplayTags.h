@@ -22,6 +22,7 @@ namespace VigilantTags
 
 namespace VigilantCharacter
 {
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attacking);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dodge);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Invincible);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Falling);

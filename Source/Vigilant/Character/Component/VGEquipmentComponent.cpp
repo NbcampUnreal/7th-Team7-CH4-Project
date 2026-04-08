@@ -21,7 +21,6 @@ void UVGEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 	DOREPLIFETIME(UVGEquipmentComponent, LeftHandItem);
 	DOREPLIFETIME(UVGEquipmentComponent, RightHandItem);
-	DOREPLIFETIME(UVGEquipmentComponent, EquipmentTags);
 }
 
 void UVGEquipmentComponent::Interact()

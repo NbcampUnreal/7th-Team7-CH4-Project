@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -46,10 +44,6 @@ public:
 	// 오른손 (무기 또는 미션 아이템)
 	UPROPERTY(ReplicatedUsing = OnRep_RighthandItem, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
 	TObjectPtr<AVGEquippableActor> RightHandItem;
-	
-	// 현재 장착 상태를 나타내는 게임플레이 태그 컨테이너
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Tags")
-	FGameplayTagContainer EquipmentTags;
 	
 	// 클라이언트가 서버에게 아이템 장착을 요청하는 함수
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Equipment|Action")
