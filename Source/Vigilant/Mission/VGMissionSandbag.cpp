@@ -49,7 +49,7 @@ void AVGMissionSandbag::OnRep_CurrentHPRatio()
 	// TODO: 위젯 업데이트 로직 or 제거
 }
 
-void AVGMissionSandbag::OnDead()
+void AVGMissionSandbag::OnDead(AActor* Killer)
 {
 	// 막타 플레이어와 함께 미션에 보고
 	OnSandbagDefeated.Broadcast(LastAttacker);
