@@ -5,7 +5,7 @@
 #include "GameFramework/Character.h"
 #include "DrawDebugHelpers.h"
 #include "VGEquipmentComponent.h"
-#include "VGStatComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Equipment/VGWeapon.h"
 
 UVGCombatComponent::UVGCombatComponent()
@@ -425,14 +425,14 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 
 	if (Distance <= MaxAllowedDistance)
 	{
-		UVGStatComponent* StatComp = HitActor->FindComponentByClass<UVGStatComponent>();
-		if (StatComp)
-		{
-			StatComp->ApplyDamage(Data->BaseDamage);
-
-			UE_LOG(LogTemp, Warning, TEXT("[Server] Validated Client Hit on: %s, Applying %f Damage! Current HP: %f"),
-			       *HitActor->GetName(), Data->BaseDamage, StatComp->GetCurrentHP());
-		}
+		UGameplayStatics::ApplyDamage
+		(
+				  HitActor,
+				  Data->BaseDamage,
+				  Owner->GetInstigatorController(),
+				  Owner,
+				  nullptr
+		);
 	}
 }
 
