@@ -30,6 +30,16 @@ void UVGCombatComponent::Server_SetActiveCombatData_Implementation(UVGWeaponData
 void UVGCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (OwnerCharacter && OwnerCharacter->GetMesh())
+	{
+		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			AnimInstance->OnMontageEnded.AddDynamic(this, &UVGCombatComponent::HandleMontageEnded);
+		}
+	}
 }
 
 void UVGCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -42,6 +52,27 @@ void UVGCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 void UVGCombatComponent::OnRep_ActiveCombatData(UVGWeaponDataAsset* OldData)
 {
 	// TODO: 클라이언트 측에서 실행될 비주얼 관련 로직 작성 (e.g. UI 업데이트)
+}
+
+void UVGCombatComponent::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	if (!Data)
+	{
+		return;
+	}
+	
+	bool bIsAttackMontage = (Montage == Data->LightAttackMontage || Montage == Data->HeavyAttackMontage);
+	if (bIsAttackMontage && bInterrupted)
+	{
+		// 콤보 상태 리셋
+		bCanChainCombo = false;
+		bHasBufferedAttack = false;
+		CurrentComboIndex = 0;
+		
+		HitActorsThisSwing.Empty();
+		PreviousSocketLocations.Empty();
+	}
 }
 
 UVGWeaponDataAsset* UVGCombatComponent::GetCurrentCombatData() const
