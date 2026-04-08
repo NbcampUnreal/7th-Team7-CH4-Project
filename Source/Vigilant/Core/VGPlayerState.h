@@ -15,8 +15,9 @@ public:
 	
 	AVGPlayerState();
 	
+	// 플레이어 상태 태그
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Vigilant|Tags")
-	FGameplayTagContainer PlayerTags;
+	FGameplayTagContainer PlayerStatusTags;
 	// 태그 변경 헬퍼 함수(더하기)
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tags")
 	void AddPlayerTag(const FGameplayTag& TagToAdd);
@@ -26,6 +27,14 @@ public:
 	// 태그 변경 헬퍼 함수(매칭하기)
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tags")
 	bool HasPlayerTag(const FGameplayTag& TagToCheck) const;
+	
+	// 플레이어 이름
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")
+	FString VGPlayerName;
+
+	// 플레이어 입장 순서
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")
+	int32 EntryIndex;
 	
 	UPROPERTY(Replicated,BlueprintReadOnly,Category = "Vigilant|Lobby")
 	bool bIsReady = false;
