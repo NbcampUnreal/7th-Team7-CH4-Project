@@ -19,17 +19,6 @@ enum class EVGEquipmentSlot : uint8
 	BothHands UMETA(DisplayName = "Both Hands")
 };
 
-// 장비 타입 구분
-UENUM(BlueprintType)
-enum class EVGEquipmentType : uint8
-{
-	None UMETA(DisplayName = "None"),
-	Weapon UMETA(DisplayName = "Weapon"),
-	Shield UMETA(DisplayName = "Shield"),
-	TwoHandedWeapon UMETA(DisplayName = "Two-Handed Weapon"),
-	MissionItem UMETA(DisplayName = "Mission Item")
-};
-
 // 아이템 장착 시 어느 슬롯에 어떤 아이템이 들어왔는지 방송
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemEquippedSignature, EVGEquipmentSlot, Slot, class AVGEquippableActor*, EquippedItem);
 // 아이템 해제 시 어느 슬롯이 비었는지 방송
@@ -51,11 +40,11 @@ protected:
 public:
 	// 양손 인벤토리 변수
 	// 왼손 (방패 또는 미션 아이템)
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
+	UPROPERTY(ReplicatedUsing = OnRep_LefthandItem, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
 	TObjectPtr<AVGEquippableActor> LeftHandItem;
 
 	// 오른손 (무기 또는 미션 아이템)
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
+	UPROPERTY(ReplicatedUsing = OnRep_RighthandItem, VisibleAnywhere, BlueprintReadOnly, Category = "Equipment|Slots")
 	TObjectPtr<AVGEquippableActor> RightHandItem;
 	
 	// 현재 장착 상태를 나타내는 게임플레이 태그 컨테이너
@@ -64,7 +53,7 @@ public:
 	
 	// 클라이언트가 서버에게 아이템 장착을 요청하는 함수
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Equipment|Action")
-	void Server_EquipItem(AVGEquippableActor* ItemToEquip, EVGEquipmentType ItemType);
+	void Server_EquipItem(AVGEquippableActor* ItemToEquip);
 	
 	// 클라이언트가 서버에게 아이템 버리기를 요청하는 함수
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Equipment|Action")
@@ -87,4 +76,18 @@ public:
 	void Interact();
 	void DropItem();
 	void SelectSlot(float SlotNumber);
+	
+protected:
+	UFUNCTION()
+	void OnRep_LefthandItem(AVGEquippableActor* OldItem);
+	
+	UFUNCTION()
+	void OnRep_RighthandItem(AVGEquippableActor* OldItem);
+	
+	void HandleItemAttachment(AVGEquippableActor* Item, FName SocketName, bool bIsEquipping);
+	
+	bool TryEquipToRightHand(AVGEquippableActor* ItemToEquip);
+	bool TryEquipToLeftHand(AVGEquippableActor* ItemToEquip);
+	bool TryEquipToEitherHand(AVGEquippableActor* ItemToEquip);
+	bool TryEquipToBothHands(AVGEquippableActor* ItemToEquip);
 };
