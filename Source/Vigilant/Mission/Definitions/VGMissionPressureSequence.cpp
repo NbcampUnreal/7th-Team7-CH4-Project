@@ -50,9 +50,10 @@ bool AVGMissionPressureSequence::CheckSequenceOrder(AVGMissionGimmickPressure* P
 			if (Gimmick)
 			{
 				Gimmick->ResetGimmickState();
-				ClearContributers();
 			}
 		}
+		
+		ClearContributers();
 		return false;
 	}
 	

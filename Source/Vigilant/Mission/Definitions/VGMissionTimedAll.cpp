@@ -32,7 +32,7 @@ void AVGMissionTimedAll::StartTimer()
 		MissionTimerHandle,
 		this,
 		&AVGMissionTimedAll::OnTimerExpired,
-		TimeLimit,  // MissionBase에 이미 있는 변수
+		GetMissionTimeLimit(),  // MissionBase에 이미 있는 변수
 		false);
 }
 
