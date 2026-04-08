@@ -1,10 +1,14 @@
 #include "VGVotePhase.h"
 #include "Core/VGGameMode.h"
+#include "Core/VGPlayerState.h"
+#include "Common/VGGameplayTags.h"
 #include "TimerManager.h"
 
 void UVGVotePhase::EnterPhase()
 {
 	Super::EnterPhase();
+	
+	PlayerVotes.Empty();
 	
 	if (GameModeRef)
 	{
@@ -12,7 +16,7 @@ void UVGVotePhase::EnterPhase()
 			PhaseTimerHandle, 
 			this, 
 			&UVGVotePhase::OnVoteTimeUp, 
-			PhaseTime, 
+			PhaseDuration, 
 			false);
 	}
 }
@@ -31,8 +35,7 @@ void UVGVotePhase::ExecutePhaseResult()
 {
 	if (GameModeRef && NextPhaseClass)
 	{
-		GameModeRef->PopPhase();
-		GameModeRef->PushPhase(NextPhaseClass);
+		GameModeRef->TransitionToPhase(NextPhaseClass);
 	}
 }
 
@@ -47,5 +50,79 @@ bool UVGVotePhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* T
 }
 void UVGVotePhase::OnVoteTimeUp()
 {
+	CalculateVoteResult();
+	
 	ExecutePhaseResult();
+}
+
+void UVGVotePhase::ReceiveVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarget)
+{
+	if (!Voter || !VotedTarget) return;
+	
+	PlayerVotes.Add(Voter, VotedTarget);
+}
+
+void UVGVotePhase::CalculateVoteResult()
+{
+	// 전부 투표 안했으면 동률로 처리 수정 예정(MVP 기획 상으로는 동률일 때 아무 효과가 없으므로 이대로 두어도 무방)
+	if (PlayerVotes.Num() == 0)
+	{
+		return;
+	}
+	
+	// 투표 계산할 임시 맵
+	TMap<AVGPlayerState*, int32> VoteCounts;
+	
+	for (const auto& Pair : PlayerVotes)
+	{
+		AVGPlayerState* Target = Pair.Value;
+		VoteCounts.FindOrAdd(Target) += 1;
+	}
+	
+	AVGPlayerState* MaxVotedPlayer = nullptr;
+	int32 MaxVotes = 0;
+	bool bIsTie = false;
+	
+	for (const auto& Pair : VoteCounts)
+	{
+		if (Pair.Value > MaxVotes)
+		{
+			MaxVotes = Pair.Value;
+			MaxVotedPlayer = Pair.Key;
+			bIsTie = false;
+		}
+		else if (Pair.Value == MaxVotes)
+		{
+			bIsTie = true;
+		}
+	}
+	
+	if (MaxVotedPlayer && !bIsTie)
+	{
+		if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
+		{
+			// 마피아 태그가 있는지 확인
+			if (MaxVotedPlayer->HasPlayerTag(VigilantRoleTags::Mafia))
+			{
+				VGGameState->BossNerfRate -= BossStatChangeAmount;
+				UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 마피아 검거! "));
+			}
+			// 시민 태그가 있는지 확인
+			else if (MaxVotedPlayer->HasPlayerTag(VigilantRoleTags::Citizen))
+			{
+				VGGameState->BossNerfRate += BossStatChangeAmount;
+				UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 시민 검거! "));
+			}
+
+			// 값이 비정상적으로 튀지 않도록 안전장치
+			VGGameState->BossNerfRate = FMath::Clamp(VGGameState->BossNerfRate, 0.1f, 2.0f);
+
+			// 클라이언트 UI 갱신을 위해 수동 방송(X)
+			VGGameState->OnBossNerfUpdated.Broadcast(VGGameState->BossNerfRate);
+		}
+	}
+	else if (bIsTie)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 동표 발생. 보스 스탯에 변동이 없습니다."));
+	}
 }
