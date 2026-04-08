@@ -30,7 +30,13 @@ namespace VigilantCharacter
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedRightHand);
 }
 
-
+namespace VigilantBoss
+{
+	// 보스 스킬/상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Casting);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_Q);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_E);
+}
 
 namespace VigilantMissionTags
 {
@@ -66,6 +72,7 @@ namespace VigilantMissionTags
 // 게임 페이즈 관리용
 namespace VigilantPhaseTags 
 {
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseLobby);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseMission);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseDuel);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PhaseVote);

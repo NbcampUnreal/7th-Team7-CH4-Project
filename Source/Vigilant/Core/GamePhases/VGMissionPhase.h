@@ -23,6 +23,7 @@ public:
 	virtual void PausePhase() override;
 	virtual void ResumePhase() override;
 	
+	virtual bool CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject) override;
 	virtual void OnMissionCleared(int32 TimeReducedAmount) override;
 	
 	void OnMissionTimeUp();

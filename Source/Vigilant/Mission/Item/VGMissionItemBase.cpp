@@ -57,7 +57,7 @@ void AVGMissionItemBase::OnInteractWith(AVGCharacterBase* Interactor)
 		Interactor->FindComponentByClass<UVGEquipmentComponent>())
 	{
 		// EquipmentComponent에서 슬롯 처리 및 Attach
-		// EquipComp->Server_EquipItem(this, EVGEquipmentType::MissionItem);
+		EquipComp->Server_EquipItem(this);
 		OnPickedUp(Interactor);
 	}
 }

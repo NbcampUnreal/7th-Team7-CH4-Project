@@ -105,12 +105,12 @@ bool UVGFinalCombatPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacter
 	
 	if (Attacker && Target)
 	{
-		AVGPlayerState* AttackerPlayerState = Cast<AVGPlayerState>(Attacker);
-		AVGPlayerState* TargetPlayerState = Cast<AVGPlayerState>(Target);
+		AVGPlayerState* AttackerPlayerState = Attacker->GetPlayerState<AVGPlayerState>();
+		AVGPlayerState* TargetPlayerState = Target->GetPlayerState<AVGPlayerState>();
 		
 		if (AttackerPlayerState && TargetPlayerState)
 		{
-			bool bAttackerIsCitizen =  AttackerPlayerState->HasPlayerTag(VigilantRoleTags::Citizen);
+			bool bAttackerIsCitizen = AttackerPlayerState->HasPlayerTag(VigilantRoleTags::Citizen);
 			bool bTargetIsCitizen = TargetPlayerState->HasPlayerTag(VigilantRoleTags::Citizen);
 			
 			if (bAttackerIsCitizen && bTargetIsCitizen)

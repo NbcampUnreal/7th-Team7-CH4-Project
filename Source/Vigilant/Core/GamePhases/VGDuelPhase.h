@@ -18,6 +18,7 @@ public:
 	virtual void ExecutePhaseResult() override;
 	
 	virtual bool CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject) override;
+	virtual bool CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target) override;
 	
 	virtual void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim) override;
 	

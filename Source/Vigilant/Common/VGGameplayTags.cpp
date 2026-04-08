@@ -11,6 +11,10 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Falling, "Character.State.Falling");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedLeftHand, "Character.State.Occupied.Left");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Occupied.Right");
 
+// 보스 태그 정의
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::Casting, "Boss.State.Casting");
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::SkillCooldown_Q, "Boss.Skill.Cooldown.Q");
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::SkillCooldown_E, "Boss.Skill.Cooldown.E");
 
 //UE_DEFINE_GAMEPLAY_TAG(VigilantTags::Sprint, "Character.Action.Movable.Sprint");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::MissionInactive, "Mission.State.Inactive");
@@ -41,6 +45,7 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_Shield, "Item.Type.Weapon.S
 UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Item_Mission, "Item.Type.Special.Mission");
 
 // 게임 페이즈 관련
+UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseLobby, "Phase.State.Lobby");
 UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseMission, "Phase.State.Mission");
 UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseDuel,    "Phase.State.Duel");
 UE_DEFINE_GAMEPLAY_TAG(VigilantPhaseTags::PhaseVote,    "Phase.State.Vote");
