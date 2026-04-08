@@ -10,6 +10,8 @@
 
 UVGBossSkillComponent::UVGBossSkillComponent()
 {
+	// [Fix] Tick 미사용 — 불필요한 Tick 비용 제거
+	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 }
 
@@ -47,13 +49,13 @@ void UVGBossSkillComponent::Server_ExecuteSkill_Q_Implementation()
 
 void UVGBossSkillComponent::Multicast_ExecuteSkill_Q_Implementation()
 {
-	// [모든 클라이언트 + 서버] 몽타주 재생 및 이동 제한
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter && SkillMontage_Q)
 	{
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_None);
 
-		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+		// [Fix] GetMesh() null 체크 추가 — 메시 미설정 시 크래시 방지
+		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh() ? OwnerCharacter->GetMesh()->GetAnimInstance() : nullptr;
 		if (AnimInstance)
 		{
 			AnimInstance->Montage_Play(SkillMontage_Q);
@@ -91,13 +93,13 @@ void UVGBossSkillComponent::Server_ExecuteSkill_E_Implementation()
 
 void UVGBossSkillComponent::Multicast_ExecuteSkill_E_Implementation()
 {
-	// [모든 클라이언트 + 서버] 몽타주 재생 및 이동 제한
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter && SkillMontage_E)
 	{
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_None);
 
-		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+		// [Fix] GetMesh() null 체크 추가
+		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh() ? OwnerCharacter->GetMesh()->GetAnimInstance() : nullptr;
 		if (AnimInstance)
 		{
 			AnimInstance->Montage_Play(SkillMontage_E);
@@ -122,13 +124,19 @@ void UVGBossSkillComponent::ResetCooldown_E()
 
 void UVGBossSkillComponent::OnSkillMontageEnded(class UAnimMontage* Montage, bool bInterrupted)
 {
-	// [서버]에서만 상태 태그를 관리하도록 처리
-	if (GetOwner()->HasAuthority())
+	// [Fix] GetOwner() null 체크 추가 — 컴포넌트가 Owner보다 오래 살아남을 수 있음
+	AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return;
+	}
+	
+	if (Owner->HasAuthority())
 	{
 		ActiveStateTags.RemoveTag(VigilantBoss::Casting);
 	}
 
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	ACharacter* OwnerCharacter = Cast<ACharacter>(Owner);
 	if (OwnerCharacter)
 	{
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);

@@ -4,7 +4,7 @@
 #include "VGBossCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Character//Boss/Component/VGBossSkillComponent.h"
+#include "Character/Boss/Component/VGBossSkillComponent.h"
 #include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -12,12 +12,8 @@
 
 AVGBossCharacter::AVGBossCharacter()
 {
-	// 보스의 덩치를 1.5배 크게 설정 (임시)
-	// SetActorScale3D(FVector(1.5f, 1.5f, 1.5f));
-
-	bReplicates = true;
+	// [Fix] ACharacter는 기본적으로 bReplicates = true — 중복 설정 제거
 	JumpMaxCount = 0;
-	// 스킬 컴포넌트 생성 및 부착
 	SkillComponent = CreateDefaultSubobject<UVGBossSkillComponent>(TEXT("SkillComponent"));
 }
 
@@ -41,7 +37,8 @@ void AVGBossCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	// [Fix] CastChecked는 실패 시 크래시 → Cast로 변경하여 안전하게 null 처리
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (EnhancedInputComponent)
 	{
 		// Q 버튼을 누르면 Input_SkillQ 실행
@@ -62,13 +59,30 @@ void AVGBossCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-	APlayerController* PlayerController = Cast<APlayerController>(NewController);
-	if (PlayerController)
+	// [Fix] PossessedBy는 서버에서만 호출됨 — Listen server host인 경우에만 여기서 IMC 등록
+	AddBossMappingContext(NewController);
+}
+
+void AVGBossCharacter::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+	
+	// [Fix] 리모트 클라이언트는 PossessedBy가 호출되지 않음 — 클라이언트 측 경로에서 IMC 등록
+	AddBossMappingContext(GetController());
+}
+
+void AVGBossCharacter::AddBossMappingContext(AController* InController)
+{
+	APlayerController* PlayerController = Cast<APlayerController>(InController);
+	if (!PlayerController || !BossMappingContext)
 	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-		if (Subsystem && BossMappingContext)
+		return;
+	}
+	
+	if (ULocalPlayer* LP = PlayerController->GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 		{
-			// 기존 조작법을 밀어내고 보스 조작법을 최우선(Priority 1)으로 덮어씌웁니다.
 			Subsystem->AddMappingContext(BossMappingContext, 1);
 		}
 	}

@@ -189,6 +189,8 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 			{
 				LeftHandItem = ItemToEquip;
 				ItemToEquip->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("LeftHandSocket"));
+				// [Fix] 미션 아이템 장착 시에도 태그 추가 — 드롭 시 RemoveTag와 대응 필요
+				EquipmentTags.AddTag(VigilantEquipmentTags::Item_Mission);
 				UE_LOG(LogTemp, Log, TEXT("서버: 빈 왼손에 미션 아이템 장착 완료"));
 				
 				OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, ItemToEquip);
@@ -197,6 +199,8 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 			{
 				RightHandItem = ItemToEquip;
 				ItemToEquip->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
+				// [Fix] 미션 아이템 장착 시에도 태그 추가
+				EquipmentTags.AddTag(VigilantEquipmentTags::Item_Mission);
 				UE_LOG(LogTemp, Log, TEXT("서버: 빈 오른손에 미션 아이템 장착 완료"));
 				
 				OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
@@ -238,13 +242,12 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
         
 		UE_LOG(LogTemp, Log, TEXT("서버: 양손 무기 버리기 완료 (양손 슬롯 해제)"));
 	}
-	// 한손 아이템(무기, 방패 등)일 경우 
-	// 방패 태그 제거가 없음 
+	// [Fix] 왼손은 Shield/MissionItem, 오른손은 OneHand/MissionItem — 슬롯별 올바른 태그 제거
 	else
 	{
 		if (SlotToDrop == EVGEquipmentSlot::LeftHand)
 		{
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_OneHand);
+			EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_Shield);
 			EquipmentTags.RemoveTag(VigilantEquipmentTags::Item_Mission);
 			LeftHandItem = nullptr;
 		}

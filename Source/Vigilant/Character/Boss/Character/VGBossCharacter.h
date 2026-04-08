@@ -41,16 +41,22 @@ protected:
 	
 	virtual void PossessedBy(AController* NewController) override;
 	
+	// [Fix] 리모트 클라이언트에서 Boss IMC를 등록하기 위한 클라이언트 측 경로
+	virtual void PawnClientRestart() override;
+	
 	void Input_SkillQ(const FInputActionValue& Value);
 	void Input_SkillE(const FInputActionValue& Value);
+	
+private:
+	void AddBossMappingContext(AController* InController);
 	
 	// 보스 데이터 에셋 (에디터에서 할당)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data")
 	TObjectPtr<const UVGBossDataAsset> BossData;
 	
-	// 보스의 현재 체력
+	// [Fix] 초기값 0.f 명시 — 생성~BeginPlay 사이 미초기화 방지
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "BossStats")
-	float CurrentHealth;
+	float CurrentHealth = 0.f;
 	
 	// 최종 스탯을 전달받아 세팅하는 함수
 	UFUNCTION(BlueprintCallable, Category = "BossStats")
