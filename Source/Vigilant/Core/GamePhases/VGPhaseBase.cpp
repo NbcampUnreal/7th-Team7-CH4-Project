@@ -1,5 +1,7 @@
 #include "Core/GamePhases/VGPhaseBase.h"
 #include "Core/VGGameMode.h"
+#include "TimerManager.h"
+
 
 void UVGPhaseBase::InitializePhase(AVGGameMode* InGameMode)
 {
@@ -16,6 +18,11 @@ void UVGPhaseBase::ExitPhase()
 {
 	FString PhaseName = GetClass()->GetName();
 	UE_LOG(LogTemp, Warning, TEXT("[VGPhaseBase] %s 종료 (ExitPhase)"), *PhaseName);
+	
+	if (GameModeRef && PhaseTimerHandle.IsValid())
+	{
+		GameModeRef->GetWorldTimerManager().ClearTimer(PhaseTimerHandle);
+	}
 }
 
 void UVGPhaseBase::PausePhase()
@@ -56,5 +63,4 @@ void UVGPhaseBase::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Vic
 
 void UVGPhaseBase::OnMissionCleared(int32 TimeReducedAmount)
 {
-	
 }

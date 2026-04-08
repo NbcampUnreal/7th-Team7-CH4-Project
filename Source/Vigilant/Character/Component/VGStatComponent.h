@@ -8,7 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHPChanged, float, NewHP, float, MaxHP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStaminaChanged, float, NewStamina, float, MaxStamina);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, AActor*, Killer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, AController*, Killer);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VIGILANT_API UVGStatComponent : public UActorComponent
@@ -21,7 +21,7 @@ public:
 
 public: // [1] 스탯 조작 함수 (GameMode 및 캐릭터 제어용)
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
-    void TakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+    void TakeDamage(float DamageAmount, AController* Instigator);
 
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
     void RecoverHP(float RecoverAmount);
@@ -83,7 +83,7 @@ private: /* 체력 */
     float CurrentHP; 
     
     UPROPERTY(Transient, Replicated)
-    AActor* LastDamageCauser; // 게임 플레이용 변수
+    AController* LastInstigator; // 게임 플레이 전용 변수
     
 private: /* 스태미나 */
     UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Stamina")

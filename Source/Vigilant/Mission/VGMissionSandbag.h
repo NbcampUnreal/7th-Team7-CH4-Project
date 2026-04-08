@@ -26,7 +26,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void OnDead(AActor* Killer);
+	void OnDead(AController* LastInstigator);
 
 	UFUNCTION()
 	void OnHPChanged(float NewHP, float MaxHP);
