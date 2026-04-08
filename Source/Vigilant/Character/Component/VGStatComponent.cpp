@@ -17,6 +17,9 @@ void UVGStatComponent::BeginPlay()
 	CurrentHP = MaxHP;
 	CurrentStamina = MaxStamina;
 	
+	
+	//언리얼 제공 TakeDamage 사용시 이 바인드는 필요없음
+	//중복 데미지계산이 실행될 수 있는 위험
 	AActor* Owner = GetOwner();
 	if (Owner && Owner->HasAuthority())
 	{
@@ -36,6 +39,8 @@ void UVGStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION(UVGStatComponent, CurrentStamina, COND_OwnerOnly);
 }
 
+//첫번째 인자 DamagedActor는 필요없음
+//다른 인자도 사용될 때만 필요
 void UVGStatComponent::TakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
 {
 	if (GetOwnerRole() != ROLE_Authority)

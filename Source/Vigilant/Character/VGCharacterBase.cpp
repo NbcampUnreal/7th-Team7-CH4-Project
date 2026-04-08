@@ -7,6 +7,7 @@
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
 #include "Component/VGStatComponent.h"
+#include "Engine/DamageEvents.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
 
@@ -205,8 +206,9 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 {
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
-	//최신버전에서 TakeDamage로 변경
-	StatComponent->ApplyDamage(DamageAmount);
+	
+	//인자 수정필요 
+	//StatComponent->TakeDamage(this, DamageAmount,EventInstigator, DamageCauser);
 }
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
