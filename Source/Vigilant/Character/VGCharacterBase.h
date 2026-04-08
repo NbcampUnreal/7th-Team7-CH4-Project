@@ -1,7 +1,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagAssetInterface.h"
 #include "GameplayTagContainer.h"
+#include "CharacterInterface/VGCharacterGameplayTagEditor.h"
 #include "GameFramework/Character.h"
 #include "VGCharacterBase.generated.h"
 
@@ -14,7 +16,10 @@ class UVGStatComponent;
 struct FInputActionValue;
 
 UCLASS()
-class VIGILANT_API AVGCharacterBase : public ACharacter
+class VIGILANT_API AVGCharacterBase : 
+public ACharacter,
+public IVGCharacterGameplayTagEditor,
+public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -59,6 +64,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed = 900.0f;
 
+#pragma region Interfaces Func
+public:
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+	virtual void AddGameplayTag(FGameplayTag TagToAdd) override;
+	virtual void RemoveGameplayTag(FGameplayTag TagToRemove) override;
+#pragma endregion 김형백
+	
 	// Functions
 public:
 	AVGCharacterBase();

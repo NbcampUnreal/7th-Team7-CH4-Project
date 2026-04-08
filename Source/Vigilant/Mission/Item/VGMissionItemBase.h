@@ -82,4 +82,8 @@ protected:
 	// 아이템 현재 상태 태그
 	UPROPERTY(ReplicatedUsing = OnRep_ItemStateTag)
 	FGameplayTag ItemStateTag;
+	
+	// 아이템 타입 태크
+	UPROPERTY()
+	FGameplayTag ItemTypeTag;
 };
