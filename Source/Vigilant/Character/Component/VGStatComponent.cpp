@@ -16,6 +16,12 @@ void UVGStatComponent::BeginPlay()
 	
 	CurrentHP = MaxHP;
 	CurrentStamina = MaxStamina;
+	
+	AActor* Owner = GetOwner();
+	if (Owner && Owner->HasAuthority())
+	{
+		Owner->OnTakeAnyDamage.AddDynamic(this, &UVGStatComponent::TakeDamage);
+	}
 }
 
 void UVGStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -24,32 +30,35 @@ void UVGStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(UVGStatComponent, CurrentHP);
 	DOREPLIFETIME(UVGStatComponent, bIsAlive);
+	DOREPLIFETIME(UVGStatComponent, LastDamageCauser);
 	
 	//현진 : 추후 스테미나 관련 기획이 생겨 다른 플레이어들 에게도 스테미너 상태를 알려야 한다면 변경필요
 	DOREPLIFETIME_CONDITION(UVGStatComponent, CurrentStamina, COND_OwnerOnly);
 }
 
-void UVGStatComponent::ApplyDamage(float DamageAmount)
+void UVGStatComponent::TakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
 {
 	if (GetOwnerRole() != ROLE_Authority)
 	{
 		return;
 	}
 	
-	if (!bIsAlive)
+	if (!bIsAlive || Damage <= KINDA_SMALL_NUMBER)
 	{
 		return;
 	}
-
-	CurrentHP = FMath::Clamp(CurrentHP - DamageAmount, 0.f, MaxHP);
-
+	LastDamageCauser = DamageCauser;
+	
+	CurrentHP = FMath::Clamp(CurrentHP - Damage, 0.f, MaxHP);
+	
+	OnHPChanged.Broadcast(CurrentHP, MaxHP);
+	
 	if (CurrentHP <= 0.f && bIsAlive)
 	{
 		bIsAlive = false;
-		OnDead.Broadcast();
+		
+		OnDead.Broadcast(LastDamageCauser);
 	}
-	
-	OnHPChanged.Broadcast(CurrentHP, MaxHP);
 }
 
 void UVGStatComponent::RecoverHP(float RecoverAmount)
@@ -143,7 +152,7 @@ void UVGStatComponent::StartContinuousConsumeStamina(float ConsumeAmountPerSecon
 		return;
 	}
 	
-	if (ContinuousConsumeRate == ConsumeAmountPerSecond)
+	if (FMath::IsNearlyEqual(ContinuousConsumeRate, ConsumeAmountPerSecond))
 	{
 		return;
 	}
@@ -211,6 +220,7 @@ void UVGStatComponent::ResetStats()
 	CurrentHP = MaxHP;
 	CurrentStamina = MaxStamina;
 	bIsAlive = true;
+	LastDamageCauser = nullptr;
 	ContinuousConsumeRate = 0.f;
 	
 	OnHPChanged.Broadcast(CurrentHP, MaxHP);
@@ -221,7 +231,7 @@ void UVGStatComponent::OnRep_bIsAlive()
 {
 	if (!bIsAlive)
 	{
-		OnDead.Broadcast();
+		OnDead.Broadcast(LastDamageCauser);
 	}
 }
 

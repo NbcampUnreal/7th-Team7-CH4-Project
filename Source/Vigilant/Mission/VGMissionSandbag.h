@@ -23,10 +23,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
+
 private:
 	UFUNCTION()
-	void OnDead();
+	void OnDead(AActor* Killer);
 
 	UFUNCTION()
 	void OnHPChanged(float NewHP, float MaxHP);
