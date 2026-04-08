@@ -12,6 +12,7 @@
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/
+*.DotSettings.user
 
 # RiderLink plugin
 Plugins/Developer/RiderLink/
