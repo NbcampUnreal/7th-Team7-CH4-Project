@@ -19,17 +19,6 @@ enum class EVGEquipmentSlot : uint8
 	BothHands UMETA(DisplayName = "Both Hands")
 };
 
-// 장비 타입 구분
-UENUM(BlueprintType)
-enum class EVGEquipmentType : uint8
-{
-	None UMETA(DisplayName = "None"),
-	Weapon UMETA(DisplayName = "Weapon"),
-	Shield UMETA(DisplayName = "Shield"),
-	TwoHandedWeapon UMETA(DisplayName = "Two-Handed Weapon"),
-	MissionItem UMETA(DisplayName = "Mission Item")
-};
-
 // 아이템 장착 시 어느 슬롯에 어떤 아이템이 들어왔는지 방송
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemEquippedSignature, EVGEquipmentSlot, Slot, class AVGEquippableActor*, EquippedItem);
 // 아이템 해제 시 어느 슬롯이 비었는지 방송
@@ -96,4 +85,9 @@ protected:
 	void OnRep_RighthandItem(AVGEquippableActor* OldItem);
 	
 	void HandleItemAttachment(AVGEquippableActor* Item, FName SocketName, bool bIsEquipping);
+	
+	bool TryEquipToRightHand(AVGEquippableActor* ItemToEquip);
+	bool TryEquipToLeftHand(AVGEquippableActor* ItemToEquip);
+	bool TryEquipToEitherHand(AVGEquippableActor* ItemToEquip);
+	bool TryEquipToBothHands(AVGEquippableActor* ItemToEquip);
 };

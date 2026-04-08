@@ -12,7 +12,7 @@ enum class EVGEquipRules : uint8
 {
 	RightHandOnly UMETA(DisplayName = "Right Hand Only"), // 오른손 전용 (한손검)
 	LeftHandOnly UMETA(DisplayName = "Left Hand Only"), // 왼손 전용 (방패)
-	EitherHandOnly UMETA(DisplayName = "Either Hand"), // 양손 사용 가능 (미션 아이템)
+	EitherHand UMETA(DisplayName = "Either Hand"), // 양손 사용 가능 (미션 아이템)
 	BothHands UMETA(DisplayName = "Both Hands"), // 양손 전용 (양손검)
 };
 
