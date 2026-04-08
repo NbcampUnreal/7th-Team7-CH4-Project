@@ -67,4 +67,7 @@ public:
 	// 이벤트 중개소
 	void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim);
 	void OnMissionCleared(int32 TimeReducedAmount);
+	
+	//채팅 관련 함수 -입력메시지를 뿌려주는 역할 -김형백
+	void ProcessChatMessage(const FString& SenderName, const FString& Message);
 };

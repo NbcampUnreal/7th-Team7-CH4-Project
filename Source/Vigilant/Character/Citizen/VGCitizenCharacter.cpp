@@ -3,31 +3,55 @@
 
 #include "Character/Citizen/VGCitizenCharacter.h"
 #include "Character/Component/VGEquipmentComponent.h"
-#include "Equipment/VGEquippableActor.h"
 #include "EnhancedInputComponent.h"
-#include "Camera/CameraComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Character/Component/VGCombatComponent.h"
+#include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Subsystem/VGUIManagerSubsystem.h"
 
-void AVGCitizenCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
-{
-	TagContainer = CharacterGameplayTags;
-}
 
-void AVGCitizenCharacter::AddGameplayTag(FGameplayTag TagToAdd)
-{
-	CharacterGameplayTags.AddTag(TagToAdd);
-}
 
-void AVGCitizenCharacter::RemoveGameplayTag(FGameplayTag TagToRemove)
-{
-	CharacterGameplayTags.RemoveTag(TagToRemove);
-}
 
 AVGCitizenCharacter::AVGCitizenCharacter()
 {
+	//속도 조정
+	NormalSpeed = 600.f;
+	SprintSpeed = 900.f;
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	
+	GetCharacterMovement()->BrakingDecelerationWalking = 1024.f;
+	OriginalFriction = GetCharacterMovement()->GroundFriction;
+	ModifyFriction = 0.f;
 	// 장비 컴포넌트 생성
 	EquipmentComponent = CreateDefaultSubobject<UVGEquipmentComponent>(TEXT("EquipmentComponent"));
+}
+
+void AVGCitizenCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
+void AVGCitizenCharacter::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+	//컨트롤러->로컬플레이어->로컬플레이어서브시스템(UI매니저) -> HUDInstance 로 연결
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
+		{
+			if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+			{
+				StatComponent->OnStaminaChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::OnStaminaUpdate);
+				StatComponent->OnHPChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::OnHealthUpdate);
+				
+				//초기값 설정 요청
+				UIManager->OnStaminaUpdate(StatComponent->GetCurrentStamina(), StatComponent->GetMaxStamina());
+				UIManager->OnHealthUpdate(StatComponent->GetCurrentHP(), StatComponent->GetMaxHP());
+			}
+		}
+	}
 }
 
 void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -56,96 +80,105 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 	}
 }
 
+void AVGCitizenCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+	// 
+	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
+	{
+		
+		CharacterTags.AddTag(VigilantCharacter::Falling); 
+        
+
+	}
+	// PreMovementMode 이전 상태를 뜻함
+	else if (PrevMovementMode == MOVE_Falling)
+	{
+		// 공중 상태 태그 제거
+		CharacterTags.RemoveTag(VigilantCharacter::Falling);
+	}
+}
+
 void AVGCitizenCharacter::Interact()
 {
-	if (!IsLocallyControlled()) return;
-    if (FollowCamera == nullptr || EquipmentComponent == nullptr) return;
-
-    FVector StartLocation = FollowCamera->GetComponentLocation();
-    FVector ForwardVector = FollowCamera->GetForwardVector();
-    FVector EndLocation = StartLocation + (ForwardVector * 1500.0f);
-
-    FHitResult HitResult;
-    FCollisionQueryParams CollisionParams;
-    CollisionParams.AddIgnoredActor(this);
-
-    FCollisionShape SphereShape = FCollisionShape::MakeSphere(30.0f);
-
-    bool bHit = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, SphereShape, CollisionParams);
-
-    // 디버그 그리기
-    DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 2.0f);
-    if (bHit)
-        DrawDebugSphere(GetWorld(), HitResult.Location, 30.0f, 16, FColor::Green, false, 2.0f);
-    else
-        DrawDebugSphere(GetWorld(), EndLocation, 30.0f, 16, FColor::Red, false, 2.0f);
-
-    if (bHit)
-    {
-        AActor* HitActor = HitResult.GetActor();
-        if (AVGEquippableActor* EquippableItem = Cast<AVGEquippableActor>(HitActor))
-        {
-            EVGEquipmentType TypeToEquip = EVGEquipmentType::Weapon;
-            if (EquippableItem->GetName().Contains("Mission"))
-            {
-                TypeToEquip = EVGEquipmentType::MissionItem;
-            }
-
-            EquipmentComponent->Server_EquipItem(EquippableItem, TypeToEquip);
-
-            if (TypeToEquip == EVGEquipmentType::Weapon)
-            {
-                ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
-                UE_LOG(LogTemp, Warning, TEXT("무기 장착 활성화 슬롯이 [오른손]으로 강제 전환"));
-                OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
-            }
-            else if (TypeToEquip == EVGEquipmentType::Shield)
-            {
-                ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
-                UE_LOG(LogTemp, Warning, TEXT("방패 장착 활성화 슬롯이 [왼손]으로 강제 전환"));
-                OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
-            }
-        }
-    }
+	// 특정 상황에 (태그보유) 리턴 하는 로직 추가 하는 부분
+	// ^_^
+	if (EquipmentComponent)
+	{
+		EquipmentComponent->Interact();
+	}
 }
 
 void AVGCitizenCharacter::DropItem()
 {
+	// 특정 상황에 (태그보유) 리턴 하는 로직 추가 하는 부분
+	// ^_^
 	if (EquipmentComponent)
 	{
-		EquipmentComponent->Server_DropItem(ActiveEquipmentSlot);
-		UE_LOG(LogTemp, Log, TEXT("현재 활성화된 슬롯의 아이템 버리기"));
+		EquipmentComponent->DropItem();
 	}
 }
 
 void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 {
 	float SlotNumber = Value.Get<float>();
-
-	if (FMath::IsNearlyEqual(SlotNumber, 1.0f))
+	if (EquipmentComponent)
 	{
-		ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
-		UE_LOG(LogTemp, Warning, TEXT("왼손 슬롯 활성화"));
-		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
-	}
-	else if (FMath::IsNearlyEqual(SlotNumber, 2.0f))
-	{
-		ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
-		UE_LOG(LogTemp, Warning, TEXT("오른손 슬롯 활성화"));
-		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
+		EquipmentComponent->SelectSlot(SlotNumber);
 	}
 }
 
+void AVGCitizenCharacter::Move(const FInputActionValue& Value)
+{
+	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
+	{
+		//구르기상태는 이동불가
+		return;
+	}
+	
+	Super::Move(Value);
+	
+}
+
+#pragma region 구르기 로직 및 RPC
 void AVGCitizenCharacter::Dodge()
 {
 	// 특정 태그 보유시 리턴, 추가가능
-	if (CharacterGameplayTags.HasTag(VigilantCharacter::Dodge))
+	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
 	{
 		return;
 	}
+	if (CharacterTags.HasTag(VigilantCharacter::Falling))
+	{
+		return;
+	}
+	
 
-
-	CharacterGameplayTags.AddTag(VigilantCharacter::Dodge);
+	CharacterTags.AddTag(VigilantCharacter::Dodge);
+	//방향 계산
+	FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
+	if(DodgeDirection.IsNearlyZero())
+	{
+		DodgeDirection = GetActorForwardVector();
+	}
+	DodgeDirection.Normalize();
+	
+	//RPC 호출 부분
+	if (!HasAuthority()) // 서버가 아니면
+	{
+		PerformDodgeAction(DodgeDirection); // 실제 로직 실행 - 클라가 구른다.
+		Server_Dodge(DodgeDirection); //서버에서 계산할 함수 실행
+	}
+	else //서버면 - 리슨서버 대비용 구문
+	{
+		PerformDodgeAction(DodgeDirection); //실제 로직 실행 - 마찰력과 위치를 중점
+		Multicast_Dodge(); // 멀티캐스트 실행
+	}
+	
+}
+void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
+{
+	CharacterTags.AddTag(VigilantCharacter::Dodge);
 
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
@@ -156,15 +189,44 @@ void AVGCitizenCharacter::Dodge()
 		AnimInstance->Montage_SetBlendingOutDelegate(BlendingOutStarted, DodgeAnimation);
 		
 		//루트모션이 아닌 직접 날리자.. 멀티플레이상황에서는 루트모션이 버벅거림
+	
+		
+		FVector DodgeVelocity = Direction*DodgeForce;
+		DodgeVelocity.Z = DodgeZForce;
+		LaunchCharacter(DodgeVelocity,true,true);
+		
+		FRotator DodgeRotation = Direction.Rotation();
+		DodgeRotation.Pitch = 0.f;
+		DodgeRotation.Roll = 0.f;
+		SetActorRotation(DodgeRotation);
+		//구르기 느낌을 위한 마찰력 조절
+		GetCharacterMovement()->GroundFriction = ModifyFriction;
 		
 	}
 }
-
+void AVGCitizenCharacter::Multicast_Dodge_Implementation()
+{
+	//다른 클라이언트에서는 애니매이션만 재생
+	if (!IsLocallyControlled()&&!HasAuthority()) // 서버도 로컬도 아닐때, 즉 이 액터가 Simulated일때
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(DodgeAnimation);
+		}
+	}
+}
+void AVGCitizenCharacter::Server_Dodge_Implementation(FVector Direction)
+{
+	PerformDodgeAction(Direction);
+	Multicast_Dodge();
+}
+#pragma endregion 김형백 
 
 void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled)
 {
 	
-	CharacterGameplayTags.RemoveTag(VigilantCharacter::Dodge);
+	CharacterTags.RemoveTag(VigilantCharacter::Dodge);
+	GetCharacterMovement()->GroundFriction = OriginalFriction;
 	if (bWasCancelled == true)
 	{
 		//회피가 불명의 이유로 중단되었을때 로직

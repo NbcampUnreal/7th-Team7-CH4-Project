@@ -1,10 +1,14 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "VGEquipmentComponent.h"
 #include "Equipment/VGEquippableActor.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "Common/VGGameplayTags.h"
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
+#include "VGCombatComponent.h"
+#include "Character/VGCharacterBase.h"
+#include "Data/VGEquipmentDataAsset.h"
+#include "Data/VGWeaponDataAsset.h"
 
 UVGEquipmentComponent::UVGEquipmentComponent()
 {
@@ -14,161 +18,340 @@ UVGEquipmentComponent::UVGEquipmentComponent()
 void UVGEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
+
 	DOREPLIFETIME(UVGEquipmentComponent, LeftHandItem);
 	DOREPLIFETIME(UVGEquipmentComponent, RightHandItem);
 	DOREPLIFETIME(UVGEquipmentComponent, EquipmentTags);
 }
 
-void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* ItemToEquip, EVGEquipmentType ItemType)
+void UVGEquipmentComponent::Interact()
 {
-	if (ItemToEquip == nullptr) return;
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
+	{
+		return;
+	}
+
+	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
+	if (!OwnerCharacter)
+	{
+		return;
+	}
+
+	APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
+	if (!PlayerController || !PlayerController->PlayerCameraManager)
+	{
+		return;
+	}
+
+	FVector StartLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
+	FVector ForwardVector = PlayerController->PlayerCameraManager->GetActorForwardVector();
+	FVector EndLocation = StartLocation + (ForwardVector * 700.0f);
+
+	FHitResult HitResult;
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(OwnerPawn);
+
+	FCollisionShape SphereShape = FCollisionShape::MakeSphere(30.0f);
+
+	bool bHit = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility,
+	                                             SphereShape, CollisionParams);
+
+	if (bHit)
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor && HitActor->Implements<UVGInteractable>())
+		{
+			if (IVGInteractable::Execute_CanInteract(HitActor, OwnerCharacter))
+			{
+				IVGInteractable::Execute_OnInteract(HitActor, OwnerCharacter);
+			}
+		}
+	}
+}
+
+void UVGEquipmentComponent::DropItem()
+{
+	Server_DropItem(ActiveEquipmentSlot);
+	UE_LOG(LogTemp, Log, TEXT("현재 활성화된 슬롯의 아이템 버리기"));
+}
+
+void UVGEquipmentComponent::SelectSlot(float SlotNumber)
+{
+	if (FMath::IsNearlyEqual(SlotNumber, 1.0f))
+	{
+		ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
+		UE_LOG(LogTemp, Warning, TEXT("왼손 슬롯 활성화"));
+		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
+	}
+	else if (FMath::IsNearlyEqual(SlotNumber, 2.0f))
+	{
+		ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
+		UE_LOG(LogTemp, Warning, TEXT("오른손 슬롯 활성화"));
+		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
+	}
+}
+
+void UVGEquipmentComponent::OnRep_LefthandItem(AVGEquippableActor* OldItem)
+{
+	if (LeftHandItem)
+	{
+		HandleItemAttachment(LeftHandItem, LeftHandItem->EquipmentData->LeftHandSocketName, true);
+	}
+	else if (OldItem)
+	{
+		HandleItemAttachment(OldItem, NAME_None, false);
+	}
+}
+
+void UVGEquipmentComponent::OnRep_RighthandItem(AVGEquippableActor* OldItem)
+{
+	if (RightHandItem)
+	{
+		HandleItemAttachment(RightHandItem, RightHandItem->EquipmentData->RightHandSocketName, true);
+	}
+	else if (OldItem)
+	{
+		HandleItemAttachment(OldItem, NAME_None, false);
+	}
+}
+
+void UVGEquipmentComponent::HandleItemAttachment(AVGEquippableActor* Item, FName SocketName, bool bIsEquipping)
+{
+	if (!Item)
+	{
+		return;
+	}
 
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (OwnerCharacter == nullptr || OwnerCharacter->GetMesh() == nullptr) return;
-	
-	// 아이템의 루트 컴포넌트 물리 끄기
-	if (UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(ItemToEquip->GetRootComponent()))
-        {
-            RootComp->SetSimulatePhysics(false);
-            RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 손에 쥔 무기에 캐릭터가 부딪히지 않게
-        }
-        
-	// 기획 규칙에 따라 슬롯 판별 및 장착
-	switch (ItemType)
+	if (!OwnerCharacter || !OwnerCharacter->GetMesh())
 	{
-		case EVGEquipmentType::Weapon:
-			// 오른손이 비어있고, 양손 무기를 들고 있지 않으면 장착 가능
-			if (RightHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
-			{
-				RightHandItem = ItemToEquip;
-				
-				// 오른손 소켓에 아이템 붙이기
-				ItemToEquip->AttachToComponent(
-					OwnerCharacter->GetMesh(), 
-					FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
-					FName("RightHandSocket")
-				);
-				
-				EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_OneHand);
-				UE_LOG(LogTemp, Log, TEXT("서버: 오른손에 무기 장착 및 태그 추가 완료"));
-				
-				OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
-			}
-			break;
+		return;
+	}
 
-		case EVGEquipmentType::Shield:
-			// 왼손이 비어있고, 양손 무기를 들고 있지 않으면 장착 가능
-			if (LeftHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
-			{
-				LeftHandItem = ItemToEquip;
-				
-				// 왼손 소켓에 아이템 붙이기
-				ItemToEquip->AttachToComponent(
-					OwnerCharacter->GetMesh(), 
-					FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
-					FName("LeftHandSocket")
-				);
-				
-				EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_Shield);
-				UE_LOG(LogTemp, Log, TEXT("서버: 왼손에 방패 장착 및 태그 추가 완료"));
-				
-				OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, ItemToEquip);
-			}
-			break;
-		
-		case EVGEquipmentType::TwoHandedWeapon:
-			// 양손이 모두 비어있어야 장착 가능
-			if (LeftHandItem == nullptr && RightHandItem == nullptr)
-			{
-				// 왼손,오른손 소켓에 장착
-				LeftHandItem = ItemToEquip;
-				RightHandItem = ItemToEquip;
-				
-				// 시각적으로는 주 손(오른손) 소켓에 부착
-				// 왼손은 애니메이션의 IK나 전용 포즈를 통해 무기에 고정되도록 처리
-				ItemToEquip->AttachToComponent(
-				OwnerCharacter->GetMesh(), 
-				FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
-				FName("RightHandSocket")
-				);
-				
-				EquipmentTags.AddTag(VigilantEquipmentTags::Weapon_TwoHand);
-				UE_LOG(LogTemp, Log, TEXT("서버: 양손 무기 장착 및 태그 추가 완료"));
-				
-				OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
-			}
-			break;
+	UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(Item->GetRootComponent());
 
-		case EVGEquipmentType::MissionItem:
-			if (LeftHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
+	if (bIsEquipping)
+	{
+		if (RootComp)
+		{
+			RootComp->SetSimulatePhysics(false);
+			RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
+		Item->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+		                        SocketName);
+	}
+	else
+	{
+		Item->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		if (RootComp)
+		{
+			RootComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			RootComp->SetSimulatePhysics(true);
+		}
+	}
+}
+
+void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* ItemToEquip)
+{
+	if (!ItemToEquip || !ItemToEquip->EquipmentData)
+	{
+		return;
+	}
+	
+	if (ItemToEquip->GetAttachParentActor() != nullptr)
+	{
+		return;
+	}
+
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter || !OwnerCharacter->GetMesh())
+	{
+		return;
+	}
+
+	// --- Validation ---
+	float Distance = FVector::Distance(OwnerCharacter->GetActorLocation(), ItemToEquip->GetActorLocation());
+	float MaxInteractDistance = 300.0f;
+	if (Distance > MaxInteractDistance)
+	{
+		return;
+	}
+
+	bool bEquipSuccess = false;
+	UVGEquipmentDataAsset* ItemData = ItemToEquip->EquipmentData;
+
+	switch (ItemData->EquipRule)
+	{
+	case EVGEquipRules::RightHandOnly:
+		bEquipSuccess = TryEquipToRightHand(ItemToEquip);
+		break;
+
+	case EVGEquipRules::LeftHandOnly:
+		bEquipSuccess = TryEquipToLeftHand(ItemToEquip);
+		break;
+
+	case EVGEquipRules::EitherHand:
+		bEquipSuccess = TryEquipToEitherHand(ItemToEquip);
+		break;
+
+	case EVGEquipRules::BothHands:
+		bEquipSuccess = TryEquipToBothHands(ItemToEquip);
+		break;
+	}
+
+	if (bEquipSuccess)
+	{
+		// TODO: 캐릭터에 ItemData->GrantedEquipmentTag 할당
+
+		if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(ItemData))
+		{
+			if (UVGCombatComponent* CombatComp = OwnerCharacter->FindComponentByClass<UVGCombatComponent>())
 			{
-				LeftHandItem = ItemToEquip;
-				ItemToEquip->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("LeftHandSocket"));
-				UE_LOG(LogTemp, Log, TEXT("서버: 빈 왼손에 미션 아이템 장착 완료"));
-				
-				OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, ItemToEquip);
+				CombatComp->SetActiveCombatData(WeaponData);
 			}
-			else if (RightHandItem == nullptr && !EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand))
-			{
-				RightHandItem = ItemToEquip;
-				ItemToEquip->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
-				UE_LOG(LogTemp, Log, TEXT("서버: 빈 오른손에 미션 아이템 장착 완료"));
-				
-				OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, ItemToEquip);
-			}
-			break;
+		}
+
+		EVGEquipmentSlot EquippedSlot = (ItemData->EquipRule == EVGEquipRules::LeftHandOnly)
+			                                ? EVGEquipmentSlot::LeftHand
+			                                : EVGEquipmentSlot::RightHand;
+		OnItemEquipped.Broadcast(EquippedSlot, ItemToEquip);
 	}
 }
 
 void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot SlotToDrop)
 {
-	// 버릴 대상 아이템을 임시로 담아둘 변수
 	AVGEquippableActor* TargetItem = nullptr;
-	
-	// 선택한 슬롯에서 아이템 확인
-	if (SlotToDrop == EVGEquipmentSlot::LeftHand) TargetItem = LeftHandItem;
-	else if (SlotToDrop == EVGEquipmentSlot::RightHand) TargetItem = RightHandItem;
 
-	if (TargetItem == nullptr) return;
-	
-	// 아이템 분리
-	TargetItem->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	
-	if (UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(TargetItem->GetRootComponent()))
+	if (SlotToDrop == EVGEquipmentSlot::LeftHand)
 	{
-		RootComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		RootComp->SetSimulatePhysics(true);
+		TargetItem = LeftHandItem;
 	}
-	OnItemDropped.Broadcast(SlotToDrop);
-	
-	// 버리려는 아이템이 양손 무기면
-	if (EquipmentTags.HasTag(VigilantEquipmentTags::Weapon_TwoHand) && (LeftHandItem == RightHandItem))
+	else if (SlotToDrop == EVGEquipmentSlot::RightHand)
 	{
-		// 태그 제거
-		EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_TwoHand);
-        
-		// 양쪽 슬롯을 동시에 비움
+		TargetItem = RightHandItem;
+	}
+
+	if (TargetItem == nullptr)
+	{
+		return;
+	}
+
+	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
+	// TODO: OwnerCharacter GameplayTag 제거
+
+	HandleItemAttachment(TargetItem, NAME_None, false);
+
+	if (TargetItem->EquipmentData->EquipRule == EVGEquipRules::BothHands)
+	{
 		LeftHandItem = nullptr;
 		RightHandItem = nullptr;
-        
-		UE_LOG(LogTemp, Log, TEXT("서버: 양손 무기 버리기 완료 (양손 슬롯 해제)"));
 	}
-	// 한손 아이템(무기, 방패 등)일 경우 
 	else
 	{
 		if (SlotToDrop == EVGEquipmentSlot::LeftHand)
 		{
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_OneHand);
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Item_Mission);
 			LeftHandItem = nullptr;
 		}
 		else
 		{
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Weapon_OneHand);
-			EquipmentTags.RemoveTag(VigilantEquipmentTags::Item_Mission);
 			RightHandItem = nullptr;
 		}
-		UE_LOG(LogTemp, Log, TEXT("서버: 한손 아이템 버리기 완료"));
 	}
+
+	// 무기를 드롭한 경우 DefaultCombatData로 폴백
+	if (Cast<UVGWeaponDataAsset>(TargetItem->EquipmentData))
+	{
+		if (OwnerCharacter)
+			if (UVGCombatComponent* CombatComponent = OwnerCharacter->FindComponentByClass<UVGCombatComponent>())
+			{
+				CombatComponent->SetActiveCombatData(nullptr);
+			}
+	}
+
+	OnItemDropped.Broadcast(SlotToDrop);
+}
+
+
+bool UVGEquipmentComponent::TryEquipToRightHand(AVGEquippableActor* ItemToEquip)
+{
+	if (RightHandItem == nullptr)
+	{
+		RightHandItem = ItemToEquip;
+		HandleItemAttachment(RightHandItem, ItemToEquip->EquipmentData->RightHandSocketName, true);
+		return true;
+	}
+
+	bool bIsCurrentItemSwappable = (RightHandItem->EquipmentData->EquipRule == EVGEquipRules::EitherHand);
+	if (bIsCurrentItemSwappable && LeftHandItem == nullptr)
+	{
+		LeftHandItem = RightHandItem;
+		HandleItemAttachment(LeftHandItem, LeftHandItem->EquipmentData->LeftHandSocketName, true);
+
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, LeftHandItem);
+		
+		RightHandItem = ItemToEquip;
+		HandleItemAttachment(RightHandItem, ItemToEquip->EquipmentData->RightHandSocketName, true);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool UVGEquipmentComponent::TryEquipToLeftHand(AVGEquippableActor* ItemToEquip)
+{
+	if (LeftHandItem == nullptr)
+	{
+		LeftHandItem = ItemToEquip;
+		HandleItemAttachment(LeftHandItem, ItemToEquip->EquipmentData->LeftHandSocketName, true);
+		return true;
+	}
+
+	bool bIsCurrentItemSwappable = (LeftHandItem->EquipmentData->EquipRule == EVGEquipRules::EitherHand);
+	if (bIsCurrentItemSwappable && RightHandItem == nullptr)
+	{
+		RightHandItem = LeftHandItem;
+		HandleItemAttachment(RightHandItem, RightHandItem->EquipmentData->RightHandSocketName, true);
+
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, RightHandItem);
+		
+		LeftHandItem = ItemToEquip;
+		HandleItemAttachment(LeftHandItem, ItemToEquip->EquipmentData->LeftHandSocketName, true);
+		return true;
+	}
+
+	return false;
+}
+
+bool UVGEquipmentComponent::TryEquipToEitherHand(AVGEquippableActor* ItemToEquip)
+{
+	// UX 일관성을 위해 오른손 우선 장착
+	if (RightHandItem == nullptr)
+	{
+		RightHandItem = ItemToEquip;
+		HandleItemAttachment(RightHandItem, ItemToEquip->EquipmentData->RightHandSocketName, true);
+		return true;
+	}
+	else if (LeftHandItem == nullptr)
+	{
+		LeftHandItem = ItemToEquip;
+		HandleItemAttachment(LeftHandItem, ItemToEquip->EquipmentData->LeftHandSocketName, true);
+		return true;
+	}
+
+	return false;
+}
+
+bool UVGEquipmentComponent::TryEquipToBothHands(AVGEquippableActor* ItemToEquip)
+{
+	if (RightHandItem == nullptr && LeftHandItem == nullptr)
+	{
+		RightHandItem = ItemToEquip;
+		LeftHandItem = ItemToEquip;
+		HandleItemAttachment(ItemToEquip, ItemToEquip->EquipmentData->RightHandSocketName, true);
+		return true;
+	}
+
+	return false;
 }

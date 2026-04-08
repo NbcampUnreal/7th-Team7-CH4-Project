@@ -19,4 +19,8 @@ public:
 	virtual bool CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target) override;
 	
 	virtual void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim) override;
+	
+	// 블루프린트에서 할당할 보스 캐릭터 클래스
+	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Classes")
+	TSubclassOf<AVGCharacterBase> BossCharacterClass;
 };

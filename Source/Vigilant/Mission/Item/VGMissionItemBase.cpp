@@ -1,24 +1,20 @@
 ﻿#include "VGMissionItemBase.h"
-#include "Mission/VGMissionBase.h"
+#include "Mission/Definitions/VGMissionBase.h"
 #include "Character/VGCharacterBase.h"
 #include "Net/UnrealNetwork.h"
+#include "Common/VGGameplayTags.h"
+#include "Character/Component/VGEquipmentComponent.h"
+#include "Data/VGMissionItemDataAsset.h"
 
 AVGMissionItemBase::AVGMissionItemBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
-}
-
-void AVGMissionItemBase::SetOwnerMission(AVGMissionBase* InOwnerMission)
-{
-	if (!InOwnerMission)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] SetOwnerMission - OwnerMission is missing."), *GetName());
-		return;
-	}
 	
-	OwnerMission = InOwnerMission;
-	UE_LOG(LogTemp, Display, TEXT("[%s] SetOwnerMission - OwnerMission is %s"), *GetName(), *OwnerMission->GetName());
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
+	SetRootComponent(MeshComponent);
+	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 }
 
 void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
@@ -36,12 +32,34 @@ void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
 
 bool AVGMissionItemBase::CanInteractWith(AVGCharacterBase* Interactor) const
 {
-	return Super::CanInteractWith(Interactor);
+	// 이미 누군가 들고 있으면 상호작용 불가
+	if (IsCarried()) return false;
+
+	// 이미 사용됐거나 놓인 상태면 불가
+	if (ItemStateTag != VigilantMissionTags::ItemInactive) return false;
+
+	return true;
 }
 
 void AVGMissionItemBase::OnInteractWith(AVGCharacterBase* Interactor)
 {
-	Super::OnInteractWith(Interactor);
+	if (!HasAuthority())
+	{
+		return;
+	}
+	if (!CanInteractWith(Interactor))
+	{
+		return;
+	}
+	
+	// Interactor의 EquipmentComponent를 찾아 장착 요청
+	if (UVGEquipmentComponent* EquipComp =
+		Interactor->FindComponentByClass<UVGEquipmentComponent>())
+	{
+		// EquipmentComponent에서 슬롯 처리 및 Attach
+		EquipComp->Server_EquipItem(this);
+		OnPickedUp(Interactor);
+	}
 }
 
 void AVGMissionItemBase::GetLifetimeReplicatedProps(
@@ -50,9 +68,8 @@ void AVGMissionItemBase::GetLifetimeReplicatedProps(
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, Carrier);
+	DOREPLIFETIME(ThisClass, ItemStateTag);
 }
-
-
 
 // -----------------------------------------------
 // 줍기 / 내려놓기 — 서버 전용
@@ -66,10 +83,10 @@ void AVGMissionItemBase::OnPickedUp(AVGCharacterBase* NewCarrier)
 	}
 
 	Carrier = NewCarrier;
-
-	// 아이템이 캐릭터를 따라 움직이도록 Attach
-	// TODO: EquipComponent와 연계할 것
 	
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	SetStateTag(VigilantMissionTags::ItemCarried);
 	// Carrier가 변경되었으므로 OnRep 수동 호출
 	OnRep_Carrier();
 }
@@ -82,32 +99,22 @@ void AVGMissionItemBase::OnDropped()
 	}
 
 	Carrier = nullptr;
-
-	// 아이템을 월드에 분리
-	// TODO: EquipComponent와 연계할 것
-
-	// TODO: 내려놓을 위치 보정 (캐릭터 발 앞 등) 필요 시 SetActorLocation 추가
-
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    SetStateTag(VigilantMissionTags::ItemInactive);
 	OnRep_Carrier();
 }
 
-// -----------------------------------------------
-// 조건 충족 보고 — 자식 클래스에서 호출
-// -----------------------------------------------
-
-void AVGMissionItemBase::ReportConditionMet()
+void AVGMissionItemBase::BeginPlay()
 {
-	if (!HasAuthority())
+	Super::BeginPlay();
+	
+	if (ItemDataAsset)
 	{
-		return;
+		UStaticMesh* Mesh = ItemDataAsset->ItemMesh;
+		MeshComponent->SetStaticMesh(Mesh);
+		
+		ItemTypeTag = ItemDataAsset->ItemTypeTag;
 	}
-
-	if (!OwnerMission)
-	{
-		return;
-	}
-
-	OwnerMission->OnConditionMet(this);
 }
 
 // -----------------------------------------------
@@ -123,4 +130,12 @@ void AVGMissionItemBase::OnRep_Carrier()
 void AVGMissionItemBase::OnRep_ItemStateTag()
 {
 	// Todo State 변경에 따른 피드백 처리
+	if (ItemStateTag == VigilantMissionTags::ItemCarried)
+	{
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else if (ItemStateTag == VigilantMissionTags::ItemInactive)
+	{
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
 }

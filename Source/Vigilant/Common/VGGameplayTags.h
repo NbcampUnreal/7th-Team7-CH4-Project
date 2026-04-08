@@ -24,13 +24,19 @@ namespace VigilantCharacter
 {
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dodge);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Invincible);
-	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Falling);
 	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedLeftHand);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedRightHand);
 }
 
-
+namespace VigilantBoss
+{
+	// 보스 스킬/상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Casting);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_Q);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_E);
+}
 
 namespace VigilantMissionTags
 {
@@ -50,6 +56,17 @@ namespace VigilantMissionTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(PressureGimmick);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(StatueGimmick);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(LeverGimmick);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ChestGimmick);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AltarGimmick);
+	// 미션 아이템 상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemInactive);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemCarried);
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemPlaced); 
+    UE_DECLARE_GAMEPLAY_TAG_EXTERN(ItemUsed); 
+	// 미션 아이템 타입
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(KeyItem);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CarryItem);
+	
 }
 
 // 게임 페이즈 관리용

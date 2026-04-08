@@ -1,18 +1,39 @@
 ﻿#include "VGMissionSubsystem.h"
-#include "VGMissionBase.h"
+#include "Mission/Definitions/VGMissionBase.h"
+#include "Common/VGGameplayTags.h"
 
-void UVGMissionSubsystem::RegisterMission(AVGMissionBase* Mission)
+void UVGMissionSubsystem::Server_RegisterMission(AVGMissionBase* Mission)
 {
 	if (!Mission)
 	{
 		return;
+	}
+	// [Fix] MissionID 유효성 검증 — 기본값(-1)이나 중복 ID는 완료 판정 오류를 유발함
+	const int32 ID = Mission->GetMissionID();
+	if (ID < 0)
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("[Subsystem] Mission '%s' has invalid MissionID(%d). 에디터에서 MissionID를 설정하세요."),
+			*Mission->GetName(), ID);
+		return;
+	}
+	
+	for (const AVGMissionBase* Existing : RegisteredMissions)
+	{
+		if (Existing && Existing->GetMissionID() == ID)
+		{
+			UE_LOG(LogTemp, Error,
+				TEXT("[Subsystem] MissionID(%d) 중복! '%s'와 '%s'. 고유 ID를 부여하세요."),
+				ID, *Existing->GetName(), *Mission->GetName());
+			return;
+		}
 	}
 	
 	if (RegisteredMissions.Contains(Mission) == false)
 	{
 		RegisteredMissions.AddUnique(Mission);
 		// 완료 이벤트 - 진행도 계산용
-		Mission->OnMissionCompleted.AddDynamic(this, &UVGMissionSubsystem::OnMissionCompleted);
+		Mission->OnMissionCompleted.AddDynamic(this, &UVGMissionSubsystem::Server_OnMissionCompleted);
 		
 		// 상태 전환 이벤트 - 맵 표시 / HUD 갱신용
 		Mission->OnMissionStateChanged.AddDynamic(this, &UVGMissionSubsystem::HandleMissionStateChanged);
@@ -22,20 +43,35 @@ void UVGMissionSubsystem::RegisterMission(AVGMissionBase* Mission)
 		*Mission->GetName(), Mission->GetMissionID());
 }
 
-void UVGMissionSubsystem::OnMissionCompleted(int32 MissionID)
+void UVGMissionSubsystem::Client_RegisterMission(AVGMissionBase* Mission)
 {
-	// 이미 완료된 미션 중복 처리 방지
-	if (CompletedMissions.Contains(MissionID))
+	if (IsServer())
 	{
 		return;
 	}
 	
-	CompletedMissions.Add(MissionID);
-	
-	// 전체 완료 시
-	if (CompletedMissions.Num() == RegisteredMissions.Num())
+	if (!Mission)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("All Mission Clear!"));
+		return;
+	}
+	
+	if (RegisteredMissions.Contains(Mission) == false)
+	{
+		RegisteredMissions.AddUnique(Mission);
+		Mission->OnMissionStateChanged.AddDynamic(
+			this, &UVGMissionSubsystem::HandleMissionStateChanged);
+		
+		OnMissionRegistered.Broadcast(Mission); // UI 갱신 트리거
+	}
+}
+
+void UVGMissionSubsystem::Server_OnMissionCompleted(int32 MissionID)
+{
+	// 전체 완료 체크
+	int32 CompletedCount = GetMissionCountByState(VigilantMissionTags::MissionCompleted);
+	if (CompletedCount == RegisteredMissions.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Server] All Mission Clear!"));
 		OnAllMissionCompleted.Broadcast();
 	}
 }
@@ -47,7 +83,8 @@ TArray<AVGMissionBase*> UVGMissionSubsystem::GetMissionsByTag(FGameplayTag TypeT
 	{
 		if (Mission)
 		{
-			if(Mission->HasMissionTag(TypeTag) || Mission->GetCurrentStateTag() == TypeTag)
+			// [Fix] HasMissionTag 내부에서 이미 GetCurrentStateTag() 비교를 수행하므로 중복 조건 제거
+			if(Mission->HasMissionTag(TypeTag))
 			{
 				Missions.Add(Mission);
 			}
@@ -57,11 +94,11 @@ TArray<AVGMissionBase*> UVGMissionSubsystem::GetMissionsByTag(FGameplayTag TypeT
 	return Missions;
 }
 
-AVGMissionBase* UVGMissionSubsystem::GetMissionsByID(int32 MissionID) const
+AVGMissionBase* UVGMissionSubsystem::GetMissionByID(int32 MissionID) const
 {
 	for (AVGMissionBase* Mission : RegisteredMissions)
 	{
-		if (Mission->GetMissionID() == MissionID)
+		if (Mission && Mission->GetMissionID() == MissionID)
 		{
 			return Mission;
 		}
@@ -70,7 +107,7 @@ AVGMissionBase* UVGMissionSubsystem::GetMissionsByID(int32 MissionID) const
 	return nullptr;
 }
 
-TArray<AVGMissionBase*> UVGMissionSubsystem::GetAllMissions() const
+const TArray<AVGMissionBase*>& UVGMissionSubsystem::GetAllMissions() const
 {
 	return RegisteredMissions;
 }
@@ -80,7 +117,8 @@ int32 UVGMissionSubsystem::GetMissionCountByState(FGameplayTag StateTag) const
 	int32 Count = 0;
 	for (const AVGMissionBase* Mission : RegisteredMissions)
 	{
-		if (Mission->HasMissionTag(StateTag))
+		// [Fix] HasMissionTag는 타입 태그까지 매칭하므로, 상태만 비교하도록 수정
+		if (Mission && Mission->GetCurrentStateTag() == StateTag)
 		{
 			Count++;
 		}
@@ -96,10 +134,16 @@ float UVGMissionSubsystem::GetMissionProgress() const
 		return 0.f;
 	}
 	
-	return static_cast<float>(CompletedMissions.Num()) / RegisteredMissions.Num();
+	int32 CompletedCount = GetMissionCountByState(VigilantMissionTags::MissionCompleted);
+	return static_cast<float>(CompletedCount) / RegisteredMissions.Num();
 }
 
 void UVGMissionSubsystem::HandleMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)
 {
 	OnMissionStateChanged.Broadcast(MissionID, NewStateTag);
+}
+
+bool UVGMissionSubsystem::IsServer() const
+{
+	return GetWorld() && GetWorld()->GetNetMode() != NM_Client;
 }

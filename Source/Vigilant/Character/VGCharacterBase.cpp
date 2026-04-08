@@ -7,6 +7,25 @@
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
 #include "Component/VGStatComponent.h"
+#include "Subsystem/VGUIManagerSubsystem.h"
+#include "UI/VGHUDWidget.h"
+
+#pragma region Interfaces GameplayTag
+void AVGCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	TagContainer = CharacterTags;
+}
+
+void AVGCharacterBase::AddGameplayTag(FGameplayTag TagToAdd)
+{
+	CharacterTags.AddTag(TagToAdd);
+}
+
+void AVGCharacterBase::RemoveGameplayTag(FGameplayTag TagToRemove)
+{
+	CharacterTags.RemoveTag(TagToRemove);
+}
+#pragma endregion
 
 AVGCharacterBase::AVGCharacterBase()
 : JumpAction(nullptr),
@@ -52,58 +71,67 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-			if (MoveAction)
-			{
-				EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this,
-				                          &AVGCharacterBase::Move);
-			}
-
-			if (LookAction)
-			{
-				EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this,
-				                          &AVGCharacterBase::Look);
-			}
-
-			if (JumpAction)
-			{
-				EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this,
-				                          &AVGCharacterBase::StartJump);
-				EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this,
-				                          &AVGCharacterBase::StopJump);
-			}
-
-			if (SprintAction)
-			{
-				EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this,
-				                          &AVGCharacterBase::StartSprint);
-				EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
-				                          &AVGCharacterBase::StopSprint);
-			}
-			
-
+		if (MoveAction)
+		{
+			EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this,
+									  &AVGCharacterBase::Move);
+		}
+		if (LookAction)
+		{
+			EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this,
+									  &AVGCharacterBase::Look);
+		}
+		if (JumpAction)
+		{
+			EnhancedInput->BindAction(JumpAction, ETriggerEvent::Started, this,
+									  &AVGCharacterBase::StartJump);
+			EnhancedInput->BindAction(JumpAction, ETriggerEvent::Completed, this,
+									  &AVGCharacterBase::StopJump);
+		}
+		if (SprintAction)
+		{
+			EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this,
+									  &AVGCharacterBase::StartSprint);
+			EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
+									  &AVGCharacterBase::StopSprint);
+		}
+		
+		if (CombatComponent)
+		{
 			if (CombatComponent->LightAttackAction)
 			{
 				EnhancedInput->BindAction(CombatComponent->LightAttackAction, ETriggerEvent::Started, this,
-				                          &AVGCharacterBase::LightAttack);
+										  &AVGCharacterBase::LightAttack);
 			}
 
 			if (CombatComponent->HeavyAttackAction)
 			{
 				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
-				                          &AVGCharacterBase::HeavyAttack);
+										  &AVGCharacterBase::HeavyAttack);
 			}
-		
+		}
 	}
 }
 
+//빙의 후 클라이언트만 실행하는 생명주기 함수
+void AVGCharacterBase::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+	//카메라 각도 제한
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (PlayerController->PlayerCameraManager)
+		{
+			PlayerController->PlayerCameraManager->ViewPitchMax = 60.f;
+			PlayerController->PlayerCameraManager->ViewPitchMin = -45.f;
+		}
+	}
+
+}
+
+
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
-	{
-		//구르기상태는 이동불가
-		return;
-	}
-	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();

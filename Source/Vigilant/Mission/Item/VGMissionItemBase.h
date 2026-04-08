@@ -5,10 +5,12 @@
 #include "GameplayTagContainer.h"
 #include "Interaction/VGInteractableActorBase.h"
 #include "Mission/VGMissionObjectInterface.h"
+#include "Equipment/VGEquippableActor.h"
 #include "VGMissionItemBase.generated.h"
 
 class AVGMissionBase;
 class AVGCharacterBase;
+class UVGMissionItemDataAsset;
 
 // Gimmick 상태 변경 시 어떤 기믹의 상태가 외부에 변했는지 알리기
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
@@ -17,41 +19,42 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FGameplayTag, NewStateTag);
 
 UCLASS(Abstract)
-class VIGILANT_API AVGMissionItemBase : public AVGInteractableActorBase, public IVGMissionObjectInterface
+class VIGILANT_API AVGMissionItemBase : public AVGEquippableActor, public IVGMissionObjectInterface
 {
 	GENERATED_BODY()
 
 public:
 	AVGMissionItemBase();
 	
-	UFUNCTION(BlueprintCallable)
-	AVGCharacterBase* GetCarrier() const { return Carrier; }
-	
 	virtual void GetLifetimeReplicatedProps(
 			TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION(BlueprintCallable)
+	AVGCharacterBase* GetCarrier() const { return Carrier; }
+	
+	UFUNCTION(BlueprintCallable)
 	bool IsCarried() const { return Carrier != nullptr; }
 
-	
-	virtual void SetOwnerMission(AVGMissionBase* InOwnerMission) override;
-	
-	// 목표 위치 도달 등 조건 충족 시 자식 클래스에서 호출
-	void ReportConditionMet();
-
-	virtual FGameplayTag GetStateTag() override { return ItemStateTag; }
+	// IVGMissionObjectInterface
+	// [Fix] IVGMissionObjectInterface — const 추가
+	virtual FGameplayTag GetStateTag() const override { return ItemStateTag; }
 	virtual void SetStateTag(FGameplayTag NewStateTag) override;
 	
-protected:
-	// IVGInteractable 구현
+	// 상호작용 — 줍기 진입점
+	UFUNCTION(BlueprintCallable)
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor);
 
+	UFUNCTION(BlueprintCallable)
+	virtual void OnInteractWith(AVGCharacterBase* Interactor);
+	
+	// 내려놓기 — EquipComponent에서 호출
+	virtual void OnDropped();
+	
+protected:
+	virtual void BeginPlay() override;
+	
 	// 줍기 — 서버 전용
 	virtual void OnPickedUp(AVGCharacterBase* NewCarrier);
-
-	// 내려놓기 — 서버 전용
-	virtual void OnDropped();
 
 	UFUNCTION()
 	virtual void OnRep_Carrier();
@@ -63,11 +66,14 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnItemStateChanged OnItemStateChanged;
 	
+	// DataAsset — 메시, 소켓 정보 등
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<UVGMissionItemDataAsset> ItemDataAsset;
+	
 protected:
-	// 조건 충족 시 보고할 대상 미션 — 에디터에서 지정
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission")
-	TObjectPtr<AVGMissionBase> OwnerMission;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
+    TObjectPtr<UStaticMeshComponent> MeshComponent;
+	
 	// 현재 이 아이템을 들고 있는 캐릭터
 	// Replicated: 아이템이 캐릭터를 따라 움직이는 시각 처리를 모든 클라이언트에 동기화
 	UPROPERTY(ReplicatedUsing = OnRep_Carrier)
@@ -76,4 +82,8 @@ protected:
 	// 아이템 현재 상태 태그
 	UPROPERTY(ReplicatedUsing = OnRep_ItemStateTag)
 	FGameplayTag ItemStateTag;
+	
+	// 아이템 타입 태크
+	UPROPERTY()
+	FGameplayTag ItemTypeTag;
 };

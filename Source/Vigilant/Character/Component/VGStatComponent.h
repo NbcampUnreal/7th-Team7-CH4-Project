@@ -8,7 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHPChanged, float, NewHP, float, MaxHP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStaminaChanged, float, NewStamina, float, MaxStamina);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDead);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDead, AController*, Killer);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VIGILANT_API UVGStatComponent : public UActorComponent
@@ -21,7 +21,7 @@ public:
 
 public: // [1] 스탯 조작 함수 (GameMode 및 캐릭터 제어용)
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
-    void ApplyDamage(float DamageAmount);
+    void TakeDamage(float DamageAmount, AController* Instigator);
 
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
     void RecoverHP(float RecoverAmount);
@@ -31,6 +31,12 @@ public: // [1] 스탯 조작 함수 (GameMode 및 캐릭터 제어용)
 
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
     void RecoverStamina(float RecoverAmount);
+    
+    UFUNCTION(BlueprintCallable, Category = "VG|Stat")
+    void StartContinuousConsumeStamina(float ConsumeAmountPerSecond);
+    
+    UFUNCTION(BlueprintCallable, Category = "VG|Stat")
+    void StopContinuousConsumeStamina();
     
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
     void ResetStats();
@@ -66,6 +72,7 @@ protected: // [4] 내부 동작 함수
     
     void RegenerateStamina();
     void StartStaminaRegenTimer();
+    void UseStaminaTick();
     
     // [5] 변수
 private: /* 체력 */
@@ -74,6 +81,9 @@ private: /* 체력 */
     
     UPROPERTY(ReplicatedUsing = OnRep_CurrentHP, VisibleAnywhere, Category = "VG|Stat|Health")
     float CurrentHP; 
+    
+    UPROPERTY(Transient, Replicated)
+    AController* LastInstigator; // 게임 플레이 전용 변수
     
 private: /* 스태미나 */
     UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Stamina")
@@ -91,9 +101,15 @@ private: /* 스태미나 */
     UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Stamina")
     float StaminaRegenInterval = 0.1f; // 회복 틱 간격 (0.1초마다)
     
+    UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Stamina")
+    float StaminaConsumeInterval = 0.1f; // 스테미나 소모 틱 간격
+    
+    float ContinuousConsumeRate = 0.f; //내부 사용 변수
+    
 private: /* 타이머 핸들 */
     FTimerHandle StaminaRegenTimerHandle;
-
+    FTimerHandle StaminaContinuousConsumeTimerHandle;
+ 
 private: /* 상태 */
     UPROPERTY(ReplicatedUsing = OnRep_bIsAlive, VisibleAnywhere, Category = "VG|Stat|State")
     bool bIsAlive = true; 

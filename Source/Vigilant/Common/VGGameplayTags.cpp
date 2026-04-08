@@ -7,9 +7,14 @@
 //캐릭터의 상태 및 태그
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Dodge, "Character.Action.Dodge");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Invincible, "Character.State.Invincible");
+UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Falling, "Character.State.Falling");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedLeftHand, "Character.State.Occupied.Left");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Occupied.Right");
 
+// 보스 태그 정의
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::Casting, "Boss.State.Casting");
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::SkillCooldown_Q, "Boss.Skill.Cooldown.Q");
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::SkillCooldown_E, "Boss.Skill.Cooldown.E");
 
 //UE_DEFINE_GAMEPLAY_TAG(VigilantTags::Sprint, "Character.Action.Movable.Sprint");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::MissionInactive, "Mission.State.Inactive");
@@ -24,6 +29,14 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::GimmickCompleted, "Mission.Gimmick.S
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::PressureGimmick, "Mission.Gimmick.Type.Pressure");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::StatueGimmick, "Mission.Gimmick.Type.Statue");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::LeverGimmick, "Mission.Gimmick.Type.Lever");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ChestGimmick, "Mission.Gimmick.Type.Chest");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::AltarGimmick, "Mission.Gimmick.Type.Altar");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemInactive, "Mission.Item.State.Inactive");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemCarried, "Mission.Item.State.Carried");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemPlaced, "Mission.Item.State.Placed");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemUsed, "Mission.Item.State.Used");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::KeyItem, "Mission.Item.Type.Key");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::CarryItem, "Mission.Item.Type.Carry");
 
 // 장비 태그 정의
 UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_OneHand, "Item.Type.Weapon.OneHand");
