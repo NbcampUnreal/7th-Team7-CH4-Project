@@ -32,6 +32,12 @@ void AVGMissionSandbag::BeginPlay()
 	}
 }
 
+float AVGMissionSandbag::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
 void AVGMissionSandbag::RegisterAttacker(AVGCharacterBase* Attacker)
 {
 	if (!HasAuthority()) return;
