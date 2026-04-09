@@ -14,17 +14,26 @@ class VIGILANT_API AVGDoor : public AVGInteractableActorBase
 public:
 	AVGDoor();
 
-	virtual  void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
-	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
+	// OnInteractWith 제거 — BP에서 처리
+
+	UPROPERTY(ReplicatedUsing = OnRep_bIsLeftOpen, BlueprintReadWrite, Category = "VG|Door")
+	bool bIsLeftOpen = false;
+
+	UPROPERTY(ReplicatedUsing = OnRep_bIsRightOpen, BlueprintReadWrite, Category = "VG|Door")
+	bool bIsRightOpen = false;
 	
-	UPROPERTY(ReplicatedUsing = OnRep_IsOpen, BlueprintReadOnly, Category = "VG|Door")
-	bool bIsOpen = false;
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "VG|Door")
+	void K2_UpdateLeftDoorVisual();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "VG|Door")
+	void K2_UpdateRightDoorVisual();
 	
 	UFUNCTION()
-	void OnRep_IsOpen();
+	void OnRep_bIsLeftOpen();
 	
-	UFUNCTION(BlueprintImplementableEvent, Category = "VG|Door")
-	void K2_OnDoorStateChanged(bool bNewIsOpen);
+	UFUNCTION()
+	void OnRep_bIsRightOpen();
 };

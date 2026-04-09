@@ -14,23 +14,18 @@ AVGDoor::AVGDoor()
 void AVGDoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AVGDoor, bIsOpen);
+	DOREPLIFETIME(AVGDoor, bIsLeftOpen);
+	DOREPLIFETIME(AVGDoor, bIsRightOpen);
 }
 
-void AVGDoor::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
+void AVGDoor::OnRep_bIsLeftOpen()
 {
-	if (!HasAuthority())
-	{
-		return;
-	}
-	
-	bIsOpen = !bIsOpen;
-	OnRep_IsOpen();
+	K2_UpdateLeftDoorVisual();
 }
 
-void AVGDoor::OnRep_IsOpen()
+void AVGDoor::OnRep_bIsRightOpen()
 {
-	K2_OnDoorStateChanged(bIsOpen);
+	K2_UpdateRightDoorVisual();
 }
 
 
