@@ -1,13 +1,12 @@
 #include "Character/Component/VGCombatComponent.h"
-#include "Engine/Engine.h"
-#include "Net/UnrealNetwork.h"
-#include "Data/VGWeaponDataAsset.h"
 #include "DrawDebugHelpers.h"
-#include "Character/VGCharacterBase.h"
+#include "GameplayTagAssetInterface.h"
 #include "Common/VGGameplayTags.h"
-#include "VGEquipmentComponent.h"
+#include "Data/VGWeaponDataAsset.h"
+#include "Engine/Engine.h"
+#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
-#include "Equipment/VGWeapon.h"
+#include "Net/UnrealNetwork.h"
 
 UVGCombatComponent::UVGCombatComponent()
 {
@@ -15,12 +14,14 @@ UVGCombatComponent::UVGCombatComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData)
+void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshComponent* NewTraceMesh)
 {
 	if (GetOwner()->HasAuthority())
 	{
 		ActiveCombatData = NewData;
 	}
+	
+	ActiveTraceMesh = NewTraceMesh;
 }
 
 void UVGCombatComponent::BeginPlay()
@@ -83,20 +84,24 @@ UVGWeaponDataAsset* UVGCombatComponent::GetCurrentCombatData() const
 
 void UVGCombatComponent::TryLightAttack()
 {
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
+	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
+	{
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		{
+			return;
+		}
+		if (!bCanChainCombo && TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking))
+		{
+			return;
+		}
+	}
+	
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
 		return;
 	}
-	if (OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Dodge))
-	{
-		return;
-	}
-	if (!bCanChainCombo && OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Attacking))
-	{
-		return;
-	}
-
+	
 	// 1. 콤보 윈도우 안에 있다면: 버퍼가 인풋이 됨
 	if (bCanChainCombo)
 	{
@@ -107,7 +112,7 @@ void UVGCombatComponent::TryLightAttack()
 		}
 		return;
 	}
-
+	
 	// 2. 이미 공격중이고, 콤보 윈도우 안에 없다면: 공격 입력 무시됨
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->LightAttackMontage))
@@ -127,16 +132,20 @@ void UVGCombatComponent::TryLightAttack()
 
 void UVGCombatComponent::TryHeavyAttack()
 {
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
+	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
+	{
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		{
+			return;
+		}
+		if (!bCanChainCombo && TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking))
+		{
+			return;
+		}
+	}
+	
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
-	{
-		return;
-	}
-	if (OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Dodge))
-	{
-		return;
-	}
-	if (!bCanChainCombo && OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Attacking))
 	{
 		return;
 	}
@@ -180,7 +189,7 @@ void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 		return;
 	}
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
 		return;
@@ -337,20 +346,13 @@ void UVGCombatComponent::StartMeleeTrace()
 		return;
 	}
 
-	// --- Test ---
-	UMeshComponent* TraceMesh = OwnerCharacter->GetMesh();
-
-	if (UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>())
+	UMeshComponent* TraceMesh = ActiveTraceMesh.IsValid() ?  ActiveTraceMesh.Get() : nullptr;
+	if (!TraceMesh)
 	{
-		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
-		{
-			if (UMeshComponent* WeaponMesh = EquippedWeapon->GetWeaponMesh())
-			{
-				TraceMesh = WeaponMesh;
-			}
-		}
-	}
+		TraceMesh = OwnerCharacter->GetMesh();
 
+	}
+	
 	if (!TraceMesh)
 	{
 		return;
@@ -378,22 +380,11 @@ void UVGCombatComponent::TickMeleeTrace()
 		return;
 	}
 
-	// --- Test ---
-	// 트레이스할 메시 결정: 기본값 주먹
-	UMeshComponent* TraceMesh = OwnerCharacter->GetMesh();
-
-	UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>();
-	if (EquipComp && EquipComp->RightHandItem)
+	UMeshComponent* TraceMesh = ActiveTraceMesh.IsValid() ?  ActiveTraceMesh.Get() : nullptr;
+	if (!TraceMesh)
 	{
-		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
-		{
-			if (EquippedWeapon->GetWeaponMesh())
-			{
-				TraceMesh = EquippedWeapon->GetWeaponMesh();
-			}
-		}
+		TraceMesh = OwnerCharacter->GetMesh();
 	}
-	// ---
 
 	if (!TraceMesh)
 	{
@@ -429,6 +420,7 @@ void UVGCombatComponent::TickMeleeTrace()
 		);
 
 		// --- Debug ---
+		/**
 		FVector TraceVector = CurrentLoc - PreviousLoc;
 		float TraceLength = TraceVector.Size();
 		if (TraceLength > KINDA_SMALL_NUMBER)
@@ -445,6 +437,7 @@ void UVGCombatComponent::TickMeleeTrace()
 				2.0f
 			);
 		}
+		**/
 		// ---
 
 		if (bHit)
