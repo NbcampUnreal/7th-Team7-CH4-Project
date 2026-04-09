@@ -4,6 +4,8 @@
 #include "Mission/VGMissionSubsystem.h"
 #include "Net/UnrealNetwork.h"
 #include "Common/VGGameplayTags.h"
+#include "Character/VGCharacterBase.h"
+#include "Data/VGMissionDataAsset.h"
 
 AVGMissionBase::AVGMissionBase()
 {
@@ -20,7 +22,52 @@ void AVGMissionBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ThisClass, CurrentStateTag);
-	DOREPLIFETIME(ThisClass, MissionID);
+}
+
+void AVGMissionBase::RegisterContributor(AVGCharacterBase* Character)
+{
+	if (!HasAuthority() || !Character) return;
+	Contributors.AddUnique(Character);
+	LastContributor = Character;
+}
+
+void AVGMissionBase::UnregisterContributor(AVGCharacterBase* Character)
+{
+	if (!HasAuthority() || !Character)
+	{
+		return;
+	}
+	
+	Contributors.Remove(Character); // TWeakObjectPtr 배열에서 제거
+    
+	// LastContributor가 제거 대상이면 갱신
+	if (LastContributor == Character)
+	{
+		LastContributor = Contributors.IsEmpty() ?
+			nullptr : Contributors.Last().Get();
+	}
+}
+
+void AVGMissionBase::ClearContributers()
+{
+	Contributors.Empty();
+	UE_LOG(LogTemp, Log, TEXT("[%s] Mission Failed. Clear Contributors."), *GetName());
+}
+
+void AVGMissionBase::OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AVGCharacterBase* Interactor)
+{
+	if (Interactor && Gimmick)
+	{
+		if (Gimmick->GetStateTag() == VigilantMissionTags::GimmickActive
+			|| Gimmick->GetStateTag() == VigilantMissionTags::GimmickCompleted)
+		{
+			RegisterContributor(Interactor);
+		}
+		else
+		{
+			UnregisterContributor(Interactor);
+		}
+	}
 }
 
 void AVGMissionBase::BeginPlay()
@@ -35,6 +82,7 @@ void AVGMissionBase::BeginPlay()
 			Subsystem->Server_RegisterMission(this);
 		}
 		
+		SetMissionState(VigilantMissionTags::MissionInactive);
 		// 에디터에서 등록된 기믹들에 바인딩
 		for (int32 i = 0; i < MissionGimmicks.Num(); i++)
 		{
@@ -44,6 +92,8 @@ void AVGMissionBase::BeginPlay()
 				Gimmick->SetGimmickIndex(i); // 자동 인덱스 부여
 				Gimmick->OnGimmickStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnGimmickStateChanged);
+				Gimmick->OnGimmickInteracted.AddDynamic(
+					this, &AVGMissionBase::OnGimmickInteracted);
 			}
 		}
 		
@@ -55,6 +105,15 @@ void AVGMissionBase::BeginPlay()
 				Item->OnItemStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnItemStateChanged);
 			}
+		}
+	}
+	else
+	{
+		// 클라이언트: OnRep_MissionID 대신 BeginPlay에서 직접 등록
+		if (UVGMissionSubsystem* Subsystem =
+			GetWorld()->GetSubsystem<UVGMissionSubsystem>())
+		{
+			Subsystem->Client_RegisterMission(this);
 		}
 	}
 }
@@ -72,7 +131,7 @@ void AVGMissionBase::SetMissionState(FGameplayTag NewStateTag)
 	OnRep_CurrentStateTag();
 	
 	// 모든 상태 전환을 외부에 전달
-    OnMissionStateChanged.Broadcast(MissionID, NewStateTag);
+    OnMissionStateChanged.Broadcast(GetMissionID(), NewStateTag);
 	
 	// 완료 상태를 외부에 전달
 	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
@@ -83,7 +142,7 @@ void AVGMissionBase::SetMissionState(FGameplayTag NewStateTag)
 
 bool AVGMissionBase::HasMissionTag(FGameplayTag Tag) const
 {
-	if (MissionTypeTag == Tag)
+	if (GetMissionTypeTag() == Tag)
 	{
 		return true;
 	}
@@ -98,7 +157,12 @@ bool AVGMissionBase::HasMissionTag(FGameplayTag Tag) const
 
 int32 AVGMissionBase::GetMissionID() const
 {
-	return MissionID;
+	return MissionData ? MissionData->MissionID : -1; 
+}
+
+FGameplayTag AVGMissionBase::GetMissionTypeTag() const
+{
+	return MissionData ? MissionData->MissionTypeTag : VigilantMissionTags::PuzzleMission;
 }
 
 void AVGMissionBase::OnRep_CurrentStateTag()
@@ -107,34 +171,12 @@ void AVGMissionBase::OnRep_CurrentStateTag()
 	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[%s] Mission Clear!"), *GetName());
-		
-		if (HasAuthority())
-		{
-			for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
-			{
-				if (Gimmick)
-				{
-					Gimmick->SetStateTag(VigilantMissionTags::GimmickCompleted);
-				}
-			}
-		
-			for (AVGMissionItemBase* Item : MissionItems)
-			{
-				if (Item)
-				{
-					// Item->SetStateTag(VigilantMissionTags::MissionCompleted);
-				}
-			}
-		}
+		OnMissionStateChanged.Broadcast(GetMissionID(), CurrentStateTag);
 	}
-}
-
-void AVGMissionBase::OnRep_MissionID()
-{
-	if (UVGMissionSubsystem* Subsystem =
-			GetWorld()->GetSubsystem<UVGMissionSubsystem>())
+	else
 	{
-		Subsystem->Client_RegisterMission(this);
+		// 클라이언트에서도 델리게이트 브로드캐스트
+		OnMissionStateChanged.Broadcast(GetMissionID(), CurrentStateTag);
 	}
 }
 
@@ -155,6 +197,33 @@ bool AVGMissionBase::CheckMissionCondition(AActor* Reporter)
 	return false;
 }
 
+void AVGMissionBase::SpawnRewardItems()
+{
+	// 스폰은 서버에서만 진행
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	// 기본 구현: LastContributor 주변에 아이템 스폰
+	// 자식 클래스에서 override하여 커스텀
+	if (!LastContributor.IsValid() || GetRewardItemClass() == nullptr)
+	{
+		return;
+	}
+	
+	FVector SpawnLocation = LastContributor->GetActorLocation()
+						  + LastContributor->GetActorForwardVector() * 100.f;
+	SpawnLocation.Z += 50.f;
+
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride =
+		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	GetWorld()->SpawnActor<AVGEquippableActor>(GetRewardItemClass(), SpawnLocation,
+								   FRotator::ZeroRotator, Params);
+}
+
 void AVGMissionBase::CompleteMission()
 {
 	if (!HasAuthority())
@@ -168,12 +237,38 @@ void AVGMissionBase::CompleteMission()
 	}
     
 	SetMissionState(VigilantMissionTags::MissionCompleted);
+	for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
+	{
+		if (Gimmick)
+		{
+			Gimmick->SetStateTag(VigilantMissionTags::GimmickCompleted);
+		}
+	}
+	
 	GetWorldTimerManager().ClearTimer(MissionTimerHandle);
+	
+	// 보상 지급
+	SpawnRewardItems();
 }
 
 void AVGMissionBase::NotifyMissionCompleted()
 {
 	UE_LOG(LogTemp, Log, TEXT("[%s] Mission Completed!"), *GetName());
 	// UI 및 외부 시스템용 델리게이트 브로드캐스트
-	OnMissionCompleted.Broadcast(MissionID);
+	OnMissionCompleted.Broadcast(GetMissionID());
+}
+
+FString AVGMissionBase::GetMissionDescription() const
+{
+	return MissionData ? MissionData->MissionDescription : TEXT(""); 
+}
+
+float AVGMissionBase::GetMissionTimeLimit() const
+{
+	return MissionData ? MissionData->TimeLimit : 0.f; 
+}
+
+TSubclassOf<AVGEquippableActor> AVGMissionBase::GetRewardItemClass() const
+{
+	return MissionData ? MissionData->RewardItemClass : nullptr; 
 }

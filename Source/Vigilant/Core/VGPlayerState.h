@@ -18,6 +18,9 @@ public:
 	// 플레이어 상태 태그
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated, Category = "Vigilant|Tags")
 	FGameplayTagContainer PlayerStatusTags;
+	// 플레이어 직업만 담아둘 태그 변수
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Vigilant|Role")
+	FGameplayTag SecretRoleTag;
 	// 태그 변경 헬퍼 함수(더하기)
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tags")
 	void AddPlayerTag(const FGameplayTag& TagToAdd);
@@ -27,6 +30,9 @@ public:
 	// 태그 변경 헬퍼 함수(매칭하기)
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tags")
 	bool HasPlayerTag(const FGameplayTag& TagToCheck) const;
+	// 직업 확인 헬퍼 함수
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Role")
+	bool IsRole(const FGameplayTag& RoleTagToCheck) const;
 	
 	// 플레이어 이름
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")

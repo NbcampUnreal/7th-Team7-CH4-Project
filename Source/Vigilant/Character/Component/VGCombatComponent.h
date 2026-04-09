@@ -67,6 +67,9 @@ protected:
 	UFUNCTION()
 	void OnRep_ActiveCombatData(UVGWeaponDataAsset* OldData);
 	
+	UFUNCTION()
+	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Defaults")
 	TObjectPtr<UVGWeaponDataAsset> DefaultCombatData;

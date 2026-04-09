@@ -36,5 +36,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float BossSprintSpeed = 600.0f;
 	
+	// --- 스킬 데이터 ---
+    
+	// Q 스킬 (포효)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Q_Roar")
+	class UAnimMontage* SkillMontage_Q;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Q_Roar")
+	float CooldownTime_Q = 5.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Q_Roar")
+	float RoarBaseDamage = 50.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Q_Roar")
+	float RoarRadius = 500.0f;
+
+	// E 스킬 (돌진 등)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|E")
+	class UAnimMontage* SkillMontage_E;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|E")
+	float CooldownTime_E = 5.0f;
 	// (추후 확장) 페이즈별 강화 수치나 이펙트 등을 여기에 추가
 };
