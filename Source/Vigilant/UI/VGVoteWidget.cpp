@@ -62,7 +62,7 @@ void UVGVoteWidget::SetPortraitRenderTarget()
 		PortraitWrapBox->ClearChildren();
 	}
 
-	int32 SlotIndex = 0;
+	int32 SlotIndex = 1;
 	for (APlayerState* PS : World->GetGameState()->PlayerArray)
 	{
 		if (APawn* PlayerPawn = PS->GetPawn())
@@ -80,12 +80,12 @@ void UVGVoteWidget::SetPortraitRenderTarget()
 					{
 						UWrapBoxSlot* SlotRemoteCon= PortraitWrapBox->AddChildToWrapBox(SlotWidget);
 						//SlotRemoteCon-> 이 변수로 슬롯의 세부 옵션을 조절가능(길이, Pending 등)
-						SlotRemoteCon->pen
+						
 					}
 				}
 			}
 		}
-		
+		SlotIndex++;
 		
 	}
 	
@@ -94,6 +94,8 @@ void UVGVoteWidget::SetPortraitRenderTarget()
 
 void UVGVoteWidget::ProcessVoteClick(int32 SlotIndex)
 {
+	
+	
 	//버튼이 눌렸을때 전달받은 인덱스로 짤 로직
 }
 
