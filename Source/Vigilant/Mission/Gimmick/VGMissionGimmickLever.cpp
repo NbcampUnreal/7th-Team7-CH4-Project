@@ -1,6 +1,7 @@
 ﻿#include "VGMissionGimmickLever.h"
 #include "Common/VGGameplayTags.h"
 #include "Character/VGCharacterBase.h"
+#include "Character/Component/VGEquipmentComponent.h"
 
 AVGMissionGimmickLever::AVGMissionGimmickLever()
 {
@@ -23,10 +24,15 @@ bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
 	return true;
 }
 
-void AVGMissionGimmickLever::Server_Interact_Implementation(AVGCharacterBase* Interactor)
+void AVGMissionGimmickLever::OnInteractWith(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority())
 	{
+		if (UVGEquipmentComponent* EquipComp =
+			Interactor->FindComponentByClass<UVGEquipmentComponent>())
+		{
+			EquipComp->Server_InteractWithActor(this, Interactor);
+		}
 		return;
 	}
 	

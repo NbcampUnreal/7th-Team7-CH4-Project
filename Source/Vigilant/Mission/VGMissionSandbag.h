@@ -21,6 +21,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RegisterAttacker(AVGCharacterBase* Attacker);
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_OnDead();
+	
 protected:
 	virtual void BeginPlay() override;
 	

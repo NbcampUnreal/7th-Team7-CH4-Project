@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "VGAnimNotifyState_MeleeTrace.generated.h"
+#include "ANSVGMeleeTrace.generated.h"
 
 UCLASS()
-class VIGILANT_API UVGAnimNotifyState_MeleeTrace : public UAnimNotifyState
+class VIGILANT_API UANSVGMeleeTrace : public UAnimNotifyState
 {
 	GENERATED_BODY()
 
