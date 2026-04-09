@@ -33,7 +33,7 @@ void AVGCitizenCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (HasAuthority() && EquipmentComponent)
+	if (EquipmentComponent)
 	{
 		EquipmentComponent->OnItemEquipped.AddDynamic(this, &AVGCitizenCharacter::HandleItemEquipped);
 		EquipmentComponent->OnItemDropped.AddDynamic(this, &AVGCitizenCharacter::HandleItemDropped);

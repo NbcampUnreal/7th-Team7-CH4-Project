@@ -94,10 +94,12 @@ void UVGEquipmentComponent::OnRep_LefthandItem(AVGEquippableActor* OldItem)
 	if (LeftHandItem)
 	{
 		HandleItemAttachment(LeftHandItem, LeftHandItem->EquipmentData->LeftHandSocketName, true);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, RightHandItem);
 	}
 	else if (OldItem)
 	{
 		HandleItemAttachment(OldItem, NAME_None, false);
+		OnItemDropped.Broadcast(EVGEquipmentSlot::LeftHand);
 	}
 }
 
@@ -106,10 +108,12 @@ void UVGEquipmentComponent::OnRep_RighthandItem(AVGEquippableActor* OldItem)
 	if (RightHandItem)
 	{
 		HandleItemAttachment(RightHandItem, RightHandItem->EquipmentData->RightHandSocketName, true);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, RightHandItem);
 	}
 	else if (OldItem)
 	{
 		HandleItemAttachment(OldItem, NAME_None, false);
+		OnItemDropped.Broadcast(EVGEquipmentSlot::RightHand);
 	}
 }
 
