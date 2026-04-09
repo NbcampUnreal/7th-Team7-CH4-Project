@@ -9,6 +9,7 @@
 class AVGMissionBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllMissionCompleted);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionClearTimeReward, float, ReduceTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionRegistered, AVGMissionBase*, Mission);
 
 UCLASS()
@@ -20,7 +21,7 @@ public:
 	void Server_RegisterMission(AVGMissionBase* Mission);
 	void Client_RegisterMission(AVGMissionBase* Mission);
 	
-	UFUNCTION()
+	UFUNCTION(Server, Reliable)
 	void Server_OnMissionCompleted(int32 MissionID);
 	
 	// 특정 타입의 미션만 필터링
@@ -59,6 +60,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnMissionStateChanged OnMissionStateChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnMissionClearTimeReward OnMissionClearTimeReward;
 private:
 	UPROPERTY()
 	TArray<TObjectPtr<AVGMissionBase>> RegisteredMissions;

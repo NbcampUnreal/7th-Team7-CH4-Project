@@ -271,3 +271,8 @@ TSubclassOf<AVGEquippableActor> AVGMissionBase::GetRewardItemClass() const
 {
 	return MissionData ? MissionData->RewardItemClass : nullptr; 
 }
+
+float AVGMissionBase::GetMissionClearReduceTime() const
+{
+	return MissionData ? MissionData->ClearReduceTime : 0.f; 
+}
