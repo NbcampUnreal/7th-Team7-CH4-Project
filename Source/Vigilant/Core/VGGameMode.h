@@ -49,6 +49,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Lobby")
 	int32 MinimumPlayersNeeded = 2;
 	
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	virtual void PostLogin(APlayerController *NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	
