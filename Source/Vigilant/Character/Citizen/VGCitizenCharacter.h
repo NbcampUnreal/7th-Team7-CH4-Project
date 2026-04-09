@@ -24,6 +24,7 @@ class VIGILANT_API AVGCitizenCharacter :
 
 public:
 	AVGCitizenCharacter();
+	void BeginPlay() override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -81,4 +82,7 @@ protected:
 
 	UFUNCTION()
 	void OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled = false);
+	
+	UFUNCTION()
+	void HandleItemEquipped(EVGEquipmentSlot Slot, AVGEquippableActor* EquippedItem);
 };
