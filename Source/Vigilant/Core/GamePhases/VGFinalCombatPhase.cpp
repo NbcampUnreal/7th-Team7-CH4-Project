@@ -11,6 +11,8 @@
 
 void UVGFinalCombatPhase::EnterPhase()
 {
+	bHasTimeLimit = false;
+	
 	Super::EnterPhase();
 	UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 최후의 전투 시작"));
 	
@@ -93,9 +95,10 @@ void UVGFinalCombatPhase::ExitPhase()
 
 void UVGFinalCombatPhase::ExecutePhaseResult()
 {
-	if (GameModeRef)
+	if (GameModeRef && NextPhaseClass)
 	{
-		GameModeRef->CheckWinCondition();
+		UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 전투 종료, 다음 페이즈로 전환"));
+		GameModeRef->TransitionToPhase(NextPhaseClass);
 	}
 }
 
@@ -125,5 +128,19 @@ bool UVGFinalCombatPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacter
 
 void UVGFinalCombatPhase::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim)
 {
-	ExecutePhaseResult();
+	Super::OnPlayerDeath(Killer, Victim);
+	
+	if (Victim)
+	{
+		if (AVGPlayerState* VictimPlayerState = Victim->GetPlayerState<AVGPlayerState>())
+		{
+			VictimPlayerState->AddPlayerTag(VigilantRoleTags::Dead);
+		}
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 사망자 발생. 승리 조건 체크"));
+	if (GameModeRef)
+	{
+		GameModeRef->CheckWinCondition();
+	}
 }
