@@ -5,6 +5,8 @@
 #include "GameFramework/Character.h"
 #include "DrawDebugHelpers.h"
 #include "VGEquipmentComponent.h"
+#include "Character/VGCharacterBase.h"
+#include "Common/VGGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "Equipment/VGWeapon.h"
 
@@ -25,7 +27,7 @@ void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData)
 void UVGCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter && OwnerCharacter->GetMesh())
 	{
@@ -56,18 +58,19 @@ void UVGCombatComponent::HandleMontageEnded(UAnimMontage* Montage, bool bInterru
 	{
 		return;
 	}
-	
-	bool bIsAttackMontage = (Montage == Data->LightAttackMontage || Montage == Data->HeavyAttackMontage);
-	if (bIsAttackMontage && bInterrupted)
+
+	bool bWasAttackMontage = (Montage == Data->LightAttackMontage || Montage == Data->HeavyAttackMontage);
+	if (!bWasAttackMontage)
 	{
-		// 콤보 상태 리셋
-		bCanChainCombo = false;
-		bHasBufferedAttack = false;
-		CurrentComboIndex = 0;
-		
-		HitActorsThisSwing.Empty();
-		PreviousSocketLocations.Empty();
+		return;
 	}
+
+	bCanChainCombo = false;
+	bHasBufferedAttack = false;
+	CurrentComboIndex = 0;
+
+	HitActorsThisSwing.Empty();
+	PreviousSocketLocations.Empty();
 }
 
 UVGWeaponDataAsset* UVGCombatComponent::GetCurrentCombatData() const
@@ -81,8 +84,16 @@ UVGWeaponDataAsset* UVGCombatComponent::GetCurrentCombatData() const
 
 void UVGCombatComponent::TryLightAttack()
 {
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
 	if (!OwnerCharacter)
+	{
+		return;
+	}
+	if (OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+	{
+		return;
+	}
+	if (!bCanChainCombo && OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Attacking))
 	{
 		return;
 	}
@@ -117,9 +128,16 @@ void UVGCombatComponent::TryLightAttack()
 
 void UVGCombatComponent::TryHeavyAttack()
 {
-	// TODO: bIsHeavy = true로 구현
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
 	if (!OwnerCharacter)
+	{
+		return;
+	}
+	if (OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+	{
+		return;
+	}
+	if (!bCanChainCombo && OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Attacking))
 	{
 		return;
 	}
@@ -163,11 +181,35 @@ void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 		return;
 	}
 
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (OwnerCharacter)
+	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
+	if (!OwnerCharacter)
 	{
-		FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
-		FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
+		return;
+	}
+
+	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+	{
+		return;
+	}
+
+	FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
+	FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
+
+	if (!MontageToPlay->IsValidSectionName(SectionName))
+	{
+		bCanChainCombo = false;
+		bHasBufferedAttack = false;
+		CurrentComboIndex = 0;
+		return;
+	}
+
+	if (AnimInstance->Montage_IsPlaying(MontageToPlay))
+	{
+		AnimInstance->Montage_JumpToSection(SectionName, MontageToPlay);
+	}
+	else
+	{
 		OwnerCharacter->PlayAnimMontage(MontageToPlay, Data->AttackSpeed, SectionName);
 	}
 }
@@ -386,7 +428,7 @@ void UVGCombatComponent::TickMeleeTrace()
 			Sphere,
 			QueryParams
 		);
-		
+
 		// --- Debug ---
 		FVector TraceVector = CurrentLoc - PreviousLoc;
 		float TraceLength = TraceVector.Size();
@@ -405,7 +447,7 @@ void UVGCombatComponent::TickMeleeTrace()
 			);
 		}
 		// ---
-		
+
 		if (bHit)
 		{
 			for (const FHitResult& HitResult : HitResults)
@@ -453,11 +495,11 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 	{
 		UGameplayStatics::ApplyDamage
 		(
-				  HitActor,
-				  Data->BaseDamage,
-				  Owner->GetInstigatorController(),
-				  Owner,
-				  nullptr
+			HitActor,
+			Data->BaseDamage,
+			Owner->GetInstigatorController(),
+			Owner,
+			nullptr
 		);
 	}
 }

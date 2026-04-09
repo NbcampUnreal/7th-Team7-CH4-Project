@@ -1,7 +1,7 @@
-#include "Character/Component/VGAnimNotifyState_MeleeTrace.h"
+#include "ANSVGMeleeTrace.h"
 #include "Character/Component/VGCombatComponent.h"
 
-void UVGAnimNotifyState_MeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UANSVGMeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
@@ -15,7 +15,7 @@ void UVGAnimNotifyState_MeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp
 	}
 }
 
-void UVGAnimNotifyState_MeleeTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UANSVGMeleeTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyTick(MeshComp, Animation, TotalDuration, EventReference);
@@ -29,7 +29,7 @@ void UVGAnimNotifyState_MeleeTrace::NotifyTick(USkeletalMeshComponent* MeshComp,
 	}
 }
 
-void UVGAnimNotifyState_MeleeTrace::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UANSVGMeleeTrace::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
