@@ -30,7 +30,7 @@ void AVGMissionCombat::OnSandbagDefeated(AVGCharacterBase* LastAttacker)
 {
 	if (LastAttacker)
 	{
-		LastContributor = LastAttacker;
+		RegisterContributor(LastAttacker);
 	}
 	
 	if (AreAllSandbagsDefeated())

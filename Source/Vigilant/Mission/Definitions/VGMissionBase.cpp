@@ -209,6 +209,7 @@ void AVGMissionBase::SpawnRewardItems()
 	// 자식 클래스에서 override하여 커스텀
 	if (!LastContributor.IsValid() || GetRewardItemClass() == nullptr)
 	{
+		UE_LOG(LogTemp, Error, TEXT("LastContributor or RewardItemClass is Missing."));
 		return;
 	}
 	
