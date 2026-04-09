@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FOnGimmickInteracted,
 	AVGMissionGimmickBase*, Gimmick,
-	AVGCharacterBase*, Interactor);
+	AActor*, Interactor);
 
 UCLASS()
 class VIGILANT_API AVGMissionGimmickBase : public AVGInteractableActorBase, public IVGMissionObjectInterface

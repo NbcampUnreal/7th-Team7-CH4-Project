@@ -55,18 +55,24 @@ void AVGMissionBase::ClearContributers()
 	UE_LOG(LogTemp, Log, TEXT("[%s] Mission Failed. Clear Contributors."), *GetName());
 }
 
-void AVGMissionBase::OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AVGCharacterBase* Interactor)
+void AVGMissionBase::OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AActor* Interactor)
 {
 	if (Interactor && Gimmick)
 	{
+		AVGCharacterBase* Character = Cast<AVGCharacterBase>(Interactor);
+		if (!Character)
+		{
+			return;
+		}
+        
 		if (Gimmick->GetStateTag() == VigilantMissionTags::GimmickActive
 			|| Gimmick->GetStateTag() == VigilantMissionTags::GimmickCompleted)
 		{
-			RegisterContributor(Interactor);
+			RegisterContributor(Character);
 		}
 		else
 		{
-			UnregisterContributor(Interactor);
+			UnregisterContributor(Character);
 		}
 	}
 }

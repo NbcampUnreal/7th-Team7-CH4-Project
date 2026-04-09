@@ -51,7 +51,7 @@ void AVGMissionGimmickChest::OnInteractWith(AActor* Interactor, const FTransform
 		if (UVGEquipmentComponent* EquipComp =
 			Interactor->FindComponentByClass<UVGEquipmentComponent>())
 		{
-			EquipComp->Server_InteractWithActor(this, Interactor);
+			EquipComp->Server_InteractWithActor(this, Interactor, InteractTransform);
 		}
 		return;
 	}

@@ -34,7 +34,7 @@ bool AVGMissionGimmickAltar::HasMatchingItemInHands(UVGEquipmentComponent* Equip
 	return false;
 }
 
-bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 {
 	// 이미 아이템이 놓여있으면 불가
 	if (GimmickStateTag != VigilantMissionTags::GimmickInactive)
@@ -60,14 +60,14 @@ bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const
 	return false;
 }
 
-void AVGMissionGimmickAltar::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickAltar::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
 	if (!HasAuthority())
 	{
 		if (UVGEquipmentComponent* EquipComp =
 			Interactor->FindComponentByClass<UVGEquipmentComponent>())
 		{
-			EquipComp->Server_InteractWithActor(this, Interactor);
+			EquipComp->Server_InteractWithActor(this, Interactor, InteractTransform);
 		}
 		return;
 	}
