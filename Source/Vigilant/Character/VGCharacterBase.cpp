@@ -204,11 +204,14 @@ void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
+	if (StatComponent)
+	{
+		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
+	}
 	
-	//인자 수정필요 
-	//StatComponent->TakeDamage(this, DamageAmount,EventInstigator, DamageCauser);
+	return ActualDamage;
 }
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)

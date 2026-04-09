@@ -21,7 +21,7 @@ public:
 
 public: // [1] 스탯 조작 함수 (GameMode 및 캐릭터 제어용)
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
-    void TakeDamage(float DamageAmount, AController* Instigator);
+    void ApplyDamageToStat(float DamageAmount, AController* Instigator);
 
     UFUNCTION(BlueprintCallable, Category = "VG|Stat")
     void RecoverHP(float RecoverAmount);

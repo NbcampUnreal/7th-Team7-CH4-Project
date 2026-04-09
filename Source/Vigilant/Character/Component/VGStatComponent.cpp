@@ -30,7 +30,7 @@ void UVGStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION(UVGStatComponent, CurrentStamina, COND_OwnerOnly);
 }
 
-void UVGStatComponent::TakeDamage(float DamageAmount, AController* Instigator)
+void UVGStatComponent::ApplyDamageToStat(float DamageAmount, AController* Instigator)
 {
 	if (GetOwnerRole() != ROLE_Authority)
 	{
@@ -65,7 +65,7 @@ void UVGStatComponent::TakeDamage(float DamageAmount, AController* Instigator)
 		UE_LOG
 		(	
 			LogTemp,
-			Warning,
+			Error,
 			TEXT("[%s] Dead! / LastInstigator: %s"), 
 			*GetOwner()->GetName(), 
 			Instigator ? *Instigator->GetName() : TEXT("Unknown")
