@@ -1,16 +1,22 @@
 #include "ANSVGGamplayTag.h"
-#include "Character/VGCharacterBase.h"
+#include "Character/CharacterInterface/VGCharacterGameplayTagEditor.h"
 
 void UANSVGGamplayTag::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
                                    const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
-	
-	if (AVGCharacterBase* Character = Cast<AVGCharacterBase>(MeshComp->GetOwner()))
+
+	AActor* OwnerActor = MeshComp->GetOwner();
+	if (!OwnerActor)
 	{
-		if (Character->IsLocallyControlled() || Character->HasAuthority())
+		return;
+	}
+
+	if (IVGCharacterGameplayTagEditor* TagEditor = Cast<IVGCharacterGameplayTagEditor>(OwnerActor))
+	{
+		if (OwnerActor->HasAuthority() || OwnerActor->GetLocalRole() == ROLE_AutonomousProxy)
 		{
-			Character->AddGameplayTag(TagToApply);
+			TagEditor->AddGameplayTag(TagToApply);
 		}
 	}
 }
@@ -19,12 +25,18 @@ void UANSVGGamplayTag::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequence
                                  const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
-	
-	if (AVGCharacterBase* Character = Cast<AVGCharacterBase>(MeshComp->GetOwner()))
+
+	AActor* OwnerActor = MeshComp->GetOwner();
+	if (!OwnerActor)
 	{
-		if (Character->IsLocallyControlled() || Character->HasAuthority())
+		return;
+	}
+
+	if (IVGCharacterGameplayTagEditor* TagEditor = Cast<IVGCharacterGameplayTagEditor>(OwnerActor))
+	{
+		if (OwnerActor->HasAuthority() || OwnerActor->GetLocalRole() == ROLE_AutonomousProxy)
 		{
-			Character->RemoveGameplayTag(TagToApply);
+			TagEditor->RemoveGameplayTag(TagToApply);
 		}
 	}
 }
