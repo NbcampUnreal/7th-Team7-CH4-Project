@@ -1,13 +1,14 @@
 #include "Character/Component/VGCombatComponent.h"
-#include "Engine/Engine.h"
-#include "Net/UnrealNetwork.h"
-#include "Data/VGWeaponDataAsset.h"
 #include "DrawDebugHelpers.h"
-#include "Character/VGCharacterBase.h"
-#include "Common/VGGameplayTags.h"
+#include "GameplayTagAssetInterface.h"
 #include "VGEquipmentComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "Common/VGGameplayTags.h"
+#include "Data/VGWeaponDataAsset.h"
+#include "Engine/Engine.h"
 #include "Equipment/VGWeapon.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 UVGCombatComponent::UVGCombatComponent()
 {
@@ -83,20 +84,24 @@ UVGWeaponDataAsset* UVGCombatComponent::GetCurrentCombatData() const
 
 void UVGCombatComponent::TryLightAttack()
 {
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
+	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
+	{
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		{
+			return;
+		}
+		if (!bCanChainCombo && TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking))
+		{
+			return;
+		}
+	}
+	
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
 		return;
 	}
-	if (OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Dodge))
-	{
-		return;
-	}
-	if (!bCanChainCombo && OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Attacking))
-	{
-		return;
-	}
-
+	
 	// 1. 콤보 윈도우 안에 있다면: 버퍼가 인풋이 됨
 	if (bCanChainCombo)
 	{
@@ -107,7 +112,7 @@ void UVGCombatComponent::TryLightAttack()
 		}
 		return;
 	}
-
+	
 	// 2. 이미 공격중이고, 콤보 윈도우 안에 없다면: 공격 입력 무시됨
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->LightAttackMontage))
@@ -127,16 +132,20 @@ void UVGCombatComponent::TryLightAttack()
 
 void UVGCombatComponent::TryHeavyAttack()
 {
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
+	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
+	{
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		{
+			return;
+		}
+		if (!bCanChainCombo && TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking))
+		{
+			return;
+		}
+	}
+	
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
-	{
-		return;
-	}
-	if (OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Dodge))
-	{
-		return;
-	}
-	if (!bCanChainCombo && OwnerCharacter->HasMatchingGameplayTag(VigilantCharacter::Attacking))
 	{
 		return;
 	}
@@ -180,7 +189,7 @@ void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 		return;
 	}
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
 		return;
