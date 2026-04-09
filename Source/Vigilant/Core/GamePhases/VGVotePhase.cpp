@@ -102,13 +102,13 @@ void UVGVotePhase::CalculateVoteResult()
 		if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
 		{
 			// 마피아 태그가 있는지 확인
-			if (MaxVotedPlayer->HasPlayerTag(VigilantRoleTags::Mafia))
+			if (MaxVotedPlayer->IsRole(VigilantRoleTags::Mafia))
 			{
 				VGGameState->BossNerfRate -= BossStatChangeAmount;
 				UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 마피아 검거! "));
 			}
 			// 시민 태그가 있는지 확인
-			else if (MaxVotedPlayer->HasPlayerTag(VigilantRoleTags::Citizen))
+			else if (MaxVotedPlayer->IsRole(VigilantRoleTags::Citizen))
 			{
 				VGGameState->BossNerfRate += BossStatChangeAmount;
 				UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 시민 검거! "));

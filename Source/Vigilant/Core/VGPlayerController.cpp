@@ -100,13 +100,19 @@ void AVGPlayerController::Client_ReceiveChatMessage_Implementation(const FString
 
 void AVGPlayerController::Server_SendChatMessage_Implementation(const FString& ChatText)
 {
-	//TODO : 플레이어 이름 가져오기
+	FString SenderName = TEXT("Unknown");
+	
+	if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
+	{
+		SenderName = VGPlayerState->VGPlayerName;
+	}
+	
 	if (AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(this))
 	{
-		AVGGameMode* GameMode = Cast<AVGGameMode>(GameModeBase);
-		if (GameMode)
+		AVGGameMode* VGGameMode = Cast<AVGGameMode>(GameModeBase);
+		if (VGGameMode)
 		{
-			GameMode->ProcessChatMessage(FString(TEXT("임시 이름입니다 용호님 여기 나중에 플레이어 이름 받으면 넣어주세요 감사합니다.")),ChatText);
+			VGGameMode->ProcessChatMessage(SenderName, ChatText);
 		}
 	}
 }

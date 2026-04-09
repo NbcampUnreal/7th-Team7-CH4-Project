@@ -19,7 +19,7 @@ void AVGPlayerState::Client_ReceiveRole_Implementation(FGameplayTag AssignedRole
 {
 	if (AssignedRoleTag.IsValid())
 	{
-		PlayerStatusTags.AddTag(AssignedRoleTag);
+		SecretRoleTag = AssignedRoleTag;
 	}
 }
 
@@ -47,6 +47,11 @@ bool AVGPlayerState::HasPlayerTag(const FGameplayTag& TagToCheck) const
 	}
 	
 	return false;
+}
+
+bool AVGPlayerState::IsRole(const FGameplayTag& RoleTagToCheck) const
+{
+	return SecretRoleTag == RoleTagToCheck;
 }
 
 

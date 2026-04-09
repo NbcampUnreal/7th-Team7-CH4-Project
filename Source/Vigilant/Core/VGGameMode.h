@@ -46,6 +46,7 @@ public:
 	int32 MinimumPlayersNeeded = 2;
 	
 	virtual void PostLogin(APlayerController *NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void TransitionToPhase(TSubclassOf<class UVGPhaseBase> NextPhase);
@@ -57,11 +58,13 @@ public:
 	void PopPhase();
 	
 	void CheckWinCondition();
-	
+	void ResetGameStatus();
+
 	void StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target);
 	
 	void CheckAllPlayersReady();
 	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void AssignRolesAndStartGame();
 	
 	// 이벤트 중개소
