@@ -8,6 +8,10 @@ void UVGPhaseBase::InitializePhase(AVGGameMode* InGameMode)
 	GameModeRef = InGameMode;
 }
 
+void UVGPhaseBase::ProcessVote(AVGPlayerState* Voter, AVGPlayerState* Target)
+{
+}
+
 void UVGPhaseBase::EnterPhase()
 {
 	FString PhaseName = GetClass()->GetName();

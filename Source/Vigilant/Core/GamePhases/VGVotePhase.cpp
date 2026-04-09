@@ -55,9 +55,16 @@ void UVGVotePhase::OnVoteTimeUp()
 	ExecutePhaseResult();
 }
 
-void UVGVotePhase::ReceiveVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarget)
+void UVGVotePhase::ProcessVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarget)
 {
 	if (!Voter || !VotedTarget) return;
+	
+	// 투표한 사람이 다시 투표하면 투표못하게 반환
+	if (PlayerVotes.Contains(Voter))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] %s 플레이어는 이미 투표했습니다."), *Voter->GetPlayerName());
+		return;
+	}
 	
 	PlayerVotes.Add(Voter, VotedTarget);
 }
@@ -102,13 +109,13 @@ void UVGVotePhase::CalculateVoteResult()
 		if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
 		{
 			// 마피아 태그가 있는지 확인
-			if (MaxVotedPlayer->HasPlayerTag(VigilantRoleTags::Mafia))
+			if (MaxVotedPlayer->IsRole(VigilantRoleTags::Mafia))
 			{
 				VGGameState->BossNerfRate -= BossStatChangeAmount;
 				UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 마피아 검거! "));
 			}
 			// 시민 태그가 있는지 확인
-			else if (MaxVotedPlayer->HasPlayerTag(VigilantRoleTags::Citizen))
+			else if (MaxVotedPlayer->IsRole(VigilantRoleTags::Citizen))
 			{
 				VGGameState->BossNerfRate += BossStatChangeAmount;
 				UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 시민 검거! "));

@@ -4,10 +4,12 @@
 #include "VGVoteWidget.h"
 
 #include "VGChatMessage.h"
+#include "VGVoteSlotWidget.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "Components/EditableText.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/ScrollBox.h"
+#include "Components/WrapBox.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 
@@ -22,8 +24,8 @@ void UVGVoteWidget::NativeConstruct()
 	//VoteChatText->SetIsEnabled(true); // 만약 엔터 눌러서 채팅창 활성화를 하고싶다면!
 	
 	//초상화 대입
-	SetCharacterPortrait();
-	
+
+	SetPortraitRenderTarget();
 	
 }
 
@@ -48,45 +50,53 @@ void UVGVoteWidget::OnTextCommitted(const FText& InText, ETextCommit::Type Commi
 	}
 }
 
-void UVGVoteWidget::SetCharacterPortrait()
+
+
+void UVGVoteWidget::SetPortraitRenderTarget()
 {
 	UWorld* World = GetWorld();
 	if (!World || !World->GetGameState()) return;
-
-	// 만약 에디터에서 RT 배열을 안 채워놨다면 튕기는 걸 방지
-	if (PortraitRenderTarget.IsEmpty())
+	
+	if (PortraitWrapBox)
 	{
-		return;
+		PortraitWrapBox->ClearChildren();
 	}
 
-	int32 SlotIndex = 0; // 0번칸(1번 RT)부터 시작!
-
-	// 게임에 접속한 "모든 플레이어(인스턴스)들"을 한 명씩 불러와서 줄을 세웁니다.
+	int32 SlotIndex = 1;
 	for (APlayerState* PS : World->GetGameState()->PlayerArray)
 	{
-		// 그 플레이어가 조종하는 몸통(폰)을 가져옵니다.
 		if (APawn* PlayerPawn = PS->GetPawn())
 		{
-			// 몸통에 붙어있는 카메라를 찾아냅니다.
 			if (USceneCaptureComponent2D* CaptureComp = PlayerPawn->FindComponentByClass<USceneCaptureComponent2D>())
 			{
-				// 배열 범위 초과 에러 방지 (플레이어가 6명인데 RT가 5개일 경우 등)
-				if (PortraitRenderTarget.IsValidIndex(SlotIndex))
+				UVGVoteSlotWidget* SlotWidget = CreateWidget<UVGVoteSlotWidget>(GetOwningPlayer(), VoteSlotClass);
+				if (SlotWidget)
 				{
-					// 첫 번째 유저의 카메라엔 RT_1을, 두 번째 유저에겐 RT_2를 물려줍니다.
-					CaptureComp->TextureTarget = PortraitRenderTarget[SlotIndex];
+					//초상화 설정은 여기서
+					SlotWidget->SetupSlot(SlotIndex, CaptureComp);
+					SlotWidget->OnVoteSlotClickedDelegate.AddDynamic(this, &UVGVoteWidget::ProcessVoteClick);
 
-					// 찰칵! 
-					CaptureComp->CaptureScene();
+					if (GetOwningPlayer())
+					{
+						UWrapBoxSlot* SlotRemoteCon= PortraitWrapBox->AddChildToWrapBox(SlotWidget);
+						//SlotRemoteCon-> 이 변수로 슬롯의 세부 옵션을 조절가능(길이, Pending 등)
+						
+					}
 				}
 			}
 		}
-
-		SlotIndex++; // 다음 RT 칸으로 이동!
-
-		// 인원이 넘어가면 그만~
-		if (SlotIndex >= World->GetGameState()->PlayerArray.Num()) break;
+		SlotIndex++;
+		
 	}
+	
+
+}
+
+void UVGVoteWidget::ProcessVoteClick(int32 SlotIndex)
+{
+	
+	
+	//버튼이 눌렸을때 전달받은 인덱스로 짤 로직
 }
 
 void UVGVoteWidget::AddChatMessage(const FString& MessageLog)
