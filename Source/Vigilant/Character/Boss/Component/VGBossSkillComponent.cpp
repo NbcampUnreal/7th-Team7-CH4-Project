@@ -14,6 +14,7 @@
 
 UVGBossSkillComponent::UVGBossSkillComponent()
 {
+	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 }
 
@@ -146,7 +147,7 @@ void UVGBossSkillComponent::Multicast_ExecuteSkill_Q_Implementation()
 	{
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_None);
 
-		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh() ? OwnerCharacter->GetMesh()->GetAnimInstance() : nullptr;
 		if (AnimInstance)
 		{
 			AnimInstance->Montage_Play(BossDataAsset->SkillMontage_Q);
@@ -189,7 +190,7 @@ void UVGBossSkillComponent::Multicast_ExecuteSkill_E_Implementation()
 	{
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_None);
 
-		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh() ? OwnerCharacter->GetMesh()->GetAnimInstance() : nullptr;
 		if (AnimInstance)
 		{
 			AnimInstance->Montage_Play(BossDataAsset->SkillMontage_E);
@@ -214,13 +215,18 @@ void UVGBossSkillComponent::ResetCooldown_E()
 
 void UVGBossSkillComponent::OnSkillMontageEnded(class UAnimMontage* Montage, bool bInterrupted)
 {
-	// [서버]에서만 상태 태그를 관리하도록 처리
-	if (GetOwner()->HasAuthority())
+	AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return;
+	}
+	
+	if (Owner->HasAuthority())
 	{
 		ActiveStateTags.RemoveTag(VigilantBoss::Casting);
 	}
 
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	ACharacter* OwnerCharacter = Cast<ACharacter>(Owner);
 	if (OwnerCharacter)
 	{
 		OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
