@@ -23,20 +23,20 @@ void UVGEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(UVGEquipmentComponent, RightHandItem);
 }
 
-void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* TargetActor, AVGCharacterBase* Interactor)
+void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* TargetActor, AActor* Interactor, const FTransform& InteractTransform)
 {
 	if (!TargetActor || !Interactor)
 	{
 		return;
 	}
-	
+    
 	// EquipmentComponent는 GimmickBase를 모른다
 	// IVGInteractable 인터페이스만 안다
 	if (TargetActor->Implements<UVGInteractable>())
 	{
 		if (IVGInteractable::Execute_CanInteract(TargetActor, Interactor))
 		{
-			IVGInteractable::Execute_OnInteract(TargetActor, Interactor);
+			IVGInteractable::Execute_OnInteract(TargetActor, Interactor, InteractTransform);
 		}
 	}
 }
@@ -79,10 +79,9 @@ void UVGEquipmentComponent::Interact()
 		AActor* HitActor = HitResult.GetActor();
 		if (HitActor && HitActor->Implements<UVGInteractable>())
 		{
-			if (IVGInteractable::Execute_CanInteract(HitActor, OwnerCharacter))
-			{
-				IVGInteractable::Execute_OnInteract(HitActor, OwnerCharacter);
-			}
+			FTransform HitTransform = FTransform(HitResult.ImpactNormal.Rotation(), HitResult.ImpactPoint);
+			
+			Server_InteractWithActor(HitActor, OwnerCharacter, HitTransform);
 		}
 	}
 }

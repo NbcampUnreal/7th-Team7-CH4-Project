@@ -10,7 +10,7 @@ AVGMissionGimmickChest::AVGMissionGimmickChest()
 	GimmickTypeTag = VigilantMissionTags::ChestGimmick;
 }
 
-bool AVGMissionGimmickChest::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickChest::CanInteractWith(AActor* Interactor) const
 {
 	if (GimmickStateTag != VigilantMissionTags::GimmickInactive)
 	{
@@ -44,7 +44,7 @@ bool AVGMissionGimmickChest::CanInteractWith(AVGCharacterBase* Interactor) const
 	return false;
 }
 
-void AVGMissionGimmickChest::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickChest::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
 	if (!HasAuthority())
 	{

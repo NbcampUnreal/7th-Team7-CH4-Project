@@ -32,8 +32,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	virtual bool CanInteractWith(AActor* Interactor) const override;
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	
 	// 미션 실패 시 리셋
 	UFUNCTION()

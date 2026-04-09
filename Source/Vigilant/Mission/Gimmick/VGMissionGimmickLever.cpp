@@ -14,7 +14,7 @@ bool AVGMissionGimmickLever::IsActivated() const
 	return (GimmickStateTag == VigilantMissionTags::GimmickActive);
 }
 
-bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickLever::CanInteractWith(AActor* Interactor) const
 {
 	if (bIsOneWay && IsActivated())
 	{
@@ -24,24 +24,15 @@ bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
 	return true;
 }
 
-void AVGMissionGimmickLever::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickLever::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
-	if (!HasAuthority())
-	{
-		if (UVGEquipmentComponent* EquipComp =
-			Interactor->FindComponentByClass<UVGEquipmentComponent>())
-		{
-			EquipComp->Server_InteractWithActor(this, Interactor);
-		}
-		return;
-	}
-	
 	if (!CanInteractWith(Interactor))
 	{
 		return;
 	}
 	
 	Toggle();
+	
 	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 
