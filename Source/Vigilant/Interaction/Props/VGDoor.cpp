@@ -23,7 +23,8 @@ void AVGDoor::OnInteractWith(AActor* Interactor, const FTransform& InteractTrans
 	{
 		return;
 	}
-    
+	
+	bIsOpen = !bIsOpen;
 	OnRep_IsOpen();
 }
 
