@@ -9,6 +9,8 @@ AVGMissionGimmickBase::AVGMissionGimmickBase()
 	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
 	SetRootComponent(MeshComponent);
+	
+	GimmickStateTag = VigilantMissionTags::GimmickInactive;
 }
 
 void AVGMissionGimmickBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
