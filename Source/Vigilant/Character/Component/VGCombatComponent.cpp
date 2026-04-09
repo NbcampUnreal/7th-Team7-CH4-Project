@@ -2,11 +2,10 @@
 #include "Engine/Engine.h"
 #include "Net/UnrealNetwork.h"
 #include "Data/VGWeaponDataAsset.h"
-#include "GameFramework/Character.h"
 #include "DrawDebugHelpers.h"
-#include "VGEquipmentComponent.h"
 #include "Character/VGCharacterBase.h"
 #include "Common/VGGameplayTags.h"
+#include "VGEquipmentComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Equipment/VGWeapon.h"
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "VGPlayerState.h"
 #include "GameFramework/GameMode.h"
 #include "VGGameMode.generated.h"
 
@@ -17,6 +18,9 @@ protected:
 	// 현제 게임의 페이즈 객체
 	UPROPERTY(Transient)
 	TArray<UVGPhaseBase*> PhaseStack;
+	// 감옥 스폰포인트 저장
+	UPROPERTY(Transient)
+	TMap<int32, class APlayerStart*> CachedJailSpawns;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Phase")
 	TSubclassOf<class UVGPhaseBase> InitialPhase;
@@ -46,6 +50,7 @@ public:
 	int32 MinimumPlayersNeeded = 2;
 	
 	virtual void PostLogin(APlayerController *NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void TransitionToPhase(TSubclassOf<class UVGPhaseBase> NextPhase);
@@ -57,17 +62,20 @@ public:
 	void PopPhase();
 	
 	void CheckWinCondition();
-	
+	void ResetGameStatus();
+
 	void StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target);
 	
 	void CheckAllPlayersReady();
 	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void AssignRolesAndStartGame();
 	
 	// 이벤트 중개소
 	void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim);
 	void OnMissionCleared(int32 TimeReducedAmount);
-	
+	void SubmitVote(AVGPlayerState* Voter, int32 TargetIndex);
+
 	//채팅 관련 함수 -입력메시지를 뿌려주는 역할 -김형백
 	void ProcessChatMessage(const FString& SenderName, const FString& Message);
 };

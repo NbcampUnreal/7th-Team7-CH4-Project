@@ -7,6 +7,7 @@
 
 class AVGGameMode;
 class AVGCharacterBase;
+class AVGPlayerState;
 
 UCLASS(Blueprintable,Abstract)
 class VIGILANT_API UVGPhaseBase : public UObject
@@ -31,6 +32,8 @@ public:
 	bool bHasTimeLimit = true;
 	
 	virtual void  InitializePhase(AVGGameMode* InGameMode);
+	// 투표페이즈에서만 사용할 함수
+	virtual void ProcessVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarget);
 	
 	// 페이즈 생명주기 관련 함수
 	virtual void EnterPhase();

@@ -11,6 +11,8 @@
 
 void UVGFinalCombatPhase::EnterPhase()
 {
+	bHasTimeLimit = false;
+	
 	Super::EnterPhase();
 	UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 최후의 전투 시작"));
 	
@@ -44,7 +46,7 @@ void UVGFinalCombatPhase::EnterPhase()
         APawn* CurrentPawn = PlayerController->GetPawn();
 
         // 마피아 유저 처리 (보스로 변신)
-        if (VGPlayerState->HasPlayerTag(VigilantRoleTags::Mafia))
+        if (VGPlayerState->IsRole(VigilantRoleTags::Mafia))
         {
             if (CurrentPawn) CurrentPawn->Destroy(); 
 
@@ -93,9 +95,10 @@ void UVGFinalCombatPhase::ExitPhase()
 
 void UVGFinalCombatPhase::ExecutePhaseResult()
 {
-	if (GameModeRef)
+	if (GameModeRef && NextPhaseClass)
 	{
-		GameModeRef->CheckWinCondition();
+		UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 전투 종료, 다음 페이즈로 전환"));
+		GameModeRef->TransitionToPhase(NextPhaseClass);
 	}
 }
 
@@ -110,8 +113,8 @@ bool UVGFinalCombatPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacter
 		
 		if (AttackerPlayerState && TargetPlayerState)
 		{
-			bool bAttackerIsCitizen = AttackerPlayerState->HasPlayerTag(VigilantRoleTags::Citizen);
-			bool bTargetIsCitizen = TargetPlayerState->HasPlayerTag(VigilantRoleTags::Citizen);
+			bool bAttackerIsCitizen = AttackerPlayerState->IsRole(VigilantRoleTags::Citizen);
+			bool bTargetIsCitizen = TargetPlayerState->IsRole(VigilantRoleTags::Citizen);
 			
 			if (bAttackerIsCitizen && bTargetIsCitizen)
 			{
@@ -125,5 +128,19 @@ bool UVGFinalCombatPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacter
 
 void UVGFinalCombatPhase::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim)
 {
-	ExecutePhaseResult();
+	Super::OnPlayerDeath(Killer, Victim);
+	
+	if (Victim)
+	{
+		if (AVGPlayerState* VictimPlayerState = Victim->GetPlayerState<AVGPlayerState>())
+		{
+			VictimPlayerState->AddPlayerTag(VigilantRoleTags::Dead);
+		}
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 사망자 발생. 승리 조건 체크"));
+	if (GameModeRef)
+	{
+		GameModeRef->CheckWinCondition();
+	}
 }
