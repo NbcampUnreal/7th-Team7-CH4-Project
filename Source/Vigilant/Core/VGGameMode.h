@@ -58,11 +58,13 @@ public:
 	void PopPhase();
 	
 	void CheckWinCondition();
-	
+	void ResetGameStatus();
+
 	void StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target);
 	
 	void CheckAllPlayersReady();
 	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void AssignRolesAndStartGame();
 	
 	// 이벤트 중개소

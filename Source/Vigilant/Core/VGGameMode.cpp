@@ -166,6 +166,103 @@ void AVGGameMode::PopPhase()
 
 void AVGGameMode::CheckWinCondition()
 {
+	if (!bGameHasStarted) return;
+	
+	int32 AliveCitizen = 0;
+	int32 AliveMafia = 0;
+	
+	for (APlayerState* PlayerState : GameState->PlayerArray)
+	{
+		AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState);
+		if (VGPlayerState)
+		{
+			if (VGPlayerState->HasPlayerTag(VigilantRoleTags::Dead)) continue;
+			
+			if (VGPlayerState->IsRole(VigilantRoleTags::Mafia))
+			{
+				AliveMafia++;
+			}
+			else if (VGPlayerState->IsRole(VigilantRoleTags::Citizen))
+			{
+				AliveCitizen++;
+			}
+		}
+	}
+	
+	bool bGameOver = false;
+	FGameplayTag WinnerTeam;
+	
+	// 마피아 죽으면 시민 승리
+	if (AliveMafia == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("시민 측 승리! 모든 마피아가 소탕되었습니다."));
+		WinnerTeam = VigilantRoleTags::Citizen;
+		bGameOver = true;
+	}
+	// 마피아 수가 시민 수보다 같거나 많아지면 마피아 승리
+	else if (AliveMafia > AliveCitizen)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("마피아 측 승리! 시민들이 제압되었습니다."));
+		WinnerTeam = VigilantRoleTags::Mafia;
+		bGameOver = true;
+	}
+	
+	if (bGameOver)
+	{
+
+		// 아마 여기서 승리 팀 정보 저장해서 UI에서 쓸 듯함
+
+		// 다음 페이즈로 보냄
+		if (PhaseStack.Num() > 0)
+		{
+			PhaseStack.Last()->ExecutePhaseResult();
+		}
+	}
+}
+
+void AVGGameMode::ResetGameStatus()
+{
+	// 게임모드 관리 변수 초기화
+	bGameHasStarted = false;
+	ClearDuelParticipants();
+
+	// 전광판 글로벌 수치 초기화
+	if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
+	{
+		VGGameState->BossNerfRate = 1.0f; // 보스 스탯 복구
+		// 후에 승리팀 저장되어있으면 그것도 초기화
+	}
+
+	// 전체 플레이어 개별 초기화 순회
+	for (APlayerState* PlayerState : GameState->PlayerArray)
+	{
+		AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState);
+		if (!VGPlayerState) continue;
+
+		// PlayerState 데이터 리셋
+		VGPlayerState->bIsReady = false; 
+		VGPlayerState->SecretRoleTag = FGameplayTag::EmptyTag; // 직업 압수
+		VGPlayerState->PlayerStatusTags.Reset(); // Dead, Duel 등의 상태 태그 컨테이너를 아예 깨끗하게 비움
+
+		// Character 스탯 복구 및 감옥 텔레포트
+		if (AVGCharacterBase* VGCharacter = Cast<AVGCharacterBase>(VGPlayerState->GetPawn()))
+		{
+			// 후에 캐릭터 파일 확인해서 캐릭터 스탯 및 죽음 원복
+
+			// 자기 번호표에 맞는 감옥으로 이송
+			/*
+			int32 SpawnIndex = VGPlayerState->EntryIndex - 1;
+			if (JailSpawnPoints.IsValidIndex(SpawnIndex) && JailSpawnPoints[SpawnIndex])
+			{
+				Character->SetActorLocationAndRotation(
+					JailSpawnPoints[SpawnIndex]->GetActorLocation(),
+					JailSpawnPoints[SpawnIndex]->GetActorRotation()
+				);
+			}
+			*/
+		}
+	}
+	
 }
 
 void AVGGameMode::StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target)
@@ -258,11 +355,11 @@ void AVGGameMode::ProcessChatMessage(const FString& SenderName, const FString& M
 		APlayerController* PlayerController = It->Get();
 		if (IVGChatReciveInterface* ChatReceiveInterface = Cast<IVGChatReciveInterface>(PlayerController))
 		{
-			//TODO: 가져온 이름과 메세지를 합쳐서 하나의 멧쎄지로만들기
-			FString NickNameMessage = SenderName + TEXT(" : ") + Message; // 임시
+			// 보낸 사람 이름 + 보낸 메시지 형식으로 묶음
+			FString FormattedMessage = FString::Printf(TEXT("[%s] : %s"), *SenderName, *Message);
 			
 			//이 함수 구현은 플레이어 컨트롤러에 있어요~
-			ChatReceiveInterface->ReceiveChatMessage(NickNameMessage);
+			ChatReceiveInterface->ReceiveChatMessage(FormattedMessage);
 		}
 	}
 }
