@@ -36,6 +36,7 @@ void AVGMissionGimmickStatue::OnInteractWith(AVGCharacterBase* Interactor)
 		return;
 	}
 	
+	
 	// 회전 목표각도 업데이트
 	TargetAngle = FMath::Fmod(TargetAngle + RotateStep, 360.f);
 	
@@ -44,11 +45,15 @@ void AVGMissionGimmickStatue::OnInteractWith(AVGCharacterBase* Interactor)
 	
 	// 회전 시작을 외부에 알림
 	SetStateTag(VigilantMissionTags::GimmickActive);
+	
+	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 
 void AVGMissionGimmickStatue::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	SetActorRotation(FRotator(0,InitialAngle,0));
 }
 
 void AVGMissionGimmickStatue::Tick(float DeltaTime)
