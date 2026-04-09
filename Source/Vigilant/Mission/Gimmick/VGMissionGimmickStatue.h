@@ -15,7 +15,7 @@ public:
 	AVGMissionGimmickStatue();
 	
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void Server_Interact_Implementation(AVGCharacterBase* Interactor) override;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 	
 protected:
 	virtual void BeginPlay() override;

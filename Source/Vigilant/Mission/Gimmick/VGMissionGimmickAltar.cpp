@@ -60,10 +60,19 @@ bool AVGMissionGimmickAltar::CanInteractWith(AVGCharacterBase* Interactor) const
 	return false;
 }
 
-void AVGMissionGimmickAltar::Server_Interact_Implementation(AVGCharacterBase* Interactor)
+void AVGMissionGimmickAltar::OnInteractWith(AVGCharacterBase* Interactor)
 {
+	if (!HasAuthority())
+	{
+		if (UVGEquipmentComponent* EquipComp =
+			Interactor->FindComponentByClass<UVGEquipmentComponent>())
+		{
+			EquipComp->Server_InteractWithActor(this, Interactor);
+		}
+		return;
+	}
 	
-	if (!HasAuthority() || !CanInteractWith(Interactor))
+	if (!CanInteractWith(Interactor))
 	{
 		return;
 	}

@@ -23,6 +23,24 @@ void UVGEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(UVGEquipmentComponent, RightHandItem);
 }
 
+void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* TargetActor, AVGCharacterBase* Interactor)
+{
+	if (!TargetActor || !Interactor)
+	{
+		return;
+	}
+	
+	// EquipmentComponent는 GimmickBase를 모른다
+	// IVGInteractable 인터페이스만 안다
+	if (TargetActor->Implements<UVGInteractable>())
+	{
+		if (IVGInteractable::Execute_CanInteract(TargetActor, Interactor))
+		{
+			IVGInteractable::Execute_OnInteract(TargetActor, Interactor);
+		}
+	}
+}
+
 void UVGEquipmentComponent::Interact()
 {
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());

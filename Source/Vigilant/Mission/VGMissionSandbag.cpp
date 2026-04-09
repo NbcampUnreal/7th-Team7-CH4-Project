@@ -35,7 +35,23 @@ void AVGMissionSandbag::BeginPlay()
 float AVGMissionSandbag::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser)
 {
-	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	if (StatComponent)
+	{
+		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
+	}
+	
+	// EventInstigator(Controller)에서 AVGCharacterBase를 꺼내 LastAttacker 갱신
+	if (HasAuthority() && EventInstigator)
+	{
+		if (AVGCharacterBase* AttackerCharacter = Cast<AVGCharacterBase>(EventInstigator->GetPawn()))
+		{
+			RegisterAttacker(AttackerCharacter);
+		}
+	}
+	
+	return ActualDamage;
 }
 
 void AVGMissionSandbag::RegisterAttacker(AVGCharacterBase* Attacker)
@@ -45,6 +61,12 @@ void AVGMissionSandbag::RegisterAttacker(AVGCharacterBase* Attacker)
 
 	// 데미지를 줄 때마다 마지막 공격자 갱신
 	LastAttacker = Attacker;
+}
+
+void AVGMissionSandbag::Multicast_OnDead_Implementation()
+{
+	MeshComponent->SetVisibility(false);
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AVGMissionSandbag::OnHPChanged(float NewHP, float MaxHP)
@@ -61,6 +83,9 @@ void AVGMissionSandbag::OnRep_CurrentHPRatio()
 
 void AVGMissionSandbag::OnDead(AController* LastInstigator)
 {
+	MeshComponent->SetVisibility(false);
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Multicast_OnDead();
 	// 막타 플레이어와 함께 미션에 보고
 	OnSandbagDefeated.Broadcast(LastAttacker);
 	UE_LOG(LogTemp, Display, TEXT("[%s] is dead."), *GetName());
