@@ -28,7 +28,8 @@ protected:
 	/**
 	 * 
 	 */
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GameplayTags", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GameplayTags", meta = (AllowPrivateAccess = "true"), 
+		ReplicatedUsing=OnRep_CharacterTags, meta = (AllowPrivateAccess = "true"))
 	FGameplayTagContainer CharacterTags;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -74,7 +75,7 @@ public:
 	// Functions
 public:
 	AVGCharacterBase();
-
+virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
@@ -107,6 +108,8 @@ protected:
 	void LightAttack(const FInputActionValue& Value);
 	void HeavyAttack(const FInputActionValue& Value);
 	
+	UFUNCTION()
+	virtual void OnRep_CharacterTags(); // 캐릭터태그 변화시 부를 콜백(내용없음)
 	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, 
 		class AController* EventInstigator, AActor* DamageCauser) override;

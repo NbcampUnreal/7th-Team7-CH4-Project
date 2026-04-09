@@ -10,6 +10,7 @@
 #include "Engine/DamageEvents.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
+#include "Net/UnrealNetwork.h"
 
 #pragma region Interfaces GameplayTag
 void AVGCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -60,6 +61,12 @@ AVGCharacterBase::AVGCharacterBase()
 	
 	// create the stat component
 	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
+}
+
+void AVGCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AVGCharacterBase, CharacterTags);
 }
 
 void AVGCharacterBase::BeginPlay()
@@ -201,8 +208,14 @@ void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 	}
 }
 
+void AVGCharacterBase::OnRep_CharacterTags()
+{
+	UE_LOG(LogTemp, Log, TEXT("클라이언트: 캐릭터 태그가 서버로부터 갱신되었습니다!"));
+	//아직은 쓸데가 없음..
+}
+
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
-	class AController* EventInstigator, AActor* DamageCauser)
+                                   class AController* EventInstigator, AActor* DamageCauser)
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
@@ -217,14 +230,18 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 {
 	// TODO: GameplayTag 체크 필요
+	
 	if (bIsSprinting)
 	{
+		CharacterTags.AddTag(VigilantCharacter::Sprint);
+		
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-		// TODO: Gameplay Tag 추가 (e.g. State.Movement.Sprinting)
+		
 	}
 	else
 	{
 		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-		// TODO: Gameplay Tag 제거
+		CharacterTags.RemoveTag(VigilantCharacter::Sprint);
+		
 	}
 }
