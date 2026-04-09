@@ -46,6 +46,7 @@ public:
 	int32 MinimumPlayersNeeded = 2;
 	
 	virtual void PostLogin(APlayerController *NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void TransitionToPhase(TSubclassOf<class UVGPhaseBase> NextPhase);

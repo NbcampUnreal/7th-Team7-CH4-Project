@@ -33,6 +33,25 @@ void AVGGameMode::ClearDuelParticipants()
 
 void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 {
+	// 게임 중 유저가 들어왔을 때 예외처리
+	if (bGameHasStarted)
+	{
+		// 최대 인원(6명) 확인
+		if (GameState->PlayerArray.Num() <= 6)
+		{
+			
+			NewPlayer->StartSpectatingOnly(); 
+			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 게임 진행 중 난입: 관전자 모드 진입"));
+            
+			
+			return; 
+		}
+		else
+		{
+			// 6명을 넘으면 접속안되는 로직 추가 예정
+		}
+	}
+	
 	Super::PostLogin(NewPlayer);
 	
 	if (AVGPlayerState* VGPlayerState = NewPlayer->GetPlayerState<AVGPlayerState>())
@@ -49,6 +68,34 @@ void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] %d번 플레이어 배정 완료"), ConnectedPlayerCount);
 	}
+}
+
+void AVGGameMode::Logout(AController* Exiting)
+{
+	AVGPlayerState* ExitingPlayerState = Exiting->GetPlayerState<AVGPlayerState>();
+	if (ExitingPlayerState && bGameHasStarted)
+	{
+		//  나간 사람의 직업 확인
+		if (ExitingPlayerState->IsRole(VigilantRoleTags::Mafia))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("마피아 탈주! 시민 승리."));
+			// 게임 종료 로직 추가 예정
+		}
+		else if (ExitingPlayerState->IsRole(VigilantRoleTags::Citizen))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("시민 %s 탈주!"), *ExitingPlayerState->VGPlayerName);
+			// 전체 공지해야함
+		}
+	}
+
+	// 레디 중인 사람이 나갔을 때를 위한 체크 
+	if (!bGameHasStarted)
+	{
+		// 다시 전인원 레디 여부 판정
+		CheckAllPlayersReady();
+	}
+	
+	Super::Logout(Exiting);
 }
 
 void AVGGameMode::TransitionToPhase(TSubclassOf<class UVGPhaseBase> NextPhase)
