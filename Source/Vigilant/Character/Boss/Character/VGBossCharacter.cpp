@@ -4,7 +4,7 @@
 #include "VGBossCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Character//Boss/Component/VGBossSkillComponent.h"
+#include "Character/Boss/Component/VGBossSkillComponent.h"
 #include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -12,10 +12,6 @@
 
 AVGBossCharacter::AVGBossCharacter()
 {
-	// 보스의 덩치를 1.5배 크게 설정 (임시)
-	// SetActorScale3D(FVector(1.5f, 1.5f, 1.5f));
-
-	bReplicates = true;
 	JumpMaxCount = 0;
 	// 스킬 컴포넌트 생성 및 부착
 	SkillComponent = CreateDefaultSubobject<UVGBossSkillComponent>(TEXT("SkillComponent"));

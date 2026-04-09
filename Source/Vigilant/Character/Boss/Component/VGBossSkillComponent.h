@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "VGBossSkillComponent.generated.h"
 
+class UVGBossDataAsset;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VIGILANT_API UVGBossSkillComponent : public UActorComponent
@@ -27,35 +28,34 @@ public:
 	// E 스킬
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Skill")
 	void ExecuteSkill_E();
+	
 protected:
-	// 2. 서버에게 스킬 사용을 요청 (쿨타임, 태그 검사)
+	// 서버에게 스킬 사용을 요청 (쿨타임, 태그 검사)
 	UFUNCTION(Server, Reliable)
 	void Server_ExecuteSkill_Q();
 
 	UFUNCTION(Server, Reliable)
 	void Server_ExecuteSkill_E();
 
-	// 3. 서버가 모든 클라이언트에게 모션 재생 명령
+	// 서버가 모든 클라이언트에게 모션 재생 명령
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ExecuteSkill_Q();
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_ExecuteSkill_E();
 	
-public:
-	// 애니메이션 몽타주 변수
-	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Skill")
-	class UAnimMontage* SkillMontage_Q;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Skill")
-	class UAnimMontage* SkillMontage_E;
+	// AnimNotify에서 호출될 광역 공격 함수
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Skill|Roar")
+	void ExecuteRoarAoE();
 	
-	// 블루프린트에서 설정할 쿨타임 수치
-	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Skill|Cooldown")
-	float CooldownTime_Q = 5.0f;
+	// 클라이언트에서 찾은 여러 타겟을 서버로 보내 데미지 처리
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ProcessAoEHits(const TArray<AActor*>& HitActors);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Skill|Cooldown")
-	float CooldownTime_E = 8.0f;
+public:
+	// 데이터 에셋 참조 (블루프린트에서 보스 데이터 에셋 할당)
+	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Data")
+	UVGBossDataAsset* BossDataAsset;
 	
 private:
 	// 보스의 현재 상태 태그 바구니
