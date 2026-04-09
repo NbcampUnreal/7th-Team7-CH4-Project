@@ -36,7 +36,7 @@ protected:
 public:
 	// 클라이언트가 서버로 투표 보낼 때 호출할 함수
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Vote")
-	void ReceiveVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarget);
+	virtual void ProcessVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarget) override;
 
 	// 시간이 다 되었을 때 표를 집계하고 결과를 계산하는 함수
 	void CalculateVoteResult();
