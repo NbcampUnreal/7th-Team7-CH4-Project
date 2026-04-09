@@ -1,4 +1,6 @@
 #include "ANSVGMeleeTrace.h"
+
+#include "Character/VGCharacterBase.h"
 #include "Character/Component/VGCombatComponent.h"
 
 void UANSVGMeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
@@ -6,11 +8,14 @@ void UANSVGMeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequen
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
 	
-	if (AActor* Owner = MeshComp->GetOwner())
+	if (AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(MeshComp->GetOwner()))
 	{
-		if (UVGCombatComponent* CombatComp = Owner->FindComponentByClass<UVGCombatComponent>())
+		if (OwnerCharacter->IsLocallyControlled())
 		{
-			CombatComp->StartMeleeTrace();
+			if (UVGCombatComponent* CombatComp = OwnerCharacter->GetCombatComponent())
+			{
+				CombatComp->StartMeleeTrace();
+			}
 		}
 	}
 }
@@ -20,11 +25,14 @@ void UANSVGMeleeTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenc
 {
 	Super::NotifyTick(MeshComp, Animation, TotalDuration, EventReference);
 	
-	if (AActor* Owner = MeshComp->GetOwner())
+	if (AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(MeshComp->GetOwner()))
 	{
-		if (UVGCombatComponent* CombatComp = Owner->FindComponentByClass<UVGCombatComponent>())
+		if (OwnerCharacter->IsLocallyControlled())
 		{
-			CombatComp->TickMeleeTrace();
+			if (UVGCombatComponent* CombatComp = OwnerCharacter->GetCombatComponent())
+			{
+				CombatComp->TickMeleeTrace();
+			}
 		}
 	}
 }
@@ -34,11 +42,14 @@ void UANSVGMeleeTrace::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequence
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 	
-	if (AActor* Owner = MeshComp->GetOwner())
+	if (AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(MeshComp->GetOwner()))
 	{
-		if (UVGCombatComponent* CombatComp = Owner->FindComponentByClass<UVGCombatComponent>())
+		if (OwnerCharacter->IsLocallyControlled())
 		{
-			CombatComp->StopMeleeTrace();
+			if (UVGCombatComponent* CombatComp = OwnerCharacter->GetCombatComponent())
+			{
+				CombatComp->StopMeleeTrace();
+			}
 		}
 	}
 }

@@ -1,8 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ANSVGGamplayTag.h"
-
 #include "Character/VGCharacterBase.h"
 
 void UANSVGGamplayTag::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration,
