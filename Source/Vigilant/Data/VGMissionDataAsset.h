@@ -5,6 +5,8 @@
 #include "Common/VGGameplayTags.h"
 #include "VGMissionDataAsset.generated.h"
 
+class AVGEquippableActor;
+
 UCLASS()
 class VIGILANT_API UVGMissionDataAsset : public UPrimaryDataAsset
 {
