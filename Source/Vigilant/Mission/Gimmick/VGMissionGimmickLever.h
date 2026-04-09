@@ -17,7 +17,7 @@ public:
 	
 	// 상호작용할 때마다 On/Off 토글
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void Server_Interact_Implementation(AVGCharacterBase* Interactor) override;
+	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 
 protected:
 	void Toggle();

@@ -44,9 +44,17 @@ bool AVGMissionGimmickChest::CanInteractWith(AVGCharacterBase* Interactor) const
 	return false;
 }
 
-void AVGMissionGimmickChest::Server_Interact_Implementation(AVGCharacterBase* Interactor)
+void AVGMissionGimmickChest::OnInteractWith(AVGCharacterBase* Interactor)
 {
-	if (!HasAuthority()) return;
+	if (!HasAuthority())
+	{
+		if (UVGEquipmentComponent* EquipComp =
+			Interactor->FindComponentByClass<UVGEquipmentComponent>())
+		{
+			EquipComp->Server_InteractWithActor(this, Interactor);
+		}
+		return;
+	}
 	if (!CanInteractWith(Interactor)) return;
 
 	// 열쇠 아이템 찾아서 사용 처리

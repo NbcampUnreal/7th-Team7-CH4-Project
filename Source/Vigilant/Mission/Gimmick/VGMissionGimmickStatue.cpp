@@ -2,6 +2,8 @@
 
 #include "Common/VGGameplayTags.h"
 #include "Net/UnrealNetwork.h"
+#include "Character/Component/VGEquipmentComponent.h"
+#include "Character/VGCharacterBase.h"
 
 AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 {
@@ -17,10 +19,15 @@ bool AVGMissionGimmickStatue::CanInteractWith(AVGCharacterBase* Interactor) cons
 	return GimmickStateTag == VigilantMissionTags::GimmickInactive;
 }
 
-void AVGMissionGimmickStatue::Server_Interact_Implementation(AVGCharacterBase* Interactor)
+void AVGMissionGimmickStatue::OnInteractWith(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority())
 	{
+		if (UVGEquipmentComponent* EquipComp =
+			Interactor->FindComponentByClass<UVGEquipmentComponent>())
+		{
+			EquipComp->Server_InteractWithActor(this, Interactor);
+		}
 		return;
 	}
 	

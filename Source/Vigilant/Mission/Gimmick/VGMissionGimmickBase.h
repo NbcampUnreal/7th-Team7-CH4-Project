@@ -35,9 +35,6 @@ public:
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
 	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
 	
-	UFUNCTION(Server, Reliable)
-	void Server_Interact(AVGCharacterBase* Interactor);
-	
 	// 미션 실패 시 리셋
 	UFUNCTION()
 	virtual void ResetGimmickState();

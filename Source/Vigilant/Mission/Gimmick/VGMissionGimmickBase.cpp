@@ -1,6 +1,8 @@
 ﻿#include "VGMissionGimmickBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Common/VGGameplayTags.h"
+#include "Character/Component/VGEquipmentComponent.h"
+#include "Character/VGCharacterBase.h"
 
 AVGMissionGimmickBase::AVGMissionGimmickBase()
 {
@@ -29,7 +31,11 @@ void AVGMissionGimmickBase::OnInteractWith(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority())
 	{
-		Server_Interact(Interactor);
+		if (UVGEquipmentComponent* EquipComp =
+			Interactor->FindComponentByClass<UVGEquipmentComponent>())
+		{
+			EquipComp->Server_InteractWithActor(this, Interactor);
+		}
 		return;
 	}
 	
@@ -38,16 +44,6 @@ void AVGMissionGimmickBase::OnInteractWith(AVGCharacterBase* Interactor)
 		return;
 	}
 	
-	OnGimmickInteracted.Broadcast(this, Interactor);
-}
-
-void AVGMissionGimmickBase::Server_Interact_Implementation(AVGCharacterBase* Interactor)
-{
-	// 서버에서 재검증 후 실행
-	if (!CanInteractWith(Interactor))
-	{
-		return;
-	}
 	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 
