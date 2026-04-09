@@ -10,6 +10,8 @@
 #include "Common/VGGameplayTags.h"
 #include "Character/VGCharacterBase.h"
 #include "Interface/VGChatReciveInterface.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerStart.h"
 
 
 void AVGGameMode::BeginPlay()
@@ -60,13 +62,55 @@ void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 		ConnectedPlayerCount++;
 		VGPlayerState->EntryIndex = ConnectedPlayerCount;
 		
-		// 해당 인덱스에 맞는 감옥으로 강제 텔레포트!
-		if (AVGCharacterBase* VGPlayerCharcter = Cast<AVGCharacterBase>(NewPlayer->GetPawn()))
+		// 첫 플레이어가 입장할 때 한 번만 실행해서 스폰위치 저장
+		if (CachedJailSpawns.IsEmpty())
 		{
-			// 각 스폰포인트(감옥)으로 텔레포트하는 로직 구현 예정
+			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 캐시 맵 초기화: Jail 스폰 포인트 검색 시작"));
+			
+			TArray<AActor*> FoundStarts;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundStarts);
+
+			for (AActor* StartActor : FoundStarts)
+			{
+				if (APlayerStart* PlayerStart = Cast<APlayerStart>(StartActor))
+				{
+					FString TagString = PlayerStart->PlayerStartTag.ToString();
+					
+					// Jail 로 시작하는 태그가 있는 PlayerStart 만 골라냄
+					if (TagString.StartsWith(TEXT("Jail")))
+					{
+						// Jail 글자를 숫자만 남김
+						FString NumberString = TagString.Replace(TEXT("Jail"), TEXT(""));
+						
+						// 남은 글자가 숫자면 캐시용 맵에 등록
+						if (NumberString.IsNumeric())
+						{
+							int32 SpawnIndex = FCString::Atoi(*NumberString);
+							CachedJailSpawns.Add(SpawnIndex, PlayerStart);
+						}
+					}
+				}
+			}
+			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] %d개의 감옥 스폰 포인트 캐싱 완료"), CachedJailSpawns.Num());
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] %d번 플레이어 배정 완료"), ConnectedPlayerCount);
+		// 캐시 맵을 사용해서 텔레포
+		if (APlayerStart** FoundStart = CachedJailSpawns.Find(VGPlayerState->EntryIndex))
+		{
+			if (APlayerStart* TargetStart = *FoundStart)
+			{
+				if (APawn* PlayerPawn = NewPlayer->GetPawn())
+				{
+					PlayerPawn->SetActorLocationAndRotation(TargetStart->GetActorLocation(), TargetStart->GetActorRotation());
+					UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] %s 플레이어, %d번 감옥으로 이동 완료"), *VGPlayerState->GetPlayerName(), VGPlayerState->EntryIndex);
+				}
+			}
+		}
+		else
+		{
+			// 캐시안된 곳 있는지 디버그용
+			UE_LOG(LogTemp, Error, TEXT("[VGGameMode] %d번 감옥의 스폰 포인트를 찾을 수 없습니다! 에디터의 Player Start Tag(Jail%d)를 확인하세요."), VGPlayerState->EntryIndex, VGPlayerState->EntryIndex);
+		}
 	}
 }
 
@@ -344,6 +388,36 @@ void AVGGameMode::OnMissionCleared(int32 TimeReducedAmount)
 	if (PhaseStack.Num() > 0)
 	{
 		PhaseStack.Last()->OnMissionCleared(TimeReducedAmount);
+	}
+}
+
+void AVGGameMode::SubmitVote(AVGPlayerState* Voter, int32 TargetIndex)
+{
+	if (PhaseStack.Num() > 0)
+	{
+		AVGPlayerState* TargetPlayer = nullptr;
+
+		// EntryIndex로 대상 색출
+		for (APlayerState* PlayerState : GameState->PlayerArray)
+		{
+			AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState);
+			if (VGPlayerState && VGPlayerState->EntryIndex == TargetIndex)
+			{
+				TargetPlayer = VGPlayerState;
+				break;
+			}
+		}
+
+		//찾았다면 페이즈에게 투표 처리
+		if (TargetPlayer)
+		{
+			PhaseStack.Last()->ProcessVote(Voter, TargetPlayer);
+		}
+		else
+		{
+			// 만약 그 사이에 대상자가 탈주해서 못 찾았을 경우의 안전장치
+			UE_LOG(LogTemp, Error, TEXT("[VGGameMode] 투표 대상인 %d번 유저를 찾을 수 없습니다."), TargetIndex);
+		}
 	}
 }
 
