@@ -8,6 +8,9 @@
 #include "Character/Component/VGCombatComponent.h"
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
+#include "Data/VGWeaponDataAsset.h"
+#include "Equipment/VGEquippableActor.h"
+#include "Equipment/VGWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 
@@ -24,6 +27,17 @@ AVGCitizenCharacter::AVGCitizenCharacter()
 	ModifyFriction = 0.f;
 	// 장비 컴포넌트 생성
 	EquipmentComponent = CreateDefaultSubobject<UVGEquipmentComponent>(TEXT("EquipmentComponent"));
+}
+
+void AVGCitizenCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (EquipmentComponent)
+	{
+		EquipmentComponent->OnItemEquipped.AddDynamic(this, &AVGCitizenCharacter::HandleItemEquipped);
+		EquipmentComponent->OnItemDropped.AddDynamic(this, &AVGCitizenCharacter::HandleItemDropped);
+	}
 }
 
 void AVGCitizenCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -227,5 +241,37 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 	else
 	{
 		//회피가 잘 끝났을 때 로직
+	}
+}
+
+void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, AVGEquippableActor* EquippedItem)
+{
+	if (!EquippedItem || !EquippedItem->EquipmentData)
+	{
+		return;
+	}
+	
+	if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(EquippedItem->EquipmentData))
+	{
+		if (CombatComponent)
+		{
+			UMeshComponent* TraceMesh = nullptr;
+			if (AVGWeapon* Weapon = Cast<AVGWeapon>(EquippedItem))
+			{
+				TraceMesh = Weapon->GetWeaponMesh();
+			}
+			CombatComponent->SetActiveCombatData(WeaponData, TraceMesh);
+		}
+	}
+}
+
+void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
+{
+	if (Slot == EVGEquipmentSlot::RightHand || Slot == EVGEquipmentSlot::BothHands)
+	{
+		if (CombatComponent)
+		{
+			CombatComponent->SetActiveCombatData(nullptr, nullptr);
+		}
 	}
 }

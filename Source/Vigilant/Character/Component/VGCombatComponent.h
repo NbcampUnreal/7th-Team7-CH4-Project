@@ -16,7 +16,7 @@ public:
 	UVGCombatComponent();
 	
 	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void SetActiveCombatData(UVGWeaponDataAsset* NewData);
+	void SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshComponent* NewTraceMesh);
 	
 	// --- Inputs ---
 	void TryLightAttack();
@@ -71,6 +71,8 @@ private:
 	
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_ActiveCombatData)
 	TObjectPtr<UVGWeaponDataAsset> ActiveCombatData;
+	
+	TWeakObjectPtr<UMeshComponent> ActiveTraceMesh;
 	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	

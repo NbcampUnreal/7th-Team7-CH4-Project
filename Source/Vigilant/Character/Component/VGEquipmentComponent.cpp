@@ -5,10 +5,8 @@
 #include "Common/VGGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
-#include "VGCombatComponent.h"
 #include "Character/VGCharacterBase.h"
 #include "Data/VGEquipmentDataAsset.h"
-#include "Data/VGWeaponDataAsset.h"
 
 UVGEquipmentComponent::UVGEquipmentComponent()
 {
@@ -113,10 +111,12 @@ void UVGEquipmentComponent::OnRep_LefthandItem(AVGEquippableActor* OldItem)
 	if (LeftHandItem)
 	{
 		HandleItemAttachment(LeftHandItem, LeftHandItem->EquipmentData->LeftHandSocketName, true);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, RightHandItem);
 	}
 	else if (OldItem)
 	{
 		HandleItemAttachment(OldItem, NAME_None, false);
+		OnItemDropped.Broadcast(EVGEquipmentSlot::LeftHand);
 	}
 }
 
@@ -125,10 +125,12 @@ void UVGEquipmentComponent::OnRep_RighthandItem(AVGEquippableActor* OldItem)
 	if (RightHandItem)
 	{
 		HandleItemAttachment(RightHandItem, RightHandItem->EquipmentData->RightHandSocketName, true);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, RightHandItem);
 	}
 	else if (OldItem)
 	{
 		HandleItemAttachment(OldItem, NAME_None, false);
+		OnItemDropped.Broadcast(EVGEquipmentSlot::RightHand);
 	}
 }
 
@@ -219,15 +221,6 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 	if (bEquipSuccess)
 	{
 		// TODO: 캐릭터에 ItemData->GrantedEquipmentTag 할당
-
-		if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(ItemData))
-		{
-			if (UVGCombatComponent* CombatComp = OwnerCharacter->FindComponentByClass<UVGCombatComponent>())
-			{
-				CombatComp->SetActiveCombatData(WeaponData);
-			}
-		}
-
 		EVGEquipmentSlot EquippedSlot = (ItemData->EquipRule == EVGEquipRules::LeftHandOnly)
 			                                ? EVGEquipmentSlot::LeftHand
 			                                : EVGEquipmentSlot::RightHand;
@@ -253,9 +246,6 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 		return;
 	}
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
-	// TODO: OwnerCharacter GameplayTag 제거
-
 	HandleItemAttachment(TargetItem, NAME_None, false);
 
 	if (TargetItem->EquipmentData->EquipRule == EVGEquipRules::BothHands)
@@ -273,16 +263,6 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 		{
 			RightHandItem = nullptr;
 		}
-	}
-
-	// 무기를 드롭한 경우 DefaultCombatData로 폴백
-	if (Cast<UVGWeaponDataAsset>(TargetItem->EquipmentData))
-	{
-		if (OwnerCharacter)
-			if (UVGCombatComponent* CombatComponent = OwnerCharacter->FindComponentByClass<UVGCombatComponent>())
-			{
-				CombatComponent->SetActiveCombatData(nullptr);
-			}
 	}
 
 	OnItemDropped.Broadcast(SlotToDrop);
