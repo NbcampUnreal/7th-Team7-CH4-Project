@@ -22,11 +22,6 @@ void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData)
 	}
 }
 
-void UVGCombatComponent::Server_SetActiveCombatData_Implementation(UVGWeaponDataAsset* NewData)
-{
-	SetActiveCombatData(NewData);
-}
-
 void UVGCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
