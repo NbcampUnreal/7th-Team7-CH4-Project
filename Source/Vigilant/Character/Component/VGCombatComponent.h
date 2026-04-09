@@ -18,10 +18,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetActiveCombatData(UVGWeaponDataAsset* NewData);
 	
-	// --- 임시: 전투 데이터 설정을 위한 서버 RPC ---
-	UFUNCTION(Server, Reliable)
-	void Server_SetActiveCombatData(UVGWeaponDataAsset* NewData);
-	
 	// --- Inputs ---
 	void TryLightAttack();
 	void TryHeavyAttack();
@@ -40,7 +36,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
 	void StopMeleeTrace();
 	
-	// --- 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
 	TObjectPtr<UInputAction> LightAttackAction;
 	
