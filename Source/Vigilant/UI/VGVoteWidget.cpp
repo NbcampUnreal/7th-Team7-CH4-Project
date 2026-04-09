@@ -10,6 +10,7 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/ScrollBox.h"
 #include "Components/WrapBox.h"
+#include "Components/WrapBoxSlot.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 
@@ -80,6 +81,7 @@ void UVGVoteWidget::SetPortraitRenderTarget()
 					{
 						UWrapBoxSlot* SlotRemoteCon= PortraitWrapBox->AddChildToWrapBox(SlotWidget);
 						//SlotRemoteCon-> 이 변수로 슬롯의 세부 옵션을 조절가능(길이, Pending 등)
+						SlotRemoteCon->SetPadding(FMargin(20.0f));
 						
 					}
 				}
