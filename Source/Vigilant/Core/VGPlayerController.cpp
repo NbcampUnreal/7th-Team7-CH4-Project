@@ -82,6 +82,17 @@ void AVGPlayerController::OnChatMessageReceived(const FString& Message)
 	Server_SendChatMessage(Message);
 }
 
+void AVGPlayerController::Server_SubmitVote_Implementation(int32 TargetIndex)
+{
+	if (AVGGameMode* GameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
+		{
+			GameMode->SubmitVote(VGPlayerState, TargetIndex);
+		}
+	}
+}
+
 void AVGPlayerController::ReceiveChatMessage(const FString& Message)
 {
 	Client_ReceiveChatMessage(Message);
