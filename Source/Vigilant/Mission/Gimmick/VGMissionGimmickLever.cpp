@@ -23,21 +23,20 @@ bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
 	return true;
 }
 
-void AVGMissionGimmickLever::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickLever::Server_Interact_Implementation(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority())
 	{
 		return;
 	}
-
-	Toggle();
-	// 상호작용한 플레이어에게만 이펙트 요청
-	// Interactor의 PlayerController를 통해 Client RPC 호출
-	if (APlayerController* PC =
-		Cast<APlayerController>(Interactor->GetController()))
+	
+	if (!CanInteractWith(Interactor))
 	{
-		// PC->Client_PlayInteractEffect(GetActorLocation());
+		return;
 	}
+	
+	Toggle();
+	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 
 void AVGMissionGimmickLever::Toggle()

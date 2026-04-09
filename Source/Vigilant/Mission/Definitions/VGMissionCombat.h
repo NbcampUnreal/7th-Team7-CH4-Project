@@ -24,7 +24,6 @@ private:
 	UFUNCTION()
 	void OnSandbagDefeated(AVGCharacterBase* LastAttacker);
 
-	void GiveRewardToPlayer(AVGCharacterBase* Player);
 	bool AreAllSandbagsDefeated() const;
 
 public:

@@ -17,7 +17,7 @@ public:
 	AVGMissionGimmickChest();
 
 	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	virtual void Server_Interact_Implementation(AVGCharacterBase* Interactor) override;
 
 private:
 	// 슬롯에서 필요한 아이템을 찾아 사용 처리

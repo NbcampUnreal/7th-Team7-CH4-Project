@@ -44,7 +44,7 @@ bool AVGMissionGimmickChest::CanInteractWith(AVGCharacterBase* Interactor) const
 	return false;
 }
 
-void AVGMissionGimmickChest::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickChest::Server_Interact_Implementation(AVGCharacterBase* Interactor)
 {
 	if (!HasAuthority()) return;
 	if (!CanInteractWith(Interactor)) return;
@@ -69,7 +69,9 @@ void AVGMissionGimmickChest::OnInteractWith(AVGCharacterBase* Interactor)
 	if (bUsed)
 	{
 		SetStateTag(VigilantMissionTags::GimmickCompleted);
+		OnGimmickInteracted.Broadcast(this, Interactor);
 	}
+	
 }
 
 bool AVGMissionGimmickChest::TryUseItemFromSlot(UVGEquipmentComponent* EquipComp, AVGEquippableActor* SlotItem, EVGEquipmentSlot Slot)
