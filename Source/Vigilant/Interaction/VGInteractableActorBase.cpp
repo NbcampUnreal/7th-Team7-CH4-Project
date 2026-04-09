@@ -25,3 +25,13 @@ void AVGInteractableActorBase::OnInteractWith(AVGCharacterBase* Interactor)
 {
 
 }
+
+void AVGInteractableActorBase::PointOnInteract_Implementation(AVGCharacterBase* Interactor, const FHitResult& HitResult)
+{
+	PointOnInteract(Interactor, HitResult);
+}
+
+void AVGInteractableActorBase::PointOnInteractWith(AVGCharacterBase* Interactor, const FHitResult& HitResult)
+{
+	
+}

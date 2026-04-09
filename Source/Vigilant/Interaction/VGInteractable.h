@@ -23,4 +23,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "VG|Interact")
 	void OnInteract(AVGCharacterBase* Interactor);
+	
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "VG|Interact")
+	void PointOnInteract(AVGCharacterBase* Interactor, const FHitResult& HitResult);
 };
