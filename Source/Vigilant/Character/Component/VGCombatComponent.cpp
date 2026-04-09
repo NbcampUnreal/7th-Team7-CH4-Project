@@ -420,6 +420,7 @@ void UVGCombatComponent::TickMeleeTrace()
 		);
 
 		// --- Debug ---
+		/**
 		FVector TraceVector = CurrentLoc - PreviousLoc;
 		float TraceLength = TraceVector.Size();
 		if (TraceLength > KINDA_SMALL_NUMBER)
@@ -436,6 +437,7 @@ void UVGCombatComponent::TickMeleeTrace()
 				2.0f
 			);
 		}
+		**/
 		// ---
 
 		if (bHit)
