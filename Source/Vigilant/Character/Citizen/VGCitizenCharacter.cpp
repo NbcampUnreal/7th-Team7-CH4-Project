@@ -10,6 +10,7 @@
 #include "Common/VGGameplayTags.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "Equipment/VGEquippableActor.h"
+#include "Equipment/VGWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 
@@ -35,6 +36,7 @@ void AVGCitizenCharacter::BeginPlay()
 	if (HasAuthority() && EquipmentComponent)
 	{
 		EquipmentComponent->OnItemEquipped.AddDynamic(this, &AVGCitizenCharacter::HandleItemEquipped);
+		EquipmentComponent->OnItemDropped.AddDynamic(this, &AVGCitizenCharacter::HandleItemDropped);
 	}
 }
 
@@ -253,7 +255,23 @@ void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, AVGEquippabl
 	{
 		if (CombatComponent)
 		{
-			CombatComponent->SetActiveCombatData(WeaponData);
+			UMeshComponent* TraceMesh = nullptr;
+			if (AVGWeapon* Weapon = Cast<AVGWeapon>(EquippedItem))
+			{
+				TraceMesh = Weapon->GetWeaponMesh();
+			}
+			CombatComponent->SetActiveCombatData(WeaponData, TraceMesh);
+		}
+	}
+}
+
+void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
+{
+	if (Slot == EVGEquipmentSlot::RightHand || Slot == EVGEquipmentSlot::BothHands)
+	{
+		if (CombatComponent)
+		{
+			CombatComponent->SetActiveCombatData(nullptr, nullptr);
 		}
 	}
 }

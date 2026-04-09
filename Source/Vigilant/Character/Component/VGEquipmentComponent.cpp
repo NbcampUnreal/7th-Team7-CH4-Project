@@ -225,9 +225,6 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 		return;
 	}
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
-	// TODO: OwnerCharacter GameplayTag 제거
-
 	HandleItemAttachment(TargetItem, NAME_None, false);
 
 	if (TargetItem->EquipmentData->EquipRule == EVGEquipRules::BothHands)

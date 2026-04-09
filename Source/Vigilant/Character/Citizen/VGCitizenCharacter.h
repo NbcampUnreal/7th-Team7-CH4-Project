@@ -85,4 +85,7 @@ protected:
 	
 	UFUNCTION()
 	void HandleItemEquipped(EVGEquipmentSlot Slot, AVGEquippableActor* EquippedItem);
+	
+	UFUNCTION()
+	void HandleItemDropped(EVGEquipmentSlot Slot);
 };

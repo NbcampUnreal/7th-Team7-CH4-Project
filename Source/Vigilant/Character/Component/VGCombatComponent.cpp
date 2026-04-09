@@ -1,11 +1,9 @@
 #include "Character/Component/VGCombatComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameplayTagAssetInterface.h"
-#include "VGEquipmentComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "Engine/Engine.h"
-#include "Equipment/VGWeapon.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
@@ -16,12 +14,14 @@ UVGCombatComponent::UVGCombatComponent()
 	SetIsReplicatedByDefault(true);
 }
 
-void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData)
+void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshComponent* NewTraceMesh)
 {
 	if (GetOwner()->HasAuthority())
 	{
 		ActiveCombatData = NewData;
 	}
+	
+	ActiveTraceMesh = NewTraceMesh;
 }
 
 void UVGCombatComponent::BeginPlay()
@@ -346,20 +346,13 @@ void UVGCombatComponent::StartMeleeTrace()
 		return;
 	}
 
-	// --- Test ---
-	UMeshComponent* TraceMesh = OwnerCharacter->GetMesh();
-
-	if (UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>())
+	UMeshComponent* TraceMesh = ActiveTraceMesh.IsValid() ?  ActiveTraceMesh.Get() : nullptr;
+	if (!TraceMesh)
 	{
-		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
-		{
-			if (UMeshComponent* WeaponMesh = EquippedWeapon->GetWeaponMesh())
-			{
-				TraceMesh = WeaponMesh;
-			}
-		}
-	}
+		TraceMesh = OwnerCharacter->GetMesh();
 
+	}
+	
 	if (!TraceMesh)
 	{
 		return;
@@ -387,22 +380,11 @@ void UVGCombatComponent::TickMeleeTrace()
 		return;
 	}
 
-	// --- Test ---
-	// 트레이스할 메시 결정: 기본값 주먹
-	UMeshComponent* TraceMesh = OwnerCharacter->GetMesh();
-
-	UVGEquipmentComponent* EquipComp = OwnerCharacter->FindComponentByClass<UVGEquipmentComponent>();
-	if (EquipComp && EquipComp->RightHandItem)
+	UMeshComponent* TraceMesh = ActiveTraceMesh.IsValid() ?  ActiveTraceMesh.Get() : nullptr;
+	if (!TraceMesh)
 	{
-		if (AVGWeapon* EquippedWeapon = Cast<AVGWeapon>(EquipComp->RightHandItem))
-		{
-			if (EquippedWeapon->GetWeaponMesh())
-			{
-				TraceMesh = EquippedWeapon->GetWeaponMesh();
-			}
-		}
+		TraceMesh = OwnerCharacter->GetMesh();
 	}
-	// ---
 
 	if (!TraceMesh)
 	{
