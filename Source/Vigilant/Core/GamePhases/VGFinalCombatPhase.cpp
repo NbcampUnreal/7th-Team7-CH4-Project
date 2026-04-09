@@ -1,6 +1,4 @@
 #include "VGFinalCombatPhase.h"
-#include "GameplayTagAssetInterface.h"
-#include "GameplayTagContainer.h"
 #include "Character/VGCharacterBase.h"
 #include "Common/VGGameplayTags.h"
 #include "Core/VGGameMode.h"
@@ -21,12 +19,27 @@ void UVGFinalCombatPhase::EnterPhase()
     UWorld* World = GetWorld();
     if (!World) return;
 
+	TArray<AActor*> AllStarts;
+	UGameplayStatics::GetAllActorsOfClass(World, APlayerStart::StaticClass(), AllStarts);
+	
     // 투기장 구역의 스폰 포인트 미리 찾기
     // 태그(Actor Tag)를 각각 BossSpawn, CitizenSpawn로 지정
     TArray<AActor*> BossStarts;
     TArray<AActor*> CitizenStarts;
-    UGameplayStatics::GetAllActorsOfClassWithTag(World, APlayerStart::StaticClass(), FName("BossSpawn"), BossStarts);
-    UGameplayStatics::GetAllActorsOfClassWithTag(World, APlayerStart::StaticClass(), FName("CitizenSpawn"), CitizenStarts);
+	for (AActor* Start : AllStarts)
+	{
+		if (APlayerStart* PlayerStart = Cast<APlayerStart>(Start))
+		{
+			if (PlayerStart->PlayerStartTag == FName("BossSpawn"))
+			{
+				BossStarts.Add(PlayerStart);
+			}
+			else if (PlayerStart->PlayerStartTag == FName("CitizenSpawn"))
+			{
+				CitizenStarts.Add(PlayerStart);
+			}
+		}
+	}
 
     // 보스 스폰 위치 (태그가 없으면 임시 좌표)
     FVector BossSpawnLoc = BossStarts.Num() > 0 ? BossStarts[0]->GetActorLocation() : FVector(0.0f, 0.0f, 100.0f);

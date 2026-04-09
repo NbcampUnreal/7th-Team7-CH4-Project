@@ -33,6 +33,52 @@ void AVGGameMode::ClearDuelParticipants()
 	DuelTarget = nullptr;
 }
 
+AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{
+	// 서버 열리고 누군가 처음 스폰을 시도할 때 캐시 맵 세팅
+	if (CachedJailSpawns.IsEmpty())
+	{
+		TArray<AActor*> FoundStarts;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundStarts);
+
+		for (AActor* StartActor : FoundStarts)
+		{
+			if (APlayerStart* PlayerStart = Cast<APlayerStart>(StartActor))
+			{
+				FString TagString = PlayerStart->PlayerStartTag.ToString();
+				if (TagString.StartsWith(TEXT("Jail")))
+				{
+					FString NumberString = TagString.Replace(TEXT("Jail"), TEXT(""));
+					if (NumberString.IsNumeric())
+					{
+						int32 SpawnIndex = FCString::Atoi(*NumberString);
+						CachedJailSpawns.Add(SpawnIndex, PlayerStart);
+					}
+				}
+			}
+		}
+	}
+	
+	// 현재 스폰을 기다리는 플레이어의 번호표 확인
+	if (AVGPlayerState* VGPlayerState = Player->GetPlayerState<AVGPlayerState>())
+	{
+		if (VGPlayerState->EntryIndex == 0)
+		{
+			ConnectedPlayerCount++;
+			VGPlayerState->EntryIndex = ConnectedPlayerCount;
+			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 플레이어 번호 발급 완료: %d번"), VGPlayerState->EntryIndex);
+		}
+		// 내 번호표에 맞는 PlayerStart를 찾아 엔진에게 넘겨줌
+		if (APlayerStart** FoundStart = CachedJailSpawns.Find(VGPlayerState->EntryIndex))
+		{
+			return *FoundStart;
+		}
+	}
+
+	// 만약 감옥을 못 찾거나 치명적인 에러 시 원래 엔진 로직 값
+	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
 void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	// 게임 중 유저가 들어왔을 때 예외처리
@@ -56,62 +102,7 @@ void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 	
 	Super::PostLogin(NewPlayer);
 	
-	if (AVGPlayerState* VGPlayerState = NewPlayer->GetPlayerState<AVGPlayerState>())
-	{
-		// 입장 순서 부여
-		ConnectedPlayerCount++;
-		VGPlayerState->EntryIndex = ConnectedPlayerCount;
-		
-		// 첫 플레이어가 입장할 때 한 번만 실행해서 스폰위치 저장
-		if (CachedJailSpawns.IsEmpty())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 캐시 맵 초기화: Jail 스폰 포인트 검색 시작"));
-			
-			TArray<AActor*> FoundStarts;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundStarts);
-
-			for (AActor* StartActor : FoundStarts)
-			{
-				if (APlayerStart* PlayerStart = Cast<APlayerStart>(StartActor))
-				{
-					FString TagString = PlayerStart->PlayerStartTag.ToString();
-					
-					// Jail 로 시작하는 태그가 있는 PlayerStart 만 골라냄
-					if (TagString.StartsWith(TEXT("Jail")))
-					{
-						// Jail 글자를 숫자만 남김
-						FString NumberString = TagString.Replace(TEXT("Jail"), TEXT(""));
-						
-						// 남은 글자가 숫자면 캐시용 맵에 등록
-						if (NumberString.IsNumeric())
-						{
-							int32 SpawnIndex = FCString::Atoi(*NumberString);
-							CachedJailSpawns.Add(SpawnIndex, PlayerStart);
-						}
-					}
-				}
-			}
-			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] %d개의 감옥 스폰 포인트 캐싱 완료"), CachedJailSpawns.Num());
-		}
-
-		// 캐시 맵을 사용해서 텔레포
-		if (APlayerStart** FoundStart = CachedJailSpawns.Find(VGPlayerState->EntryIndex))
-		{
-			if (APlayerStart* TargetStart = *FoundStart)
-			{
-				if (APawn* PlayerPawn = NewPlayer->GetPawn())
-				{
-					PlayerPawn->SetActorLocationAndRotation(TargetStart->GetActorLocation(), TargetStart->GetActorRotation());
-					UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] %s 플레이어, %d번 감옥으로 이동 완료"), *VGPlayerState->GetPlayerName(), VGPlayerState->EntryIndex);
-				}
-			}
-		}
-		else
-		{
-			// 캐시안된 곳 있는지 디버그용
-			UE_LOG(LogTemp, Error, TEXT("[VGGameMode] %d번 감옥의 스폰 포인트를 찾을 수 없습니다! 에디터의 Player Start Tag(Jail%d)를 확인하세요."), VGPlayerState->EntryIndex, VGPlayerState->EntryIndex);
-		}
-	}
+	UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 플레이어 접속 완료. 배정된 번호: %d"), NewPlayer->GetPlayerState<AVGPlayerState>()->EntryIndex);
 }
 
 void AVGGameMode::Logout(AController* Exiting)

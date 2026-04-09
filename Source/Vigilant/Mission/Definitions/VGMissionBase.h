@@ -42,6 +42,8 @@ public:
 	float GetMissionTimeLimit() const;
 	UFUNCTION(BlueprintPure)
 	TSubclassOf<AVGEquippableActor> GetRewardItemClass() const;
+	UFUNCTION(BlueprintPure)
+	float GetMissionClearReduceTime() const;
 	
 	// 완료 처리 — Base에서 담당
 	virtual void CompleteMission();

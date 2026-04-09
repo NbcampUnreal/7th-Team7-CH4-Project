@@ -40,6 +40,9 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	void OnStaminaUpdate(float NewValue, float MaxValue);
 	UFUNCTION()
 	void OnHealthUpdate(float NewValue, float MaxValue);
+	// (이용호 작업) 투표 전달용 함수
+	UFUNCTION()
+	void RequestSubmitVote(int32 TargetIndex);
 	
 #pragma region 위젯 생성과 표시, 숨김
 	void CreateHUDWidget();

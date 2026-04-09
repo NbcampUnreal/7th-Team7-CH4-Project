@@ -38,6 +38,11 @@ public:
 	
 	UFUNCTION()
 	void OnChatMessageReceived(const FString& Message);
+	
+	// 투표 전송용
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void Server_SubmitVote(int32 TargetIndex);
+	
 	/** 채팅 전송을 위한 RPC*/
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendChatMessage(const FString& ChatText);

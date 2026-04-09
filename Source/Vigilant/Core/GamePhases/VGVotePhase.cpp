@@ -67,6 +67,26 @@ void UVGVotePhase::ProcessVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarge
 	}
 	
 	PlayerVotes.Add(Voter, VotedTarget);
+	
+	int32 PlayerCount = 0;
+	if (GameModeRef && GameModeRef->GameState)
+	{
+		for (APlayerState* PlayerState : GameModeRef->GameState->PlayerArray)
+		{
+			AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState);
+			if (VGPlayerState) 
+			{
+				PlayerCount++;
+			}
+		}
+	}
+
+	// 모든 인원이 투표 완료했다면 즉시 결과 실행
+	if (PlayerVotes.Num() >= PlayerCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 모든 인원 투표 완료. 페이즈를 종료합니다."));
+		OnVoteTimeUp();
+	}
 }
 
 void UVGVotePhase::CalculateVoteResult()

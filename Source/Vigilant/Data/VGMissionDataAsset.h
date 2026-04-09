@@ -23,7 +23,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Reward")
 	TSubclassOf<AVGEquippableActor> RewardItemClass;
-
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|TimeAttack")
+	float ClearReduceTime = 30.f;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|TimeAttack")
 	float TimeLimit = 30.f;
 };
