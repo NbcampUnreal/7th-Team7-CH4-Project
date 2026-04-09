@@ -6,6 +6,10 @@
 #include "Blueprint/UserWidget.h"
 #include "VGVoteWidget.generated.h"
 
+class UVGVoteSlotWidget;
+class UWrapBox;
+class UButton;
+class UImage;
 class UScrollBox;
 class UEditableText;
 /**
@@ -28,7 +32,10 @@ class VIGILANT_API UVGVoteWidget : public UUserWidget
 	TObjectPtr<UEditableText> VoteChatText;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UScrollBox> ChatScrollBox;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UWrapBox> PortraitWrapBox;
 	
+
 	//채팅 로그 클래스
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UUserWidget> ChatMessageClass;
@@ -38,8 +45,12 @@ class VIGILANT_API UVGVoteWidget : public UUserWidget
 	UFUNCTION()
 	void OnTextCommitted(const FText& InText, ETextCommit::Type CommitMethod);
 	//투표부분
+	UPROPERTY(EditAnywhere, Category = "WidgetSlotClass")
+	TSubclassOf<UVGVoteSlotWidget> VoteSlotClass;
+	
+	
 	UFUNCTION()
-	void SetCharacterPortrait();
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Potrait")
-	TArray<TObjectPtr<UTextureRenderTarget2D>> PortraitRenderTarget;
+	void SetPortraitRenderTarget();
+	UFUNCTION()
+	void ProcessVoteClick(int32 SlotIndex);
 };

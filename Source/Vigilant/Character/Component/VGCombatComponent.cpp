@@ -4,9 +4,9 @@
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/Character.h"
 #include "DrawDebugHelpers.h"
-#include "VGEquipmentComponent.h"
+#include "VGEquipmentComponent.h" // 디커플링필요
 #include "Kismet/GameplayStatics.h"
-#include "Equipment/VGWeapon.h"
+#include "Equipment/VGWeapon.h" // 디커플링필요
 
 UVGCombatComponent::UVGCombatComponent()
 {
