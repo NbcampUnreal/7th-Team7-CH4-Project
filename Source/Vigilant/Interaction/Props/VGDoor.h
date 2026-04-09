@@ -17,7 +17,7 @@ public:
 	virtual  void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	
 	UPROPERTY(ReplicatedUsing = OnRep_IsOpen, BlueprintReadOnly, Category = "VG|Door")
 	bool bIsOpen = false;

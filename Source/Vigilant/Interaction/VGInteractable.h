@@ -4,8 +4,6 @@
 #include "UObject/Interface.h"
 #include "VGInteractable.generated.h"
 
-class AVGCharacterBase;
-
 UINTERFACE(MinimalAPI)
 class UVGInteractable : public UInterface
 {
@@ -19,11 +17,8 @@ class VIGILANT_API IVGInteractable
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "VG|Interact")
-	bool CanInteract(AVGCharacterBase* Interactor) const;
+	bool CanInteract(AActor* Interactor) const;
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "VG|Interact")
-	void OnInteract(AVGCharacterBase* Interactor);
-	
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "VG|Interact")
-	void PointOnInteract(AVGCharacterBase* Interactor, const FHitResult& HitResult);
+	void OnInteract(AActor* Interactor, const FTransform& InteractTransform);
 };

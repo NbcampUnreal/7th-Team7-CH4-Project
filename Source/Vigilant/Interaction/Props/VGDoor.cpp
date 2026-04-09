@@ -17,15 +17,13 @@ void AVGDoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	DOREPLIFETIME(AVGDoor, bIsOpen);
 }
 
-void AVGDoor::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGDoor::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
 	if (!HasAuthority())
 	{
 		return;
 	}
-	
-	bIsOpen = !bIsOpen;
-	
+    
 	OnRep_IsOpen();
 }
 
