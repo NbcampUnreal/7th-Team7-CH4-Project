@@ -23,11 +23,6 @@ void AVGMissionGimmickStatue::OnInteractWith(AActor* Interactor, const FTransfor
 {
 	if (!HasAuthority())
 	{
-		if (UVGEquipmentComponent* EquipComp =
-			Interactor->FindComponentByClass<UVGEquipmentComponent>())
-		{
-			EquipComp->Server_InteractWithActor(this, Interactor, InteractTransform);
-		}
 		return;
 	}
 	

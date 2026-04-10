@@ -26,6 +26,11 @@ bool AVGMissionGimmickLever::CanInteractWith(AActor* Interactor) const
 
 void AVGMissionGimmickLever::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
 	if (!CanInteractWith(Interactor))
 	{
 		return;

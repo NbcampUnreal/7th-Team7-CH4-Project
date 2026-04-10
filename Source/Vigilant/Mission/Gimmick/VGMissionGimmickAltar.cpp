@@ -64,11 +64,6 @@ void AVGMissionGimmickAltar::OnInteractWith(AActor* Interactor, const FTransform
 {
 	if (!HasAuthority())
 	{
-		if (UVGEquipmentComponent* EquipComp =
-			Interactor->FindComponentByClass<UVGEquipmentComponent>())
-		{
-			EquipComp->Server_InteractWithActor(this, Interactor, InteractTransform);
-		}
 		return;
 	}
 	
