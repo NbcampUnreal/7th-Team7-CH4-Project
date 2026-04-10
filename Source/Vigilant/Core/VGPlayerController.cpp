@@ -42,6 +42,14 @@ void AVGPlayerController::BeginPlay()
 		// 게임스테이트 없는 상태면 있을 때까지 바인드 시도
 		GetWorld()->GetTimerManager().SetTimer(BindTimerHandle, this, &AVGPlayerController::TryBindGameState, 0.1f, true);
 	}
+	
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* VGUIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			VGUIManager->OnVoteRequested.AddUniqueDynamic(this, &AVGPlayerController::Server_SubmitVote);
+		}
+	}
 }
 
 void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
