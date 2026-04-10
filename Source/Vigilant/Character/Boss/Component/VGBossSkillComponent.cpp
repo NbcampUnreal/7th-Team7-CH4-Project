@@ -14,7 +14,6 @@
 
 UVGBossSkillComponent::UVGBossSkillComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 }
 
@@ -28,90 +27,71 @@ void UVGBossSkillComponent::ExecuteRoarAoE()
 {
 	if (!BossDataAsset)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[VGBossSkillComponent] BossDataAsset이 할당되지 않았음"));
 		return;
 	}
-
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
     
-	// 클라이언트(시전자) 화면에서만 타격 판정을 진행
-	if (!OwnerCharacter || !OwnerCharacter->IsLocallyControlled())
+	if (!OwnerCharacter)
 	{
 		return;
 	}
-
 	FVector CenterLocation = OwnerCharacter->GetActorLocation();
-	FCollisionShape Sphere = FCollisionShape::MakeSphere(BossDataAsset->RoarRadius); 
-    
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(OwnerCharacter);
-
-	TArray<FOverlapResult> OverlapResults;
-    
-	bool bHit = GetWorld()->OverlapMultiByChannel(
-	   OverlapResults,
-	   CenterLocation,
-	   FQuat::Identity,
-	   ECC_Pawn,
-	   Sphere,
-	   QueryParams
-	);
-
-	// 디버그용 구체 그리기
-	DrawDebugSphere(GetWorld(), CenterLocation, BossDataAsset->RoarRadius, 32, bHit ? FColor::Green : FColor::Red, false, 2.0f);
-
-	if (bHit)
+	
+	if (BossDataAsset->RoarEffect)
 	{
-		TArray<AActor*> ActorsToHit;
-       
-		for (const FOverlapResult& Overlap : OverlapResults)
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			BossDataAsset->RoarEffect,
+			CenterLocation,
+			FRotator::ZeroRotator,
+			FVector(2.0f)
+		);
+	}
+	if (BossDataAsset->RoarSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			BossDataAsset->RoarSound,
+			CenterLocation
+		);
+	}
+	
+	if (OwnerCharacter->HasAuthority())
+	{
+		FCollisionShape Sphere = FCollisionShape::MakeSphere(BossDataAsset->RoarRadius); 
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(OwnerCharacter);
+
+		TArray<FOverlapResult> OverlapResults;
+		bool bHit = GetWorld()->OverlapMultiByChannel(
+			OverlapResults,
+			CenterLocation,
+			FQuat::Identity,
+			ECC_Pawn,
+			Sphere,
+			QueryParams
+		);
+
+		DrawDebugSphere(GetWorld(), CenterLocation, BossDataAsset->RoarRadius, 32, bHit ? FColor::Green : FColor::Red, false, 2.0f);
+
+		if (bHit)
 		{
-			AActor* HitActor = Overlap.GetActor();
-          
-			if (HitActor && !ActorsToHit.Contains(HitActor))
+			for (const FOverlapResult& Overlap : OverlapResults)
 			{
-				ActorsToHit.Add(HitActor);
+				AActor* HitActor = Overlap.GetActor();
+				if (HitActor)
+				{
+					UGameplayStatics::ApplyDamage(
+						HitActor,
+						BossDataAsset->RoarBaseDamage,
+						OwnerCharacter->GetInstigatorController(),
+						OwnerCharacter,
+						UDamageType::StaticClass()
+					);
+				}
 			}
 		}
-
-		if (ActorsToHit.Num() > 0)
-		{
-			Server_ProcessAoEHits(ActorsToHit);
-		}
 	}
-}
-
-void UVGBossSkillComponent::Server_ProcessAoEHits_Implementation(const TArray<AActor*>& HitActors)
-{
-	if (!BossDataAsset) return;
-	
-	AActor* Owner = GetOwner();
-	if (!Owner) return;
-
-	for (AActor* HitActor : HitActors)
-	{
-		if (!HitActor) continue;
-
-		// 서버단 거리 검증
-		float Distance = FVector::Distance(Owner->GetActorLocation(), HitActor->GetActorLocation());
-		float MaxAllowedDistance = BossDataAsset->RoarRadius + 150.0f;
-
-		if (Distance <= MaxAllowedDistance)
-		{
-			UGameplayStatics::ApplyDamage(
-			   HitActor,
-			   BossDataAsset->RoarBaseDamage,
-			   Owner->GetInstigatorController(),
-			   Owner,
-			   UDamageType::StaticClass()
-			);
-		}
-	}
-}
-
-bool UVGBossSkillComponent::Server_ProcessAoEHits_Validate(const TArray<AActor*>& HitActors)
-{
-	return true;
 }
 
 void UVGBossSkillComponent::ExecuteSkill_Q()
@@ -121,7 +101,10 @@ void UVGBossSkillComponent::ExecuteSkill_Q()
 
 void UVGBossSkillComponent::Server_ExecuteSkill_Q_Implementation()
 {
-	if (!BossDataAsset) return;
+	if (!BossDataAsset)
+	{
+		return;
+	}
 	// [서버] 태그 및 쿨타임 검사
 	if (ActiveStateTags.HasTag(VigilantBoss::Casting) || ActiveStateTags.HasTag(VigilantBoss::SkillCooldown_Q)) 
 	{
@@ -140,7 +123,10 @@ void UVGBossSkillComponent::Server_ExecuteSkill_Q_Implementation()
 
 void UVGBossSkillComponent::Multicast_ExecuteSkill_Q_Implementation()
 {
-	if (!BossDataAsset) return;
+	if (!BossDataAsset)
+	{
+		return;
+	}
 	// [모든 클라이언트 + 서버] 몽타주 재생 및 이동 제한
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter && BossDataAsset->SkillMontage_Q)
@@ -154,6 +140,74 @@ void UVGBossSkillComponent::Multicast_ExecuteSkill_Q_Implementation()
 			FOnMontageEnded MontageEndedDelegate;
 			MontageEndedDelegate.BindUObject(this, &UVGBossSkillComponent::OnSkillMontageEnded);
 			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, BossDataAsset->SkillMontage_Q);
+		}
+	}
+}
+
+void UVGBossSkillComponent::ExecuteLeapImpact()
+{
+	if (!BossDataAsset)
+	{
+		return;
+	}
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	
+	if (!OwnerCharacter)
+	{
+		return;
+	}
+	FVector ImpactLocation = OwnerCharacter->GetActorLocation();
+
+	if (BossDataAsset->LeapEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			BossDataAsset->LeapEffect, ImpactLocation,
+			FRotator::ZeroRotator,
+			FVector(2.0f)
+		);
+	}
+	if (BossDataAsset->LeapSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			BossDataAsset->LeapSound,
+			ImpactLocation
+		);
+	}
+	// 데미지 판정 로직
+	if (OwnerCharacter->HasAuthority())
+	{
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(OwnerCharacter);
+
+		TArray<FOverlapResult> OverlapResults;
+		bool bHit = GetWorld()->OverlapMultiByChannel(
+			OverlapResults, ImpactLocation,
+			FQuat::Identity,
+			ECC_Pawn,
+			FCollisionShape::MakeSphere(BossDataAsset->LeapRadius),
+			QueryParams
+		);
+
+		DrawDebugSphere(GetWorld(), ImpactLocation, BossDataAsset->LeapRadius, 32, FColor::Blue, false, 2.0f);
+
+		if (bHit)
+		{
+			for (const FOverlapResult& Result : OverlapResults)
+			{
+				AActor* HitActor = Result.GetActor();
+				if (HitActor)
+				{
+					UGameplayStatics::ApplyDamage(
+						HitActor, 
+						BossDataAsset->LeapDamage, 
+						OwnerCharacter->GetController(), 
+						OwnerCharacter, 
+						UDamageType::StaticClass()
+					);
+				}
+			}
 		}
 	}
 }
@@ -174,9 +228,8 @@ void UVGBossSkillComponent::Server_ExecuteSkill_E_Implementation()
 	// [서버] 쿨타임 및 시전 상태 돌입
 	ActiveStateTags.AddTag(VigilantBoss::Casting);
 	ActiveStateTags.AddTag(VigilantBoss::SkillCooldown_E);
-
+	
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_E, this, &UVGBossSkillComponent::ResetCooldown_E, BossDataAsset->CooldownTime_E, false);
-
 	UE_LOG(LogTemp, Warning, TEXT("[VGBossSkill - Server] E 스킬 시전 - 쿨타임 %f초"), BossDataAsset->CooldownTime_E);
 	// [서버 -> 모두에게] 모션 재생 지시
 	Multicast_ExecuteSkill_E();
@@ -188,8 +241,6 @@ void UVGBossSkillComponent::Multicast_ExecuteSkill_E_Implementation()
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter && BossDataAsset->SkillMontage_E)
 	{
-		OwnerCharacter->GetCharacterMovement()->SetMovementMode(MOVE_None);
-
 		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh() ? OwnerCharacter->GetMesh()->GetAnimInstance() : nullptr;
 		if (AnimInstance)
 		{
