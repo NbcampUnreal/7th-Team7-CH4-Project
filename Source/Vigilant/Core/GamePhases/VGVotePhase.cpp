@@ -55,11 +55,38 @@ void UVGVotePhase::OnVoteTimeUp()
 	ExecutePhaseResult();
 }
 
-void UVGVotePhase::ReceiveVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarget)
+void UVGVotePhase::ProcessVote(AVGPlayerState* Voter, AVGPlayerState* VotedTarget)
 {
 	if (!Voter || !VotedTarget) return;
 	
+	// 투표한 사람이 다시 투표하면 투표못하게 반환
+	if (PlayerVotes.Contains(Voter))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] %s 플레이어는 이미 투표했습니다."), *Voter->GetPlayerName());
+		return;
+	}
+	
 	PlayerVotes.Add(Voter, VotedTarget);
+	
+	int32 PlayerCount = 0;
+	if (GameModeRef && GameModeRef->GameState)
+	{
+		for (APlayerState* PlayerState : GameModeRef->GameState->PlayerArray)
+		{
+			AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState);
+			if (VGPlayerState) 
+			{
+				PlayerCount++;
+			}
+		}
+	}
+
+	// 모든 인원이 투표 완료했다면 즉시 결과 실행
+	if (PlayerVotes.Num() >= PlayerCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 모든 인원 투표 완료. 페이즈를 종료합니다."));
+		OnVoteTimeUp();
+	}
 }
 
 void UVGVotePhase::CalculateVoteResult()

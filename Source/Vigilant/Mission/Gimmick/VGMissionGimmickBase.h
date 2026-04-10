@@ -17,7 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FOnGimmickInteracted,
 	AVGMissionGimmickBase*, Gimmick,
-	AVGCharacterBase*, Interactor);
+	AActor*, Interactor);
 
 UCLASS()
 class VIGILANT_API AVGMissionGimmickBase : public AVGInteractableActorBase, public IVGMissionObjectInterface
@@ -32,11 +32,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
-	
-	UFUNCTION(Server, Reliable)
-	void Server_Interact(AVGCharacterBase* Interactor);
+	virtual bool CanInteractWith(AActor* Interactor) const override;
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	
 	// 미션 실패 시 리셋
 	UFUNCTION()

@@ -51,21 +51,28 @@ void AVGMissionBase::UnregisterContributor(AVGCharacterBase* Character)
 void AVGMissionBase::ClearContributers()
 {
 	Contributors.Empty();
+	LastContributor = nullptr;
 	UE_LOG(LogTemp, Log, TEXT("[%s] Mission Failed. Clear Contributors."), *GetName());
 }
 
-void AVGMissionBase::OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AVGCharacterBase* Interactor)
+void AVGMissionBase::OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AActor* Interactor)
 {
 	if (Interactor && Gimmick)
 	{
+		AVGCharacterBase* Character = Cast<AVGCharacterBase>(Interactor);
+		if (!Character)
+		{
+			return;
+		}
+        
 		if (Gimmick->GetStateTag() == VigilantMissionTags::GimmickActive
 			|| Gimmick->GetStateTag() == VigilantMissionTags::GimmickCompleted)
 		{
-			RegisterContributor(Interactor);
+			RegisterContributor(Character);
 		}
 		else
 		{
-			UnregisterContributor(Interactor);
+			UnregisterContributor(Character);
 		}
 	}
 }
@@ -129,9 +136,6 @@ void AVGMissionBase::SetMissionState(FGameplayTag NewStateTag)
 
 	// 서버는 OnRep가 자동 호출되지 않으므로 직접 호출
 	OnRep_CurrentStateTag();
-	
-	// 모든 상태 전환을 외부에 전달
-    OnMissionStateChanged.Broadcast(GetMissionID(), NewStateTag);
 	
 	// 완료 상태를 외부에 전달
 	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
@@ -209,6 +213,7 @@ void AVGMissionBase::SpawnRewardItems()
 	// 자식 클래스에서 override하여 커스텀
 	if (!LastContributor.IsValid() || GetRewardItemClass() == nullptr)
 	{
+		UE_LOG(LogTemp, Error, TEXT("LastContributor or RewardItemClass is Missing."));
 		return;
 	}
 	
@@ -271,4 +276,9 @@ float AVGMissionBase::GetMissionTimeLimit() const
 TSubclassOf<AVGEquippableActor> AVGMissionBase::GetRewardItemClass() const
 {
 	return MissionData ? MissionData->RewardItemClass : nullptr; 
+}
+
+float AVGMissionBase::GetMissionClearReduceTime() const
+{
+	return MissionData ? MissionData->ClearReduceTime : 0.f; 
 }

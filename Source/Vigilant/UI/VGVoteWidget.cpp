@@ -96,9 +96,12 @@ void UVGVoteWidget::SetPortraitRenderTarget()
 
 void UVGVoteWidget::ProcessVoteClick(int32 SlotIndex)
 {
-	
-	
-	//버튼이 눌렸을때 전달받은 인덱스로 짤 로직
+	if (UVGUIManagerSubsystem* UIManager = GetOwningLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
+	{
+		// 서브 시스템에 전송
+		UIManager->RequestSubmitVote(SlotIndex);
+		
+	}
 }
 
 void UVGVoteWidget::AddChatMessage(const FString& MessageLog)

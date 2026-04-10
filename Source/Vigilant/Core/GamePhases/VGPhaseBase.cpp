@@ -8,6 +8,10 @@ void UVGPhaseBase::InitializePhase(AVGGameMode* InGameMode)
 	GameModeRef = InGameMode;
 }
 
+void UVGPhaseBase::ProcessVote(AVGPlayerState* Voter, AVGPlayerState* Target)
+{
+}
+
 void UVGPhaseBase::EnterPhase()
 {
 	FString PhaseName = GetClass()->GetName();
@@ -61,6 +65,6 @@ void UVGPhaseBase::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Vic
 {
 }
 
-void UVGPhaseBase::OnMissionCleared(int32 TimeReducedAmount)
+void UVGPhaseBase::OnMissionCleared(float TimeReducedAmount)
 {
 }

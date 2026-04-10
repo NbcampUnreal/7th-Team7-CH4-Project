@@ -65,8 +65,15 @@ void UVGMissionSubsystem::Client_RegisterMission(AVGMissionBase* Mission)
 	}
 }
 
-void UVGMissionSubsystem::Server_OnMissionCompleted(int32 MissionID)
+void UVGMissionSubsystem::Server_OnMissionCompleted_Implementation(int32 MissionID)
 {
+	AVGMissionBase* Mission = GetMissionByID(MissionID);
+	if (Mission)
+	{
+		float ReduceTime = Mission->GetMissionClearReduceTime();
+		OnMissionClearTimeReward.Broadcast(ReduceTime);
+	}
+	
 	// 전체 완료 체크
 	int32 CompletedCount = GetMissionCountByState(VigilantMissionTags::MissionCompleted);
 	if (CompletedCount == RegisteredMissions.Num())

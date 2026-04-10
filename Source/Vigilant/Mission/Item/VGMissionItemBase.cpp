@@ -30,7 +30,7 @@ void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
 	OnItemStateChanged.Broadcast(this, NewStateTag);
 }
 
-bool AVGMissionItemBase::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionItemBase::CanInteractWith(AActor* Interactor) const
 {
 	// 이미 누군가 들고 있으면 상호작용 불가
 	if (IsCarried()) return false;
@@ -41,7 +41,7 @@ bool AVGMissionItemBase::CanInteractWith(AVGCharacterBase* Interactor) const
 	return true;
 }
 
-void AVGMissionItemBase::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionItemBase::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
 	if (!HasAuthority())
 	{
@@ -75,20 +75,23 @@ void AVGMissionItemBase::GetLifetimeReplicatedProps(
 // 줍기 / 내려놓기 — 서버 전용
 // -----------------------------------------------
 
-void AVGMissionItemBase::OnPickedUp(AVGCharacterBase* NewCarrier)
+void AVGMissionItemBase::OnPickedUp(AActor* NewCarrier)
 {
 	if (!HasAuthority())
 	{
 		return;
 	}
-
-	Carrier = NewCarrier;
 	
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (AVGCharacterBase* CharacterCarrier = Cast<AVGCharacterBase>(NewCarrier))
+	{
+		Carrier = CharacterCarrier;
+		
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
-	SetStateTag(VigilantMissionTags::ItemCarried);
-	// Carrier가 변경되었으므로 OnRep 수동 호출
-	OnRep_Carrier();
+		SetStateTag(VigilantMissionTags::ItemCarried);
+		// Carrier가 변경되었으므로 OnRep 수동 호출
+		OnRep_Carrier();
+	}
 }
 
 void AVGMissionItemBase::OnDropped()

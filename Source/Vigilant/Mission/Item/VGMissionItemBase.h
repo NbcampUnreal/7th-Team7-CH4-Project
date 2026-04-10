@@ -42,10 +42,10 @@ public:
 	
 	// 상호작용 — 줍기 진입점
 	UFUNCTION(BlueprintCallable)
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const;
+	virtual bool CanInteractWith(AActor* Interactor) const;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void OnInteractWith(AVGCharacterBase* Interactor);
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform);
 	
 	// 내려놓기 — EquipComponent에서 호출
 	virtual void OnDropped();
@@ -54,7 +54,7 @@ protected:
 	virtual void BeginPlay() override;
 	
 	// 줍기 — 서버 전용
-	virtual void OnPickedUp(AVGCharacterBase* NewCarrier);
+	virtual void OnPickedUp(AActor* NewCarrier);
 
 	UFUNCTION()
 	virtual void OnRep_Carrier();

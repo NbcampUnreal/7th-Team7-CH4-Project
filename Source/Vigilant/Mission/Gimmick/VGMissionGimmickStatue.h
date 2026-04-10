@@ -14,8 +14,8 @@ class VIGILANT_API AVGMissionGimmickStatue : public AVGMissionGimmickBase
 public:
 	AVGMissionGimmickStatue();
 	
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void Server_Interact_Implementation(AVGCharacterBase* Interactor) override;
+	virtual bool CanInteractWith(AActor* Interactor) const override;
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	
 protected:
 	virtual void BeginPlay() override;

@@ -1,6 +1,7 @@
 ﻿#include "VGMissionGimmickLever.h"
 #include "Common/VGGameplayTags.h"
 #include "Character/VGCharacterBase.h"
+#include "Character/Component/VGEquipmentComponent.h"
 
 AVGMissionGimmickLever::AVGMissionGimmickLever()
 {
@@ -13,7 +14,7 @@ bool AVGMissionGimmickLever::IsActivated() const
 	return (GimmickStateTag == VigilantMissionTags::GimmickActive);
 }
 
-bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickLever::CanInteractWith(AActor* Interactor) const
 {
 	if (bIsOneWay && IsActivated())
 	{
@@ -23,19 +24,15 @@ bool AVGMissionGimmickLever::CanInteractWith(AVGCharacterBase* Interactor) const
 	return true;
 }
 
-void AVGMissionGimmickLever::Server_Interact_Implementation(AVGCharacterBase* Interactor)
+void AVGMissionGimmickLever::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
-	if (!HasAuthority())
-	{
-		return;
-	}
-	
 	if (!CanInteractWith(Interactor))
 	{
 		return;
 	}
 	
 	Toggle();
+	
 	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 

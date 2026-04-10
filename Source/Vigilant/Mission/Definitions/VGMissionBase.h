@@ -42,6 +42,8 @@ public:
 	float GetMissionTimeLimit() const;
 	UFUNCTION(BlueprintPure)
 	TSubclassOf<AVGEquippableActor> GetRewardItemClass() const;
+	UFUNCTION(BlueprintPure)
+	float GetMissionClearReduceTime() const;
 	
 	// 완료 처리 — Base에서 담당
 	virtual void CompleteMission();
@@ -58,7 +60,7 @@ public:
 	
 	// Gimmicck 상호작용 시 기여자 확인 및 등록/삭제 처리
 	UFUNCTION()
-	virtual void OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AVGCharacterBase* Interactor);
+	virtual void OnGimmickInteracted(AVGMissionGimmickBase* Gimmick, AActor* Interactor);
 	
 protected:
 	virtual void BeginPlay() override;

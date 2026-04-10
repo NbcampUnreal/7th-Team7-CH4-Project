@@ -1,6 +1,8 @@
 ﻿#include "VGMissionGimmickBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Common/VGGameplayTags.h"
+#include "Character/Component/VGEquipmentComponent.h"
+#include "Character/VGCharacterBase.h"
 
 AVGMissionGimmickBase::AVGMissionGimmickBase()
 {
@@ -9,6 +11,8 @@ AVGMissionGimmickBase::AVGMissionGimmickBase()
 	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
 	SetRootComponent(MeshComponent);
+	
+	GimmickStateTag = VigilantMissionTags::GimmickInactive;
 }
 
 void AVGMissionGimmickBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -18,34 +22,18 @@ void AVGMissionGimmickBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ThisClass, GimmickStateTag);
 }
 
-bool AVGMissionGimmickBase::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickBase::CanInteractWith(AActor* Interactor) const
 {
 	return false;
 }
 
-void AVGMissionGimmickBase::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickBase::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
-	if (!HasAuthority())
-	{
-		Server_Interact(Interactor);
-		return;
-	}
-	
 	if (!CanInteractWith(Interactor))
 	{
 		return;
 	}
 	
-	OnGimmickInteracted.Broadcast(this, Interactor);
-}
-
-void AVGMissionGimmickBase::Server_Interact_Implementation(AVGCharacterBase* Interactor)
-{
-	// 서버에서 재검증 후 실행
-	if (!CanInteractWith(Interactor))
-	{
-		return;
-	}
 	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 

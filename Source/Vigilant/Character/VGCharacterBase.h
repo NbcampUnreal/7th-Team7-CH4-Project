@@ -93,6 +93,11 @@ virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLife
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	TObjectPtr<UInputAction> CameraZoomAction;
+	
+public:
+	UFUNCTION(BlueprintCallable, Category = "Components|Combat")
+	FORCEINLINE UVGCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

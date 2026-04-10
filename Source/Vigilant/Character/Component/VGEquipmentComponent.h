@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "VGEquipmentComponent.generated.h"
 
+class AVGCharacterBase;
 class AVGEquippableActor;
 
 // 장착 슬롯 구분 (왼손, 오른손, 양손)
@@ -66,6 +67,10 @@ public:
 	// 현재 활성화된 슬롯을 기억할 변수 (기본값: 오른손)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
 	EVGEquipmentSlot ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
+	
+	// 서버 전용 상호작용 함수
+	UFUNCTION(Server, Reliable)
+	void Server_InteractWithActor(AActor* TargetActor, AActor* Interactor, const FTransform& InteractTransform);
 	
 	void Interact();
 	void DropItem();

@@ -22,6 +22,16 @@ float AVGGameState::GetRemainingPhaseTime() const
 	return FMath::Max(0.0f, TimeLeft);
 }
 
+void AVGGameState::SetCurrentPhaseTag(FGameplayTag NewTag)
+{
+	if (HasAuthority())
+	{
+		CurrentPhaseTag = NewTag;
+		OnRep_CurrentPhaseTag(); 
+	}
+}
+	
+
 void AVGGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

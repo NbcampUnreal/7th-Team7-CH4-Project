@@ -48,9 +48,9 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Skill|Roar")
 	void ExecuteRoarAoE();
 	
-	// 클라이언트에서 찾은 여러 타겟을 서버로 보내 데미지 처리
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ProcessAoEHits(const TArray<AActor*>& HitActors);
+	// 착지 시 애니메이션 블루프린트에서 호출할 함수
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Skill|Leap")
+	void ExecuteLeapImpact();
 
 public:
 	// 데이터 에셋 참조 (블루프린트에서 보스 데이터 에셋 할당)
@@ -69,6 +69,9 @@ private:
 	void ResetCooldown_Q();
 	void ResetCooldown_E();
 
+	bool bIsDashing = false;
+	
 	UFUNCTION()
 	void OnSkillMontageEnded(class UAnimMontage* Montage, bool bInterrupted);
+	
 };

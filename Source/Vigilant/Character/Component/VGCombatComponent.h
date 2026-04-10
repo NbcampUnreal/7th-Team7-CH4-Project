@@ -16,11 +16,7 @@ public:
 	UVGCombatComponent();
 	
 	UFUNCTION(BlueprintCallable, Category = "Combat")
-	void SetActiveCombatData(UVGWeaponDataAsset* NewData);
-	
-	// --- 임시: 전투 데이터 설정을 위한 서버 RPC ---
-	UFUNCTION(Server, Reliable)
-	void Server_SetActiveCombatData(UVGWeaponDataAsset* NewData);
+	void SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshComponent* NewTraceMesh);
 	
 	// --- Inputs ---
 	void TryLightAttack();
@@ -40,7 +36,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
 	void StopMeleeTrace();
 	
-	// --- 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
 	TObjectPtr<UInputAction> LightAttackAction;
 	
@@ -76,6 +71,8 @@ private:
 	
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_ActiveCombatData)
 	TObjectPtr<UVGWeaponDataAsset> ActiveCombatData;
+	
+	TWeakObjectPtr<UMeshComponent> ActiveTraceMesh;
 	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	

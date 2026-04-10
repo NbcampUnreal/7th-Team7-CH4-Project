@@ -37,6 +37,11 @@ void UVGUIManagerSubsystem::OnHealthUpdate(float NewValue, float MaxValue)
 	}
 }
 
+void UVGUIManagerSubsystem::RequestSubmitVote(int32 TargetIndex)
+{
+	OnVoteRequested.Broadcast(TargetIndex);
+}
+
 void UVGUIManagerSubsystem::CreateHUDWidget()
 {
 	if (CurrentHUDWidget)
@@ -150,7 +155,7 @@ void UVGUIManagerSubsystem::ShowVote()
 
 void UVGUIManagerSubsystem::HideVote()
 {
-	if (CurrentVoteWidget->IsInViewport())
+	if (IsValid(CurrentVoteWidget) && CurrentVoteWidget->IsInViewport())
 	{
 		CurrentVoteWidget->RemoveFromParent();
 		

@@ -2,6 +2,8 @@
 
 #include "Common/VGGameplayTags.h"
 #include "Net/UnrealNetwork.h"
+#include "Character/Component/VGEquipmentComponent.h"
+#include "Character/VGCharacterBase.h"
 
 AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 {
@@ -12,15 +14,20 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 	GimmickTypeTag = VigilantMissionTags::StatueGimmick;
 }
 
-bool AVGMissionGimmickStatue::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickStatue::CanInteractWith(AActor* Interactor) const
 {
 	return GimmickStateTag == VigilantMissionTags::GimmickInactive;
 }
 
-void AVGMissionGimmickStatue::Server_Interact_Implementation(AVGCharacterBase* Interactor)
+void AVGMissionGimmickStatue::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
 	if (!HasAuthority())
 	{
+		if (UVGEquipmentComponent* EquipComp =
+			Interactor->FindComponentByClass<UVGEquipmentComponent>())
+		{
+			EquipComp->Server_InteractWithActor(this, Interactor, InteractTransform);
+		}
 		return;
 	}
 	
@@ -28,6 +35,7 @@ void AVGMissionGimmickStatue::Server_Interact_Implementation(AVGCharacterBase* I
 	{
 		return;
 	}
+	
 	
 	// 회전 목표각도 업데이트
 	TargetAngle = FMath::Fmod(TargetAngle + RotateStep, 360.f);
@@ -37,11 +45,15 @@ void AVGMissionGimmickStatue::Server_Interact_Implementation(AVGCharacterBase* I
 	
 	// 회전 시작을 외부에 알림
 	SetStateTag(VigilantMissionTags::GimmickActive);
+	
+	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 
 void AVGMissionGimmickStatue::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	SetActorRotation(FRotator(0,InitialAngle,0));
 }
 
 void AVGMissionGimmickStatue::Tick(float DeltaTime)

@@ -5,10 +5,8 @@
 #include "Common/VGGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
-#include "VGCombatComponent.h"
 #include "Character/VGCharacterBase.h"
 #include "Data/VGEquipmentDataAsset.h"
-#include "Data/VGWeaponDataAsset.h"
 
 UVGEquipmentComponent::UVGEquipmentComponent()
 {
@@ -21,6 +19,24 @@ void UVGEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 	DOREPLIFETIME(UVGEquipmentComponent, LeftHandItem);
 	DOREPLIFETIME(UVGEquipmentComponent, RightHandItem);
+}
+
+void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* TargetActor, AActor* Interactor, const FTransform& InteractTransform)
+{
+	if (!TargetActor || !Interactor)
+	{
+		return;
+	}
+    
+	// EquipmentComponent는 GimmickBase를 모른다
+	// IVGInteractable 인터페이스만 안다
+	if (TargetActor->Implements<UVGInteractable>())
+	{
+		if (IVGInteractable::Execute_CanInteract(TargetActor, Interactor))
+		{
+			IVGInteractable::Execute_OnInteract(TargetActor, Interactor, InteractTransform);
+		}
+	}
 }
 
 void UVGEquipmentComponent::Interact()
@@ -61,10 +77,9 @@ void UVGEquipmentComponent::Interact()
 		AActor* HitActor = HitResult.GetActor();
 		if (HitActor && HitActor->Implements<UVGInteractable>())
 		{
-			if (IVGInteractable::Execute_CanInteract(HitActor, OwnerCharacter))
-			{
-				IVGInteractable::Execute_OnInteract(HitActor, OwnerCharacter);
-			}
+			FTransform HitTransform = FTransform(HitResult.ImpactNormal.Rotation(), HitResult.ImpactPoint);
+			
+			Server_InteractWithActor(HitActor, OwnerCharacter, HitTransform);
 		}
 	}
 }
@@ -96,10 +111,12 @@ void UVGEquipmentComponent::OnRep_LefthandItem(AVGEquippableActor* OldItem)
 	if (LeftHandItem)
 	{
 		HandleItemAttachment(LeftHandItem, LeftHandItem->EquipmentData->LeftHandSocketName, true);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, RightHandItem);
 	}
 	else if (OldItem)
 	{
 		HandleItemAttachment(OldItem, NAME_None, false);
+		OnItemDropped.Broadcast(EVGEquipmentSlot::LeftHand);
 	}
 }
 
@@ -108,10 +125,12 @@ void UVGEquipmentComponent::OnRep_RighthandItem(AVGEquippableActor* OldItem)
 	if (RightHandItem)
 	{
 		HandleItemAttachment(RightHandItem, RightHandItem->EquipmentData->RightHandSocketName, true);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, RightHandItem);
 	}
 	else if (OldItem)
 	{
 		HandleItemAttachment(OldItem, NAME_None, false);
+		OnItemDropped.Broadcast(EVGEquipmentSlot::RightHand);
 	}
 }
 
@@ -202,15 +221,6 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 	if (bEquipSuccess)
 	{
 		// TODO: 캐릭터에 ItemData->GrantedEquipmentTag 할당
-
-		if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(ItemData))
-		{
-			if (UVGCombatComponent* CombatComp = OwnerCharacter->FindComponentByClass<UVGCombatComponent>())
-			{
-				CombatComp->SetActiveCombatData(WeaponData);
-			}
-		}
-
 		EVGEquipmentSlot EquippedSlot = (ItemData->EquipRule == EVGEquipRules::LeftHandOnly)
 			                                ? EVGEquipmentSlot::LeftHand
 			                                : EVGEquipmentSlot::RightHand;
@@ -236,9 +246,6 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 		return;
 	}
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner());
-	// TODO: OwnerCharacter GameplayTag 제거
-
 	HandleItemAttachment(TargetItem, NAME_None, false);
 
 	if (TargetItem->EquipmentData->EquipRule == EVGEquipRules::BothHands)
@@ -256,16 +263,6 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 		{
 			RightHandItem = nullptr;
 		}
-	}
-
-	// 무기를 드롭한 경우 DefaultCombatData로 폴백
-	if (Cast<UVGWeaponDataAsset>(TargetItem->EquipmentData))
-	{
-		if (OwnerCharacter)
-			if (UVGCombatComponent* CombatComponent = OwnerCharacter->FindComponentByClass<UVGCombatComponent>())
-			{
-				CombatComponent->SetActiveCombatData(nullptr);
-			}
 	}
 
 	OnItemDropped.Broadcast(SlotToDrop);
