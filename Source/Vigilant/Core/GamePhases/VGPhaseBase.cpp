@@ -65,6 +65,6 @@ void UVGPhaseBase::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Vic
 {
 }
 
-void UVGPhaseBase::OnMissionCleared(int32 TimeReducedAmount)
+void UVGPhaseBase::OnMissionCleared(float TimeReducedAmount)
 {
 }

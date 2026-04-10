@@ -84,7 +84,7 @@ bool UVGMissionPhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* Intera
 	return true;
 }
 
-void UVGMissionPhase::OnMissionCleared(int32 TimeReducedAmount)
+void UVGMissionPhase::OnMissionCleared(float TimeReducedAmount)
 {
 	Super::OnMissionCleared(TimeReducedAmount);
 	
@@ -93,7 +93,6 @@ void UVGMissionPhase::OnMissionCleared(int32 TimeReducedAmount)
 		VGGameState->PhaseEndTime -= TimeReducedAmount;
 		
 		float ElapsedTime = PhaseDuration - VGGameState->GetRemainingPhaseTime();
-		
 		VGGameState->BossNerfRate = FMath::Clamp(ElapsedTime / PhaseDuration, 0.1f, 1.0f);
 		
 		float RemainingTime = VGGameState->GetRemainingPhaseTime();
@@ -103,7 +102,7 @@ void UVGMissionPhase::OnMissionCleared(int32 TimeReducedAmount)
 			if (GameModeRef)
 			{
 				GameModeRef->GetWorldTimerManager().ClearTimer(PhaseTimerHandle);
-				ExecutePhaseResult();
+				OnMissionTimeUp();
 			}
 			else if (GameModeRef)
 			{

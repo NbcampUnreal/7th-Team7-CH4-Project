@@ -12,13 +12,21 @@
 #include "Interface/VGChatReciveInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
+#include "Mission/VGMissionSubsystem.h"
 
 
 void AVGGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	
 	UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 게임 시작 페이즈 세팅"));
+	
+	if (UWorld* World = GetWorld())
+	{
+		if (UVGMissionSubsystem* VGMissionSubsystem = World->GetSubsystem<UVGMissionSubsystem>())
+		{
+			VGMissionSubsystem->OnMissionClearTimeReward.AddDynamic(this, &AVGGameMode::HandleMissionClear);
+		}
+	}
 	
 	if (InitialPhase)
 	{
@@ -160,7 +168,7 @@ void AVGGameMode::PushPhase(TSubclassOf<class UVGPhaseBase> NewPhase)
 		
 		if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
 		{
-			VGGameState->CurrentPhaseTag = CreatedPhase->PhaseTag; 
+			VGGameState->SetCurrentPhaseTag(CreatedPhase->PhaseTag); 
 			if (CreatedPhase->bHasTimeLimit)
 			{
 				VGGameState->PhaseEndTime = GetWorld()->GetTimeSeconds() + CreatedPhase->PhaseDuration;
@@ -192,7 +200,7 @@ void AVGGameMode::PopPhase()
 		
 		if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
 		{
-			VGGameState->CurrentPhaseTag = ResumedPhase->PhaseTag;
+			VGGameState->SetCurrentPhaseTag(ResumedPhase->PhaseTag);
 		}
 	}
 }
@@ -410,6 +418,18 @@ void AVGGameMode::SubmitVote(AVGPlayerState* Voter, int32 TargetIndex)
 			UE_LOG(LogTemp, Error, TEXT("[VGGameMode] 투표 대상인 %d번 유저를 찾을 수 없습니다."), TargetIndex);
 		}
 	}
+}
+
+void AVGGameMode::HandleMissionClear(float ReduceTime)
+{
+	if (PhaseStack.Num() > 0)
+	{
+		if (PhaseStack.Last()->PhaseTag == VigilantPhaseTags::PhaseMission)
+		{
+			PhaseStack.Last()->OnMissionCleared(ReduceTime);
+		}
+	}
+	
 }
 
 void AVGGameMode::ProcessChatMessage(const FString& SenderName, const FString& Message)
