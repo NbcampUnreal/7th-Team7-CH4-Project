@@ -6,7 +6,6 @@
 #include "Blueprint/UserWidget.h"
 #include "Data/VGUIDataAsset.h"
 #include "Core/DeveloperSettings/VGDevelopSettings.h"
-#include "Core/VGPlayerController.h"
 #include "UI/VGHUDWidget.h"
 #include "UI/VGPopupWidget.h"
 #include "UI/VGVoteWidget.h"
@@ -40,15 +39,7 @@ void UVGUIManagerSubsystem::OnHealthUpdate(float NewValue, float MaxValue)
 
 void UVGUIManagerSubsystem::RequestSubmitVote(int32 TargetIndex)
 {
-	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
-	{
-		APlayerController* BasePlayerController = LocalPlayer->GetPlayerController(GetWorld());
-		if (AVGPlayerController* VGPlayerController = Cast<AVGPlayerController>(BasePlayerController))
-		{
-			VGPlayerController->Server_SubmitVote(TargetIndex);
-			UE_LOG(LogTemp, Log, TEXT("[VGUIManagerSubsystem] %d번 슬롯 투표 성공"), TargetIndex);
-		}
-	}
+	OnVoteRequested.Broadcast(TargetIndex);
 }
 
 void UVGUIManagerSubsystem::CreateHUDWidget()
