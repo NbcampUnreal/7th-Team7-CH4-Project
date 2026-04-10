@@ -19,10 +19,6 @@ struct FVGAltarPlacementSlot
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGameplayTag RequiredItemTypeTag;
 
-	// 아이템이 부착될 소켓 이름 (없으면 액터 원점 기준 오프셋 사용)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	FName AttachSocketName = NAME_None;
-
 	// 소켓이 없을 때 사용할 상대 오프셋
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FVector AttachOffset = FVector::ZeroVector;

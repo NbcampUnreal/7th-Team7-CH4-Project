@@ -136,7 +136,14 @@ void AVGMissionItemBase::OnRep_Carrier()
 	// TODO: 캐리 상태 변경에 따른 시각적 피드백 처리
 	//       (예: 피킹 이펙트 재생, 아웃라인 제거 등)
 	
-	UE_LOG(LogTemp, Log, TEXT("[%s] Change carrier - %s"),*GetName(), *Carrier->GetName());
+	if (Carrier)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Change carrier - %s"),*GetName(), *Carrier->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Change carrier - null"),*GetName());
+	}
 }
 
 void AVGMissionItemBase::OnRep_ItemStateTag()
