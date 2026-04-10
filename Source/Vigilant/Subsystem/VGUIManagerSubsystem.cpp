@@ -164,7 +164,7 @@ void UVGUIManagerSubsystem::ShowVote()
 
 void UVGUIManagerSubsystem::HideVote()
 {
-	if (CurrentVoteWidget->IsInViewport())
+	if (IsValid(CurrentVoteWidget) && CurrentVoteWidget->IsInViewport())
 	{
 		CurrentVoteWidget->RemoveFromParent();
 		
