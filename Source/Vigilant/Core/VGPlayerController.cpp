@@ -1,9 +1,12 @@
 #include "Core/VGPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "Core/VGGameMode.h"
+#include "Core/VGGameState.h"
 #include "Core/VGPlayerState.h"
+#include "Common/VGGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
+#include "TimerManager.h"
 
 AVGPlayerController::AVGPlayerController()
 	:InputMappingContext(nullptr)
@@ -28,6 +31,16 @@ void AVGPlayerController::BeginPlay()
 				Subsystem->AddMappingContext(InputMappingContext, 0);
 			}
 		}
+	}
+	
+	if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
+	{
+		VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
+	}
+	else
+	{
+		// 게임스테이트 없는 상태면 있을 때까지 바인드 시도
+		GetWorld()->GetTimerManager().SetTimer(BindTimerHandle, this, &AVGPlayerController::TryBindGameState, 0.1f, true);
 	}
 }
 
@@ -96,6 +109,35 @@ void AVGPlayerController::Server_SubmitVote_Implementation(int32 TargetIndex)
 void AVGPlayerController::ReceiveChatMessage(const FString& Message)
 {
 	Client_ReceiveChatMessage(Message);
+}
+
+void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
+{
+	UVGUIManagerSubsystem* VGUIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>();
+	if (!VGUIManager) return;
+
+	// 투표 페이즈 태그가 있으면 UI 띄움
+	if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseVote))
+	{
+		VGUIManager->ShowVote();
+	}
+	// 투표 페이즈 아니면 닫음
+	else
+	{
+		VGUIManager->HideVote();
+	}
+}
+
+void AVGPlayerController::TryBindGameState()
+{
+	if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
+	{
+		// 델리게이트 연결
+		VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
+		
+		GetWorld()->GetTimerManager().ClearTimer(BindTimerHandle);
+		UE_LOG(LogTemp, Log, TEXT("[VGPlayerController] GameState 바인딩 성공"));
+	}
 }
 
 void AVGPlayerController::Client_ReceiveChatMessage_Implementation(const FString& Message)

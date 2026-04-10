@@ -51,4 +51,13 @@ public:
 	// 게임모드 -> 플레이어 컨트롤러를 위한 인터페이스 구현함수. Wrapping ClientRPC 
 	virtual void ReceiveChatMessage(const FString& Message) override;
 	
+protected:
+	// 페이즈 변경 시 UI 처리용 위한 함수
+	UFUNCTION()
+	void HandleUIByPhase(FGameplayTag NewPhaseTag);
+	
+	// GameState 대기용
+	FTimerHandle BindTimerHandle;
+	// GameState가 있는지 확인하고 바인딩을 시도할 함수
+	void TryBindGameState();
 };
