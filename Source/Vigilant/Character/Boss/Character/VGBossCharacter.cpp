@@ -12,9 +12,25 @@
 
 AVGBossCharacter::AVGBossCharacter()
 {
-	JumpMaxCount = 0;
 	// 스킬 컴포넌트 생성 및 부착
 	SkillComponent = CreateDefaultSubobject<UVGBossSkillComponent>(TEXT("SkillComponent"));
+}
+
+void AVGBossCharacter::AddBossMappingContext(AController* InController)
+{
+	APlayerController* PlayerController = Cast<APlayerController>(InController);
+	if (!PlayerController || !BossMappingContext) 
+	{
+		return;
+	}
+
+	if (ULocalPlayer* LP = PlayerController->GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			Subsystem->AddMappingContext(BossMappingContext, 1);
+		}
+	}
 }
 
 void AVGBossCharacter::BeginPlay()
@@ -37,7 +53,7 @@ void AVGBossCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	if (EnhancedInputComponent)
 	{
 		// Q 버튼을 누르면 Input_SkillQ 실행
@@ -58,16 +74,14 @@ void AVGBossCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	
-	APlayerController* PlayerController = Cast<APlayerController>(NewController);
-	if (PlayerController)
-	{
-		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-		if (Subsystem && BossMappingContext)
-		{
-			// 기존 조작법을 밀어내고 보스 조작법을 최우선(Priority 1)으로 덮어씌웁니다.
-			Subsystem->AddMappingContext(BossMappingContext, 1);
-		}
-	}
+	AddBossMappingContext(NewController);
+}
+
+void AVGBossCharacter::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+	
+	AddBossMappingContext(GetController());
 }
 
 void AVGBossCharacter::Input_SkillQ(const FInputActionValue& Value)
