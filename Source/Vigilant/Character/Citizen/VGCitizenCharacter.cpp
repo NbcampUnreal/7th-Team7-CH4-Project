@@ -33,26 +33,7 @@ void AVGCitizenCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
-void AVGCitizenCharacter::PawnClientRestart()
-{
-	Super::PawnClientRestart();
-	//컨트롤러->로컬플레이어->로컬플레이어서브시스템(UI매니저) -> HUDInstance 로 연결
-	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-	{
-		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
-		{
-			if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
-			{
-				StatComponent->OnStaminaChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::OnStaminaUpdate);
-				StatComponent->OnHPChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::OnHealthUpdate);
-				
-				//초기값 설정 요청
-				UIManager->OnStaminaUpdate(StatComponent->GetCurrentStamina(), StatComponent->GetMaxStamina());
-				UIManager->OnHealthUpdate(StatComponent->GetCurrentHP(), StatComponent->GetMaxHP());
-			}
-		}
-	}
-}
+
 
 void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -71,7 +52,7 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 		}
 		if (SlotSelectAction)
 		{
-			EnhancedInput->BindAction(SlotSelectAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::SelectSlot);
+			EnhancedInput->BindAction(SlotSelectAction, ETriggerEvent::Triggered, this, &AVGCitizenCharacter::SelectSlot);
 		}
 		if (DodgeAction)
 		{
