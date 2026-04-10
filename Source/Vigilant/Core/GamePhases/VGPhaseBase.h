@@ -54,6 +54,6 @@ public:
 	
 	// 이벤트 수신용
 	virtual void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim);
-	virtual void OnMissionCleared(int32 TimeReducedAmount);
+	virtual void OnMissionCleared(float TimeReducedAmount);
 	
 };

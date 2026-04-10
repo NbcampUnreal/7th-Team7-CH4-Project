@@ -70,7 +70,8 @@ void UVGMissionSubsystem::Server_OnMissionCompleted_Implementation(int32 Mission
 	AVGMissionBase* Mission = GetMissionByID(MissionID);
 	if (Mission)
 	{
-		OnMissionClearTimeReward.Broadcast(Mission->GetMissionClearReduceTime());
+		float ReduceTime = Mission->GetMissionClearReduceTime();
+		OnMissionClearTimeReward.Broadcast(ReduceTime);
 	}
 	
 	// 전체 완료 체크
