@@ -168,7 +168,7 @@ void AVGGameMode::PushPhase(TSubclassOf<class UVGPhaseBase> NewPhase)
 		
 		if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
 		{
-			VGGameState->CurrentPhaseTag = CreatedPhase->PhaseTag; 
+			VGGameState->SetCurrentPhaseTag(CreatedPhase->PhaseTag); 
 			if (CreatedPhase->bHasTimeLimit)
 			{
 				VGGameState->PhaseEndTime = GetWorld()->GetTimeSeconds() + CreatedPhase->PhaseDuration;
@@ -200,7 +200,7 @@ void AVGGameMode::PopPhase()
 		
 		if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
 		{
-			VGGameState->CurrentPhaseTag = ResumedPhase->PhaseTag;
+			VGGameState->SetCurrentPhaseTag(ResumedPhase->PhaseTag);
 		}
 	}
 }
