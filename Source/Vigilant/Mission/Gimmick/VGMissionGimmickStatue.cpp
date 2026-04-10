@@ -30,16 +30,15 @@ void AVGMissionGimmickStatue::OnInteractWith(AActor* Interactor, const FTransfor
 	{
 		return;
 	}
-	
+		
+	// 회전 시작을 외부에 알림
+	SetStateTag(VigilantMissionTags::GimmickActive);
 	
 	// 회전 목표각도 업데이트
 	TargetAngle = FMath::Fmod(TargetAngle + RotateStep, 360.f);
 	
 	// 서버 직접 호출
 	OnRep_TargetAngle();
-	
-	// 회전 시작을 외부에 알림
-	SetStateTag(VigilantMissionTags::GimmickActive);
 	
 	OnGimmickInteracted.Broadcast(this, Interactor);
 }
