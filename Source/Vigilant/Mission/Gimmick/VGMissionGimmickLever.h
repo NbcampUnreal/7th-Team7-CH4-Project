@@ -16,8 +16,8 @@ public:
 	bool IsActivated() const;
 	
 	// 상호작용할 때마다 On/Off 토글
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	virtual bool CanInteractWith(AActor* Interactor) const override;
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 
 protected:
 	void Toggle();

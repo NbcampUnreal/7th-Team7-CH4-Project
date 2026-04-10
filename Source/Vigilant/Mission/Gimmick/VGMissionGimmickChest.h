@@ -16,8 +16,8 @@ class VIGILANT_API AVGMissionGimmickChest : public AVGMissionGimmickBase
 public:
 	AVGMissionGimmickChest();
 
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	virtual bool CanInteractWith(AActor* Interactor) const override;
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 
 private:
 	// 슬롯에서 필요한 아이템을 찾아 사용 처리

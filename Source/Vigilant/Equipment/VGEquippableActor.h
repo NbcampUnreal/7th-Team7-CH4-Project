@@ -15,7 +15,7 @@ public:
 	AVGEquippableActor();
 
 protected:
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 
 public:	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")

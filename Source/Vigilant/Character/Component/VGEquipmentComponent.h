@@ -70,7 +70,7 @@ public:
 	
 	// 서버 전용 상호작용 함수
 	UFUNCTION(Server, Reliable)
-	void Server_InteractWithActor(AActor* TargetActor, AVGCharacterBase* Interactor);
+	void Server_InteractWithActor(AActor* TargetActor, AActor* Interactor, const FTransform& InteractTransform);
 	
 	void Interact();
 	void DropItem();

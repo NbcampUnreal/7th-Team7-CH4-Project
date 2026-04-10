@@ -22,23 +22,13 @@ void AVGMissionGimmickBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(ThisClass, GimmickStateTag);
 }
 
-bool AVGMissionGimmickBase::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickBase::CanInteractWith(AActor* Interactor) const
 {
 	return false;
 }
 
-void AVGMissionGimmickBase::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickBase::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
-	if (!HasAuthority())
-	{
-		if (UVGEquipmentComponent* EquipComp =
-			Interactor->FindComponentByClass<UVGEquipmentComponent>())
-		{
-			EquipComp->Server_InteractWithActor(this, Interactor);
-		}
-		return;
-	}
-	
 	if (!CanInteractWith(Interactor))
 	{
 		return;

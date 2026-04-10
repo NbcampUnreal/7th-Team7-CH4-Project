@@ -43,8 +43,8 @@ public:
 	AVGMissionGimmickAltar();
 
 	bool HasMatchingItemInHands(UVGEquipmentComponent* EquipComp, FGameplayTag GameplayTag) const;
-	virtual bool CanInteractWith(AVGCharacterBase* Interactor) const override;
-	virtual void OnInteractWith(AVGCharacterBase* Interactor) override;
+	virtual bool CanInteractWith(AActor* Interactor) const override;
+	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	
 private:
 	// 슬롯에 아이템 배치 시도

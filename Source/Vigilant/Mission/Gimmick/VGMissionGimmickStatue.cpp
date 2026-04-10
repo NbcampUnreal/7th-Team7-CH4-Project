@@ -14,19 +14,19 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 	GimmickTypeTag = VigilantMissionTags::StatueGimmick;
 }
 
-bool AVGMissionGimmickStatue::CanInteractWith(AVGCharacterBase* Interactor) const
+bool AVGMissionGimmickStatue::CanInteractWith(AActor* Interactor) const
 {
 	return GimmickStateTag == VigilantMissionTags::GimmickInactive;
 }
 
-void AVGMissionGimmickStatue::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGMissionGimmickStatue::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
 	if (!HasAuthority())
 	{
 		if (UVGEquipmentComponent* EquipComp =
 			Interactor->FindComponentByClass<UVGEquipmentComponent>())
 		{
-			EquipComp->Server_InteractWithActor(this, Interactor);
+			EquipComp->Server_InteractWithActor(this, Interactor, InteractTransform);
 		}
 		return;
 	}

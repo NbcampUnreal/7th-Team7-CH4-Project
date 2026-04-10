@@ -9,9 +9,9 @@ AVGEquippableActor::AVGEquippableActor()
 	bReplicates = true;
 }
 
-void AVGEquippableActor::OnInteractWith(AVGCharacterBase* Interactor)
+void AVGEquippableActor::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
 {
-	Super::OnInteractWith(Interactor);
+	Super::OnInteractWith(Interactor, InteractTransform);
 	
 	if (Interactor)
 	{
