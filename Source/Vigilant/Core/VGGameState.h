@@ -59,6 +59,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Vigilant|Time")
 	float GetRemainingPhaseTime() const;
 	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tag")
+    void SetCurrentPhaseTag(FGameplayTag NewTag);
+	
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
