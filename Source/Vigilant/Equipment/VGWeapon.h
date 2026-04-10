@@ -14,8 +14,7 @@ class VIGILANT_API AVGWeapon : public AVGEquippableActor
 public:
 	AVGWeapon();
 	
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	UStaticMeshComponent* GetWeaponMesh() const {return WeaponMesh;}
+	virtual UMeshComponent* GetItemMesh() const {return WeaponMesh;}
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
