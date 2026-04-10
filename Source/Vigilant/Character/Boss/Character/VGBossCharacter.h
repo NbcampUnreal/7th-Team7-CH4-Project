@@ -34,12 +34,18 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vigilant|Input")
 	class UInputAction* SkillAction_E;
+	
+private:
+	void AddBossMappingContext(AController* InController);
+	
 protected:
 	virtual void BeginPlay() override;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	virtual void PossessedBy(AController* NewController) override;
+	
+	virtual void PawnClientRestart() override;
 	
 	void Input_SkillQ(const FInputActionValue& Value);
 	void Input_SkillE(const FInputActionValue& Value);
@@ -50,7 +56,7 @@ protected:
 	
 	// 보스의 현재 체력
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "BossStats")
-	float CurrentHealth;
+	float CurrentHealth = 0.f;
 	
 	// 최종 스탯을 전달받아 세팅하는 함수
 	UFUNCTION(BlueprintCallable, Category = "BossStats")
