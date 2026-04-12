@@ -26,6 +26,9 @@ public:
 	void OnRep_AttachmentRelativeLocation();
 	
 protected:
+	virtual void OnRep_Carrier() override;
+	
+protected:
 	UPROPERTY(ReplicatedUsing=OnRep_AttachmentTargetActor)
 	TObjectPtr<AActor> AttachmentTargetActor;
 	
