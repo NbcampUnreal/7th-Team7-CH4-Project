@@ -107,6 +107,7 @@ namespace VigilantEquipmentTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_Shield);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Mission);
 }
+
 class VIGILANT_API VGGameplayTags
 {
 public:
