@@ -15,6 +15,12 @@ AVGMissionGimmickAltar::AVGMissionGimmickAltar()
 
 bool AVGMissionGimmickAltar::HasMatchingItemInHands(UVGEquipmentComponent* EquipComp, FGameplayTag RequiredItemTypeTag) const
 {
+	// [Fix] public 함수이므로 EquipComp null 체크 추가
+	if (!EquipComp)
+	{
+		return false;
+	}
+	
 	if (EquipComp->LeftHandItem)
 	{
 		AVGMissionItemBase* LeftItem =
@@ -64,6 +70,12 @@ bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 		return false;
 	}
 
+	// [Fix] Interactor null 체크 추가 — nullptr 전달 시 크래시 방지
+	if (!Interactor)
+	{
+		return false;
+	}
+	
 	UVGEquipmentComponent* EquipComp =
 		Interactor->FindComponentByClass<UVGEquipmentComponent>();
 	if (!EquipComp)
@@ -157,11 +169,12 @@ bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp
 			continue;
 		}
 
-		CarryItem->PlaceOnTarget(this, Slot.AttachOffset);
+		// [Fix] 호출 순서 수정: Server_DropItem이 PlaceOnTarget의 Altar 부착을 되돌리는 버그
+		//       먼저 장비 슬롯에서 제거 → 그 다음 Altar에 배치해야 부착이 유지됨
 		EquipComp->Server_DropItem(HandSlot);
+		CarryItem->PlaceOnTarget(this, Slot.AttachOffset);
 
 		Slot.PlacedItem = CarryItem;
-		CarryItem->SetActorRelativeLocation(Slot.AttachOffset);
 		UE_LOG(LogTemp, Warning, TEXT("[%s] Attach %s at %s RelativeLocation"),
 			*GetName(), *CarryItem->GetName(), *Slot.AttachOffset.ToString());
 
@@ -170,7 +183,7 @@ bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp
 	return false;
 }
 
-bool AVGMissionGimmickAltar::AreAllSlotsFilled()
+bool AVGMissionGimmickAltar::AreAllSlotsFilled() const
 {
 	for (const FVGAltarPlacementSlot& Slot : PlacementSlots)
 	{
