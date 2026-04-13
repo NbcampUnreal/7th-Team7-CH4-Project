@@ -11,6 +11,14 @@ AVGGameState::AVGGameState()
 	BossNerfRate = 1.0f;
 }
 
+void AVGGameState::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (CurrentPhaseTag.IsValid())
+	{
+		TagContainer.AddTag(CurrentPhaseTag);
+	}
+}
+
 float AVGGameState::GetRemainingPhaseTime() const
 {
 	if (PhaseEndTime < 0.0f)
