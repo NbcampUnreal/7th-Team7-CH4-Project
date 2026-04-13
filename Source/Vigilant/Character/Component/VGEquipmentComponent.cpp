@@ -7,10 +7,31 @@
 #include "DrawDebugHelpers.h"
 #include "Character/VGCharacterBase.h"
 #include "Data/VGEquipmentDataAsset.h"
+#include "Components/MeshComponent.h"
+#include "Engine/OverlapResult.h"
 
 UVGEquipmentComponent::UVGEquipmentComponent()
 {
 	SetIsReplicatedByDefault(true);
+	PrimaryComponentTick.bCanEverTick = false;
+}
+
+void UVGEquipmentComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	// 로컬 플레이어인 경우에만 0.1초마다 주변 아이템 스캔
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn && OwnerPawn->IsLocallyControlled())
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle_UpdateInteractable, 
+			this, 
+			&UVGEquipmentComponent::UpdateInteractableTarget, 
+			InteractionCheckInterval, 
+			true
+		);
+	}
 }
 
 void UVGEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -21,11 +42,31 @@ void UVGEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(UVGEquipmentComponent, RightHandItem);
 }
 
+
 void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* TargetActor, AActor* Interactor, const FTransform& InteractTransform)
 {
 	if (!TargetActor || !Interactor)
 	{
 		return;
+	}
+	
+	// 상호작용한 대상이 VGCharacter인지 확인
+	if (AVGCharacterBase* TargetCharacter = Cast<AVGCharacterBase>(TargetActor))
+	{
+		UE_LOG(LogTemp,Warning,TEXT("VGChacter에 들어왔는지 확인") );
+		// 자기 자신과의 상호 작용 방지용
+		if (TargetCharacter != Interactor)
+		{
+			UE_LOG(LogTemp,Warning,TEXT("자기자신 아닌지 확인") );
+			// 캐릭터에 있는 상호작용 함수 호출
+			if (AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner()))
+			{
+				UE_LOG(LogTemp,Warning,TEXT("GetOwner 작동하는지 확인") );
+				OwnerCharacter->NotifyPlayerInteraction(TargetCharacter);
+			}
+			// 플레이어와의 상호작용만 하고 기믹 상호작용은 스킵
+			return; 
+		}
 	}
     
 	// EquipmentComponent는 GimmickBase를 모른다
@@ -53,34 +94,10 @@ void UVGEquipmentComponent::Interact()
 		return;
 	}
 
-	APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
-	if (!PlayerController || !PlayerController->PlayerCameraManager)
+	// 하이라이트(가장 가까운) 된 타겟에게 상호작용 서버 요청
+	if (CurrentInteractableTarget && CurrentInteractableTarget->Implements<UVGInteractable>())
 	{
-		return;
-	}
-
-	FVector StartLocation = PlayerController->PlayerCameraManager->GetCameraLocation();
-	FVector ForwardVector = PlayerController->PlayerCameraManager->GetActorForwardVector();
-	FVector EndLocation = StartLocation + (ForwardVector * 700.0f);
-
-	FHitResult HitResult;
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(OwnerPawn);
-
-	FCollisionShape SphereShape = FCollisionShape::MakeSphere(30.0f);
-
-	bool bHit = GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility,
-	                                             SphereShape, CollisionParams);
-
-	if (bHit)
-	{
-		AActor* HitActor = HitResult.GetActor();
-		if (HitActor && HitActor->Implements<UVGInteractable>())
-		{
-			FTransform HitTransform = FTransform(HitResult.ImpactNormal.Rotation(), HitResult.ImpactPoint);
-			
-			Server_InteractWithActor(HitActor, OwnerCharacter, HitTransform);
-		}
+		Server_InteractWithActor(CurrentInteractableTarget, OwnerCharacter, CurrentInteractableTarget->GetActorTransform());
 	}
 }
 
@@ -350,4 +367,128 @@ bool UVGEquipmentComponent::TryEquipToBothHands(AVGEquippableActor* ItemToEquip)
 	}
 
 	return false;
+}
+
+void UVGEquipmentComponent::UpdateInteractableTarget()
+{
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn) return;
+
+	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
+	if (!OwnerCharacter) return;
+
+	FVector SearchCenter = OwnerPawn->GetActorLocation();
+	float SearchRadius = 250.0f;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(OwnerPawn);
+
+	TArray<FOverlapResult> OverlapResults;
+	GetWorld()->OverlapMultiByChannel(
+	   OverlapResults, SearchCenter, FQuat::Identity, ECC_Visibility,
+	   FCollisionShape::MakeSphere(SearchRadius), QueryParams
+	);
+
+	AActor* ClosestTarget = nullptr;
+	float MinDistanceSquared = MAX_flt;
+
+	for (const FOverlapResult& Result : OverlapResults)
+	{
+		AActor* HitActor = Result.GetActor();
+    
+		// 1차: 상호작용 인터페이스가 있는지 확인
+		if (HitActor && HitActor->Implements<UVGInteractable>())
+		{
+			bool bIsValidTarget = false;
+
+			// 상대방이 플레이어(캐릭터)인 경우 
+			if (HitActor->IsA<AVGCharacterBase>()) 
+			{
+				// 막고라 아이템을 들고 있는지 검사 (태그나 클래스로 확인)
+				bool bHasMakgoraItem = false;
+            
+				// 양손 무기 중 막고라 전용 태그나 이름이 있는지 확인
+				if (RightHandItem && RightHandItem->ActorHasTag(FName("MakgoraItem"))) bHasMakgoraItem = true;
+				if (LeftHandItem && LeftHandItem->ActorHasTag(FName("MakgoraItem"))) bHasMakgoraItem = true;
+
+				// 막고라 아이템을 쥐고 있을 때만 타겟으로 인정
+				if (bHasMakgoraItem)
+				{
+					bIsValidTarget = true;
+				}
+			}
+			// 일반 상호작용 오브젝트인 경우
+			else if (HitActor->ActorHasTag(FName("InteractTarget")))
+			{
+				bIsValidTarget = true;
+			}
+
+			// 타겟으로 합격한 녀석들만 거리 계산 진행
+			if (bIsValidTarget)
+			{
+				if (IVGInteractable::Execute_CanInteract(HitActor, OwnerCharacter))
+				{
+					float DistSquared = FVector::DistSquared(SearchCenter, HitActor->GetActorLocation());
+					if (DistSquared < MinDistanceSquared)
+					{
+						MinDistanceSquared = DistSquared;
+						ClosestTarget = HitActor;
+					}
+				}
+			}
+		}
+	}
+
+	if (ClosestTarget != CurrentInteractableTarget)
+	{
+		if (CurrentInteractableTarget) SetHighlight(CurrentInteractableTarget, false);
+		if (ClosestTarget) SetHighlight(ClosestTarget, true);
+		CurrentInteractableTarget = ClosestTarget;
+	}
+}
+
+void UVGEquipmentComponent::SetHighlight(AActor* TargetActor, bool bHighlight)
+{
+	if (!TargetActor) return;
+
+	TArray<UMeshComponent*> MeshComps;
+	TargetActor->GetComponents<UMeshComponent>(MeshComps);
+
+	// 액터 안에 Highlight라는 컴포넌트 태그를 가진 메쉬가 있는지 검사
+	bool bHasHighlightTag = false;
+	for (UMeshComponent* Mesh : MeshComps)
+	{
+		if (Mesh->ComponentHasTag(FName("Highlight")))
+		{
+			bHasHighlightTag = true;
+			break;
+		}
+	}
+
+	// 상황에 맞게 커스텀 뎁스(외곽선) 적용
+	for (UMeshComponent* Mesh : MeshComps)
+	{
+		// 특정 부위만 빛나게 세팅된 액터라면 
+		if (bHasHighlightTag)
+		{
+			if (Mesh->ComponentHasTag(FName("Highlight")))
+			{
+				// 태그가 붙은 녀석만 외곽선 켜기/끄기 (문짝)
+				Mesh->SetRenderCustomDepth(bHighlight);
+				Mesh->SetCustomDepthStencilValue(1);
+			}
+			else
+			{
+				// 태그가 없는 녀석은 외곽선 끄기 (문틀)
+				Mesh->SetRenderCustomDepth(false); 
+			}
+		}
+		// 태그 세팅이 없는 일반 액터라면
+		else
+		{
+			// 기존처럼 액터 전체 메쉬 다 켜기/끄기
+			Mesh->SetRenderCustomDepth(bHighlight);
+			Mesh->SetCustomDepthStencilValue(1);
+		}
+	}
 }

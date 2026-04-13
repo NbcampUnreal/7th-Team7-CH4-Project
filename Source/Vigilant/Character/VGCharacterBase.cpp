@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/GameModeBase.h"
 #include "DrawDebugHelpers.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
@@ -10,6 +11,8 @@
 #include "Engine/DamageEvents.h"
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
+#include "UI/VGHUDWidget.h"
+#include "Core/Interface/VGGameModeInterface.h"
 
 
 #pragma region Interfaces GameplayTag
@@ -317,6 +320,20 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 	}
 
 	return ActualDamage;
+}
+
+void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer)
+{
+	// 서버에서만 실행
+	if (!HasAuthority()) return; 
+
+	AGameModeBase* CurrentGameMode = GetWorld()->GetAuthGameMode();
+    
+	// 게임모드 인터페이스를 통해 막고라 호출 함수 호출
+	if (CurrentGameMode && CurrentGameMode->Implements<UVGGameModeInterface>())
+	{
+		IVGGameModeInterface::Execute_RequestDuelPhase(CurrentGameMode, this, TargetPlayer);
+	}
 }
 
 void AVGCharacterBase::Tick(float DeltaSeconds)
