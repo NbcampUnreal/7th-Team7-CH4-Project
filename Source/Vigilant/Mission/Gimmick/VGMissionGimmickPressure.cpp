@@ -4,6 +4,7 @@
 #include "Components/BoxComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Mission/Definitions/VGMissionBase.h"
+#include "Components/TimelineComponent.h"
 
 AVGMissionGimmickPressure::AVGMissionGimmickPressure()
 {
@@ -16,6 +17,8 @@ AVGMissionGimmickPressure::AVGMissionGimmickPressure()
 	// 일단 폰(캐릭터)만 감지 - 추후 특정 클래스를 상속한 오브젝트도 감지가능하게 수정
 	TriggerBox->SetCollisionResponseToAllChannels(ECR_Ignore);
 	TriggerBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	
+	PressTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("PressTimeline"));
 }
 
 void AVGMissionGimmickPressure::BeginPlay()
@@ -29,6 +32,36 @@ void AVGMissionGimmickPressure::BeginPlay()
 		TriggerBox->OnComponentEndOverlap.AddDynamic(
 			this, &AVGMissionGimmickPressure::OnTriggerBoxEndOverlap);
 	}
+	
+	// 초기 위치 기록 (복원에 사용)
+	OriginalRelativeLocation = MeshComponent->GetRelativeLocation();
+	
+	// 커브 자동 생성 (에디터 미설정 시)
+	if (!PressCurve)
+	{
+		PressCurve = NewObject<UCurveFloat>(this);
+		PressCurve->FloatCurve.AddKey(0.f, 0.f);
+		PressCurve->FloatCurve.AddKey(0.35f, 1.f); // 빠르게 눌림
+	}
+ 
+	FOnTimelineFloat Callback;
+	Callback.BindUFunction(this, FName("OnPressTimelineUpdate"));
+	PressTimeline->AddInterpFloat(PressCurve, Callback);
+ 
+}
+
+void AVGMissionGimmickPressure::PlayPressAnimation()
+{
+	if (!PressTimeline) return;
+ 
+	if (GimmickStateTag == VigilantMissionTags::GimmickActive)
+	{
+		PressTimeline->PlayFromStart(); // 0→1 : 내려가기
+	}
+	else if (GimmickStateTag == VigilantMissionTags::GimmickInactive)
+	{
+		PressTimeline->ReverseFromEnd(); // 1→0 : 올라오기
+	}
 }
 
 void AVGMissionGimmickPressure::OnRep_GimmickStateTag()
@@ -37,6 +70,8 @@ void AVGMissionGimmickPressure::OnRep_GimmickStateTag()
 	
 	// Todo : 발판 눌림 /해제 시각 피드백
 	UE_LOG(LogTemp, Warning, TEXT("[Pressure:%s] CurrentState : %s"), *GetName(), *GimmickStateTag.ToString());
+	
+	PlayPressAnimation();
 }
 
 void AVGMissionGimmickPressure::OnPressed()
@@ -119,5 +154,13 @@ void AVGMissionGimmickPressure::OnTriggerBoxEndOverlap(UPrimitiveComponent* Over
 			OnReleased();
 		}
 	}
+}
+
+void AVGMissionGimmickPressure::OnPressTimelineUpdate(float Value)
+{
+	// Value 0 = 원래 위치, Value 1 = PressDepth 만큼 아래
+	FVector NewLocation = OriginalRelativeLocation;
+	NewLocation.Z -= PressDepth * Value;
+	MeshComponent->SetRelativeLocation(NewLocation);
 }
 
