@@ -35,7 +35,7 @@ public:
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+	virtual void BeginPlay() override;
 public:
 	// 양손 인벤토리 변수
 	// 왼손 (방패 또는 미션 아이템)
@@ -89,4 +89,17 @@ protected:
 	bool TryEquipToLeftHand(AVGEquippableActor* ItemToEquip);
 	bool TryEquipToEitherHand(AVGEquippableActor* ItemToEquip);
 	bool TryEquipToBothHands(AVGEquippableActor* ItemToEquip);
+	
+private:
+    
+	// 상호작용 대상 탐색 타이머
+	FTimerHandle TimerHandle_UpdateInteractable;
+	float InteractionCheckInterval = 0.1f; // 0.1초마다 내 주변 스캔
+
+	// 현재 하이라이트된(가장 가까운) 상호작용 타겟
+	UPROPERTY()
+	AActor* CurrentInteractableTarget = nullptr;
+
+	void UpdateInteractableTarget();
+	void SetHighlight(AActor* TargetActor, bool bHighlight);
 };

@@ -26,6 +26,7 @@ namespace VigilantCharacter
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dodge);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Invincible);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Falling);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Sprint);
 	
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedLeftHand);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(OccupiedRightHand);
@@ -107,6 +108,7 @@ namespace VigilantEquipmentTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Weapon_Shield);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Item_Mission);
 }
+
 class VIGILANT_API VGGameplayTags
 {
 public:

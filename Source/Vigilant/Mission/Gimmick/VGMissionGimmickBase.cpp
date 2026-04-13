@@ -11,6 +11,7 @@ AVGMissionGimmickBase::AVGMissionGimmickBase()
 	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
 	SetRootComponent(MeshComponent);
+	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	
 	GimmickStateTag = VigilantMissionTags::GimmickInactive;
 }

@@ -19,6 +19,9 @@ public:
 	virtual bool CanInteractWith(AActor* Interactor) const override;
 	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 
+protected:
+	virtual void OnRep_GimmickStateTag() override;
+	
 private:
 	// 슬롯에서 필요한 아이템을 찾아 사용 처리
 	// 성공하면 true 반환

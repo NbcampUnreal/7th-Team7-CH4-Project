@@ -3,7 +3,9 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Common/VGGameplayTags.h"
+#include "Equipment/VGEquippableActor.h"
 #include "VGMissionDataAsset.generated.h"
+
 
 class AVGEquippableActor;
 

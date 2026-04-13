@@ -32,7 +32,7 @@ public:
 	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
 
 protected:
-	virtual void PawnClientRestart() override;
+	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// 상호작용 입력 액션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
