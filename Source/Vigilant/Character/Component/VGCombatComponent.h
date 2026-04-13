@@ -6,8 +6,10 @@
 #include "VGCombatComponent.generated.h"
 
 class UVGAttackExecution;
+class UVGShieldDataAsset;
 class UVGWeaponDataAsset;
 class UInputAction;
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VIGILANT_API UVGCombatComponent : public UActorComponent
 {
@@ -19,9 +21,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshComponent* NewTraceMesh);
 	
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SetActiveShieldData(UVGShieldDataAsset* NewData);
+	
 	// --- Inputs ---
 	void TryLightAttack();
 	void TryHeavyAttack();
+	void TryStartBlock();
+	void TryStopBlock();
 	
 	// --- Combo Anim Notify Hooks ---
 	UFUNCTION(BlueprintCallable, Category = "Combat|Animation")
@@ -48,6 +55,7 @@ public:
 	void Server_ProcessHit(AActor* HitActor);
 	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
+	UVGShieldDataAsset* GetCurrentShieldData() const;
 	UMeshComponent* GetActiveTraceMesh() const;
 
 protected:
@@ -69,7 +77,23 @@ protected:
 	void OnRep_ActiveCombatData(UVGWeaponDataAsset* OldData);
 	
 	UFUNCTION()
+	void OnRep_ActiveShieldData(UVGShieldDataAsset* OldData);
+	
+	UFUNCTION()
 	void HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+	
+	// --- Block ---
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StartBlock();
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StopBlock();
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayBlockMontage(UAnimMontage* MontageToPlay);
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StopBlockMontage(UAnimMontage* MontageToStop);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Defaults")
@@ -77,6 +101,9 @@ private:
 	
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_ActiveCombatData)
 	TObjectPtr<UVGWeaponDataAsset> ActiveCombatData;
+	
+	UPROPERTY(Transient, ReplicatedUsing = OnRep_ActiveShieldData)
+	TObjectPtr<UVGShieldDataAsset> ActiveShieldData;
 	
 	TWeakObjectPtr<UMeshComponent> ActiveTraceMesh;
 	

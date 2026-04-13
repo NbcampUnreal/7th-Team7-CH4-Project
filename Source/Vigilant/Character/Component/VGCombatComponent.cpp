@@ -3,6 +3,7 @@
 #include "GameplayTagAssetInterface.h"
 #include "Combat/VGAttackExecution.h"
 #include "Common/VGGameplayTags.h"
+#include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
@@ -26,6 +27,14 @@ void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshC
 	InstantiateExecutionObject();
 }
 
+void UVGCombatComponent::SetActiveShieldData(UVGShieldDataAsset* NewData)
+{
+	if (GetOwner()->HasAuthority())
+	{
+		ActiveShieldData = NewData;
+	}
+}
+
 void UVGCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -46,12 +55,18 @@ void UVGCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UVGCombatComponent, ActiveCombatData);
+	DOREPLIFETIME(UVGCombatComponent, ActiveShieldData);
 	DOREPLIFETIME(UVGCombatComponent, CurrentCombatTags);
 }
 
 void UVGCombatComponent::OnRep_ActiveCombatData(UVGWeaponDataAsset* OldData)
 {
 	InstantiateExecutionObject();
+	// TODO: 클라이언트 측에서 실행될 비주얼 관련 로직 작성 (e.g. UI 업데이트)
+}
+
+void UVGCombatComponent::OnRep_ActiveShieldData(UVGShieldDataAsset* OldData)
+{
 	// TODO: 클라이언트 측에서 실행될 비주얼 관련 로직 작성 (e.g. UI 업데이트)
 }
 
@@ -94,6 +109,11 @@ void UVGCombatComponent::InstantiateExecutionObject()
 UVGWeaponDataAsset* UVGCombatComponent::GetCurrentCombatData() const
 {
 	return ActiveCombatData ? ActiveCombatData : DefaultCombatData;
+}
+
+UVGShieldDataAsset* UVGCombatComponent::GetCurrentShieldData() const
+{
+	return ActiveShieldData ? ActiveShieldData : nullptr;
 }
 
 UMeshComponent* UVGCombatComponent::GetActiveTraceMesh() const
@@ -381,7 +401,7 @@ bool UVGCombatComponent::Server_ProcessHit_Validate(AActor* HitActor)
 }
 
 // ---------------------------------------------------------
-// HIT DETECTION
+// Attack Execution
 // ---------------------------------------------------------
 
 
@@ -406,5 +426,124 @@ void UVGCombatComponent::StopAttackExecution()
 	if (CurrentExecution)
 	{
 		CurrentExecution->StopAttack();
+	}
+}
+
+// ---------------------------------------------------------
+// Blocking
+// ---------------------------------------------------------
+
+void UVGCombatComponent::TryStartBlock()
+{
+	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
+	{
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking) ||
+			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		{
+			return;
+		}
+	}
+	
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	UVGShieldDataAsset* Data = GetCurrentShieldData();
+	
+	if (OwnerCharacter && Data && Data->BlockMontage)
+	{
+		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
+		if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
+		{
+			Server_StartBlock();
+		}
+	}
+}
+
+void UVGCombatComponent::TryStopBlock()
+{
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	UVGShieldDataAsset* Data = GetCurrentShieldData();
+	
+	if (OwnerCharacter && Data && Data->BlockMontage)
+	{
+		OwnerCharacter->StopAnimMontage(Data->BlockMontage);
+		if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
+		{
+			Server_StopBlock();
+		}
+	}
+}
+
+void UVGCombatComponent::Server_StartBlock_Implementation()
+{
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	UVGShieldDataAsset* Data = GetCurrentShieldData();
+	
+	if (OwnerCharacter && Data && Data->BlockMontage)
+	{
+		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
+		Multicast_PlayBlockMontage(Data->BlockMontage);
+	}
+}
+
+bool UVGCombatComponent::Server_StartBlock_Validate()
+{
+	return true;
+}
+
+
+void UVGCombatComponent::Server_StopBlock_Implementation()
+{
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	UVGShieldDataAsset* Data = GetCurrentShieldData();
+	
+	if (OwnerCharacter && Data && Data->BlockMontage)
+	{
+		OwnerCharacter->StopAnimMontage(Data->BlockMontage);
+		Multicast_StopBlockMontage(Data->BlockMontage);
+	}
+}
+
+bool UVGCombatComponent::Server_StopBlock_Validate()
+{
+	return true;
+}
+
+
+void UVGCombatComponent::Multicast_PlayBlockMontage_Implementation(UAnimMontage* MontageToPlay)
+{
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn)
+	{
+		return;
+	}
+
+	if (OwnerPawn->IsLocallyControlled() || (OwnerPawn->HasAuthority() && IsNetMode(NM_DedicatedServer)))
+	{
+		return;
+	}
+
+	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
+	if (OwnerCharacter)
+	{
+		OwnerCharacter->PlayAnimMontage(MontageToPlay);
+	}
+}
+
+void UVGCombatComponent::Multicast_StopBlockMontage_Implementation(UAnimMontage* MontageToStop)
+{
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn)
+	{
+		return;
+	}
+
+	if (OwnerPawn->IsLocallyControlled() || (OwnerPawn->HasAuthority() && IsNetMode(NM_DedicatedServer)))
+	{
+		return;
+	}
+
+	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
+	if (OwnerCharacter)
+	{
+		OwnerCharacter->PlayAnimMontage(MontageToStop);
 	}
 }
