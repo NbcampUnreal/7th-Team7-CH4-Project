@@ -27,6 +27,25 @@ void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* Targ
 	{
 		return;
 	}
+	
+	// 상호작용한 대상이 VGCharacter인지 확인
+	if (AVGCharacterBase* TargetCharacter = Cast<AVGCharacterBase>(TargetActor))
+	{
+		UE_LOG(LogTemp,Warning,TEXT("VGChacter에 들어왔는지 확인") );
+		// 자기 자신과의 상호 작용 방지용
+		if (TargetCharacter != Interactor)
+		{
+			UE_LOG(LogTemp,Warning,TEXT("자기자신 아닌지 확인") );
+			// 캐릭터에 있는 상호작용 함수 호출
+			if (AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner()))
+			{
+				UE_LOG(LogTemp,Warning,TEXT("GetOwner 작동하는지 확인") );
+				OwnerCharacter->NotifyPlayerInteraction(TargetCharacter);
+			}
+			// 플레이어와의 상호작용만 하고 기믹 상호작용은 스킵
+			return; 
+		}
+	}
     
 	// EquipmentComponent는 GimmickBase를 모른다
 	// IVGInteractable 인터페이스만 안다
@@ -75,11 +94,17 @@ void UVGEquipmentComponent::Interact()
 	if (bHit)
 	{
 		AActor* HitActor = HitResult.GetActor();
-		if (HitActor && HitActor->Implements<UVGInteractable>())
+		if (HitActor)
 		{
-			FTransform HitTransform = FTransform(HitResult.ImpactNormal.Rotation(), HitResult.ImpactPoint);
+			bool bIsInteractable = HitActor->Implements<UVGInteractable>();
+			bool bIsCharacter = HitActor->IsA<AVGCharacterBase>();
 			
-			Server_InteractWithActor(HitActor, OwnerCharacter, HitTransform);
+			// 맞춘 대상이 상호작용 가능한 액터이거나 플레이어라면 상호작용하도록 넘긴다.
+			if (bIsInteractable || bIsCharacter)
+			{
+				FTransform HitTransform = FTransform(HitResult.ImpactNormal.Rotation(), HitResult.ImpactPoint);
+				Server_InteractWithActor(HitActor, OwnerCharacter, HitTransform);
+			}
 		}
 	}
 }
