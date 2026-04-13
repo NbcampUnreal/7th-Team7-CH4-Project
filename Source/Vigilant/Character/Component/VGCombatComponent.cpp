@@ -21,7 +21,7 @@ void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshC
 	{
 		ActiveCombatData = NewData;
 	}
-	
+
 	ActiveTraceMesh = NewTraceMesh;
 	InstantiateExecutionObject();
 }
@@ -29,6 +29,7 @@ void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshC
 void UVGCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	InstantiateExecutionObject();
 
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter && OwnerCharacter->GetMesh())
@@ -71,15 +72,18 @@ void UVGCombatComponent::HandleMontageEnded(UAnimMontage* Montage, bool bInterru
 	bCanChainCombo = false;
 	bHasBufferedAttack = false;
 	CurrentComboIndex = 0;
-	
-	CurrentExecution->StopAttack();
+
+	if (CurrentExecution)
+	{
+		CurrentExecution->StopAttack();
+	}
 }
 
 void UVGCombatComponent::InstantiateExecutionObject()
 {
 	CurrentExecution = nullptr;
 	UVGWeaponDataAsset* Data = GetCurrentCombatData(); // Active 또는 Default
-	
+
 	if (Data && Data->AttackExecutionTemplate)
 	{
 		CurrentExecution = DuplicateObject(Data->AttackExecutionTemplate, this);
@@ -114,13 +118,13 @@ void UVGCombatComponent::TryLightAttack()
 			return;
 		}
 	}
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
 		return;
 	}
-	
+
 	// 1. 콤보 윈도우 안에 있다면: 버퍼가 인풋이 됨
 	if (bCanChainCombo)
 	{
@@ -131,7 +135,7 @@ void UVGCombatComponent::TryLightAttack()
 		}
 		return;
 	}
-	
+
 	// 2. 이미 공격중이고, 콤보 윈도우 안에 없다면: 공격 입력 무시됨
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->LightAttackMontage))
@@ -162,7 +166,7 @@ void UVGCombatComponent::TryHeavyAttack()
 			return;
 		}
 	}
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
@@ -404,4 +408,3 @@ void UVGCombatComponent::StopAttackExecution()
 		CurrentExecution->StopAttack();
 	}
 }
-
