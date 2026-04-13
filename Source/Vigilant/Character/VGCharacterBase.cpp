@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/GameStateBase.h"
 #include "DrawDebugHelpers.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
@@ -306,7 +307,7 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 	{
 		return 0.0f;
 	}
-	
+
 	// 공격자->방어자 방향 계산
 	FVector PushDirection = FVector::ZeroVector;
 	if (DamageCauser)
@@ -315,21 +316,33 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		PushDirection.Z = 0.0f;
 		PushDirection.Normalize();
 	}
-	
-	// 2. TODO: 미션 페이즈 확인
-	
+
+	// 2. 미션 페이즈: 데미지 적용 X, 밀치기 O
+	if (AGameStateBase* GameState = GetWorld()->GetGameState())
+	{
+		if (IGameplayTagAssetInterface* GameStateTag = Cast<IGameplayTagAssetInterface>(GameState))
+		{
+			if (GameStateTag->HasMatchingGameplayTag(VigilantPhaseTags::PhaseMission) || GameStateTag->
+				HasMatchingGameplayTag(VigilantPhaseTags::PhaseLobby))
+			{
+				ApplyStagger(PushDirection, 600.0f);
+				return 0.0f;
+			}
+		}
+	}
+
 	// 3. TODO: 패리 확인
-	
+
 	// 4. TODO: 일반 가드 확인
-	
+
 	// 피해 적용
-	
+
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (StatComponent && ActualDamage > 0.f)
 	{
 		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
 	}
-	
+
 	return ActualDamage;
 }
 
@@ -348,7 +361,7 @@ void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 	{
 		return;
 	}
-	
+
 	LaunchCharacter(PushDirection * KnockbackForce, true, true);
 	Multicast_PlayStaggerVisual();
 }
@@ -360,12 +373,12 @@ void AVGCharacterBase::Multicast_PlayStaggerVisual_Implementation()
 	{
 		CombatComponent->StopAttackExecution();
 	}
-	
+
 	if (StaggerMontage)
 	{
 		PlayAnimMontage(StaggerMontage);
 	}
-	
+
 	// TODO: Stunned 태그 적용, 이동 및 공격 할 수 없도록
 }
 
