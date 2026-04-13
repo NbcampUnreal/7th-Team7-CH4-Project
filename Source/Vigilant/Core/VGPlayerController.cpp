@@ -8,6 +8,7 @@
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "TimerManager.h"
 
+
 AVGPlayerController::AVGPlayerController()
 	:InputMappingContext(nullptr)
 {
@@ -95,6 +96,15 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 			UIManager->OnChatMessageRequested.AddUniqueDynamic(this, &AVGPlayerController::OnChatMessageReceived);
 		}
 	}
+	
+}
+
+void AVGPlayerController::OnPossess(class APawn* P)
+{
+	//빙의하고 바인드 연결 스탯 컴뽀넌트랑 
+	//서버에서만 실행되는 함수
+	Super::OnPossess(P);
+
 }
 
 void AVGPlayerController::OnChatMessageReceived(const FString& Message)

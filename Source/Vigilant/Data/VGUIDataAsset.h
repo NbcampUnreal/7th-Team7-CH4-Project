@@ -6,6 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "VGUIDataAsset.generated.h"
 
+class UVGTitleWidget;
 class UVGPopupWidget;
 class UVGVoteWidget;
 class UVGHUDWidget;
@@ -25,4 +26,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	TSubclassOf<UVGVoteWidget> VoteWidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
+	TSubclassOf<UVGTitleWidget> TitleWidgetClass;
 };

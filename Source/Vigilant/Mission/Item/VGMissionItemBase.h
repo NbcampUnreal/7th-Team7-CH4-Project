@@ -65,11 +65,7 @@ protected:
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnItemStateChanged OnItemStateChanged;
-	
-	// DataAsset — 메시, 소켓 정보 등
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-	TObjectPtr<UVGMissionItemDataAsset> ItemDataAsset;
-	
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
     TObjectPtr<UStaticMeshComponent> MeshComponent;

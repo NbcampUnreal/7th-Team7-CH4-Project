@@ -15,6 +15,8 @@ AVGMissionItemBase::AVGMissionItemBase()
 	SetRootComponent(MeshComponent);
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	
+	ItemStateTag = VigilantMissionTags::ItemInactive;
 }
 
 void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
@@ -38,7 +40,7 @@ bool AVGMissionItemBase::CanInteractWith(AActor* Interactor) const
 	// 이미 사용됐거나 놓인 상태면 불가
 	if (ItemStateTag != VigilantMissionTags::ItemInactive) return false;
 
-	return true;
+	return Super::CanInteractWith(Interactor);
 }
 
 void AVGMissionItemBase::OnInteractWith(AActor* Interactor, const FTransform& InteractTransform)
@@ -52,13 +54,13 @@ void AVGMissionItemBase::OnInteractWith(AActor* Interactor, const FTransform& In
 		return;
 	}
 	
-	// Interactor의 EquipmentComponent를 찾아 장착 요청
+	OnPickedUp(Interactor);
+    
 	if (UVGEquipmentComponent* EquipComp =
 		Interactor->FindComponentByClass<UVGEquipmentComponent>())
 	{
-		// EquipmentComponent에서 슬롯 처리 및 Attach
 		EquipComp->Server_EquipItem(this);
-		OnPickedUp(Interactor);
+		UE_LOG(LogTemp, Log, TEXT("[%s] Equipped!"),*GetName());
 	}
 }
 
@@ -111,12 +113,17 @@ void AVGMissionItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (ItemDataAsset)
+	if (EquipmentData)
 	{
-		UStaticMesh* Mesh = ItemDataAsset->ItemMesh;
-		MeshComponent->SetStaticMesh(Mesh);
+		UVGMissionItemDataAsset* ItemDataAsset = Cast<UVGMissionItemDataAsset>(EquipmentData);
 		
-		ItemTypeTag = ItemDataAsset->ItemTypeTag;
+		if (ItemDataAsset)
+		{
+			UStaticMesh* Mesh = ItemDataAsset->ItemMesh;
+			MeshComponent->SetStaticMesh(Mesh);
+		
+			ItemTypeTag = ItemDataAsset->ItemTypeTag;
+		}
 	}
 }
 
@@ -128,6 +135,15 @@ void AVGMissionItemBase::OnRep_Carrier()
 {
 	// TODO: 캐리 상태 변경에 따른 시각적 피드백 처리
 	//       (예: 피킹 이펙트 재생, 아웃라인 제거 등)
+	
+	if (Carrier)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Change carrier - %s"),*GetName(), *Carrier->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Change carrier - null"),*GetName());
+	}
 }
 
 void AVGMissionItemBase::OnRep_ItemStateTag()

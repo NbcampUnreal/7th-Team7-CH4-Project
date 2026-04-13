@@ -28,7 +28,8 @@ protected:
 	/**
 	 * 
 	 */
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GameplayTags", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GameplayTags", meta = (AllowPrivateAccess = "true"), 
+		ReplicatedUsing=OnRep_CharacterTags, meta = (AllowPrivateAccess = "true"))
 	FGameplayTagContainer CharacterTags;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
@@ -63,6 +64,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed = 900.0f;
+	
 
 #pragma region Interfaces Func
 public:
@@ -74,7 +76,9 @@ public:
 	// Functions
 public:
 	AVGCharacterBase();
-	
+virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	TObjectPtr<UInputAction> JumpAction;
 
@@ -104,16 +108,42 @@ protected:
 	void StartJump(const FInputActionValue& Value);
 	void StopJump(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	void StartSprint(const FInputActionValue& Value);
-	void StopSprint(const FInputActionValue& Value);
+
 	void CameraZoom(const FInputActionValue& Value);
 	void LightAttack(const FInputActionValue& Value);
 	void HeavyAttack(const FInputActionValue& Value);
 	
+#pragma region 스프린트 관련
+	//입력 바인딩
+	void StartSprint(const FInputActionValue& Value);
+	void StopSprint(const FInputActionValue& Value);
+	//실제 구현
+	void PerformStartSprint();
+	void PerformStopSprint();
+	//서버 RPC
+	UFUNCTION(Server, Reliable)
+	void Server_StartSprint();
+	UFUNCTION(Server, Reliable)
+	void Server_StopSprint();
+	//스태미나 소모량
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sprint")
+	float SprintStaminaCostPerSecond = 10; //달리기 초당 스태미나 소모량
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement|Sprint")
+	float MinStaminaToSprint = 20; //달리기에 필요한 최소 스태미나
+	
+	UFUNCTION()
+	void HandleSprintStamina(float CurrentStamina, float Max);
+	bool bWantsToSprint = false;
+#pragma endregion
+	
+	UFUNCTION()
+	virtual void OnRep_CharacterTags(); // 캐릭터태그 변화시 부를 콜백(내용없음)
 	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, 
 		class AController* EventInstigator, AActor* DamageCauser) override;
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetSprinting(bool bIsSprinting);
+	
+	virtual void Tick(float DeltaSeconds) override;
 };
