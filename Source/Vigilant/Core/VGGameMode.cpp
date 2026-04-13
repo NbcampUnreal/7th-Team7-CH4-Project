@@ -449,6 +449,29 @@ void AVGGameMode::ProcessChatMessage(const FString& SenderName, const FString& M
 	}
 }
 
+void AVGGameMode::RequestDuelPhase_Implementation(AVGCharacterBase* Challenger, AVGCharacterBase* Target)
+{
+	// 해당되는 사람이 나갔거나 사라졌으면 요청 안받음
+	if (!Challenger || !Target) 
+	{
+		return;
+	}
+	
+	if (PhaseStack.Num() > 0)
+	{
+		if(PhaseStack.Last()->PhaseTag == VigilantPhaseTags::PhaseMission)
+		{
+			StartDuelPhase(Challenger, Target);
+			UE_LOG(LogTemp,Warning,TEXT("StartDuelPhase 함수 실행") );
+		}
+		// 디버그용
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 현재 미션 페이즈가 아니므로 막고라 요청이 무시되었습니다."));
+		}
+	}
+}
+
 void AVGGameMode::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim)
 {
 	if (PhaseStack.Num() > 0)

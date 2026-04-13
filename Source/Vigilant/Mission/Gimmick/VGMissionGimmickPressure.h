@@ -7,6 +7,7 @@
 #include "VGMissionGimmickPressure.generated.h"
 
 class UBoxComponent;
+class UTimelineComponent;
 
 UCLASS()
 class VIGILANT_API AVGMissionGimmickPressure : public AVGMissionGimmickBase
@@ -27,6 +28,8 @@ protected:
 	// 반판에서 벗어났을 때 - 서버 전용
 	void OnReleased();
 	
+	void PlayPressAnimation();
+	
 private:
 	UFUNCTION()
 	void OnTriggerBoxBeginOverlap(
@@ -43,6 +46,10 @@ private:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
+	
+	// 타임라인 콜백
+	UFUNCTION()
+	void OnPressTimelineUpdate(float Value);
 	
 protected:
 	// Overlap 감지용 콜리전
@@ -65,4 +72,17 @@ protected:
 	// 미션 종류에 따라 동작 방식 선택 가능하도록
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
 	bool bToggleMode = false; // true면 재밟기 시 비활성화 (마피아 방해용)
+	
+	// 눌렸을 때 내려가는 깊이 (cm)
+	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Pressure|Animation")
+	float PressDepth = 8.f;
+	// 보간 속도용 커브 (0→1)
+	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Pressure|Animation")
+	TObjectPtr<UCurveFloat> PressCurve;
+	
+private:
+	UPROPERTY()
+	TObjectPtr<UTimelineComponent> PressTimeline;
+ 
+	FVector OriginalRelativeLocation;
 };
