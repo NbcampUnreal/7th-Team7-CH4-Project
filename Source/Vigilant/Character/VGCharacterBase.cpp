@@ -197,27 +197,6 @@ void AVGCharacterBase::Look(const FInputActionValue& Value)
 	}
 }
 
-void AVGCharacterBase::FaceRotation(FRotator NewControlRotation, float DeltaTime)
-{
-	// 캐릭터가 공격 중이거나 구르기 중이면
-	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge))
-	{
-		// 캐릭터 고정 카메라만 돌아감
-		return; 
-	}
-	// 현재 몸의 방향
-	FRotator CurrentRotation = GetActorRotation();
-    
-	// 가야 할 목표 방향 
-	FRotator TargetRotation = CurrentRotation;
-	TargetRotation.Yaw = NewControlRotation.Yaw;
-
-	// 현재 방향에서 목표 방향으로 천천히 따라가도록 계산
-	// 숫자(회전 속도) 수치가 낮을수록 느리게 돌아감
-	FRotator SmoothRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, 3.0f);
-	Super::FaceRotation(SmoothRotation, DeltaTime);
-}
-
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
 	//게임플레이 태그 검사, 스태미나 검사

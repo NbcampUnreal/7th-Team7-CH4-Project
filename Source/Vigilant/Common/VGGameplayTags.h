@@ -34,7 +34,7 @@ namespace VigilantCharacter
 
 namespace VigilantBoss
 {
-	// 보스 스킬 상태
+	// 보스 스킬/상태
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Casting);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_Q);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_E);
