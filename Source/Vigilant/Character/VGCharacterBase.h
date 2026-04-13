@@ -116,4 +116,8 @@ protected:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetSprinting(bool bIsSprinting);
+	
+public:
+	// (이용호 추가) 플레이어간 상호작용 호출했을 때 받을 함수
+	void NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer);
 };
