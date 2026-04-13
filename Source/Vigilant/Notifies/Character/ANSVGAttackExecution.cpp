@@ -1,9 +1,9 @@
-#include "ANSVGMeleeTrace.h"
+#include "ANSVGAttackExecution.h"
 
 #include "Character/VGCharacterBase.h"
 #include "Character/Component/VGCombatComponent.h"
 
-void UANSVGMeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UANSVGAttackExecution::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyBegin(MeshComp, Animation, TotalDuration, EventReference);
@@ -14,13 +14,13 @@ void UANSVGMeleeTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequen
 		{
 			if (UVGCombatComponent* CombatComp = OwnerCharacter->GetCombatComponent())
 			{
-				CombatComp->StartMeleeTrace();
+				CombatComp->StartAttackExecution();
 			}
 		}
 	}
 }
 
-void UANSVGMeleeTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UANSVGAttackExecution::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyTick(MeshComp, Animation, TotalDuration, EventReference);
@@ -31,13 +31,13 @@ void UANSVGMeleeTrace::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenc
 		{
 			if (UVGCombatComponent* CombatComp = OwnerCharacter->GetCombatComponent())
 			{
-				CombatComp->TickMeleeTrace();
+				CombatComp->TickAttackExecution();
 			}
 		}
 	}
 }
 
-void UANSVGMeleeTrace::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UANSVGAttackExecution::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	const FAnimNotifyEventReference& EventReference)
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
@@ -48,7 +48,7 @@ void UANSVGMeleeTrace::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequence
 		{
 			if (UVGCombatComponent* CombatComp = OwnerCharacter->GetCombatComponent())
 			{
-				CombatComp->StopMeleeTrace();
+				CombatComp->StopAttackExecution();
 			}
 		}
 	}

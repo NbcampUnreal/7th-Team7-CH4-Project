@@ -1,6 +1,7 @@
 #include "Character/Component/VGCombatComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameplayTagAssetInterface.h"
+#include "Combat/VGAttackExecution.h"
 #include "Common/VGGameplayTags.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "Engine/Engine.h"
@@ -22,6 +23,7 @@ void UVGCombatComponent::SetActiveCombatData(UVGWeaponDataAsset* NewData, UMeshC
 	}
 	
 	ActiveTraceMesh = NewTraceMesh;
+	InstantiateExecutionObject();
 }
 
 void UVGCombatComponent::BeginPlay()
@@ -48,6 +50,7 @@ void UVGCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 void UVGCombatComponent::OnRep_ActiveCombatData(UVGWeaponDataAsset* OldData)
 {
+	InstantiateExecutionObject();
 	// TODO: 클라이언트 측에서 실행될 비주얼 관련 로직 작성 (e.g. UI 업데이트)
 }
 
@@ -68,14 +71,30 @@ void UVGCombatComponent::HandleMontageEnded(UAnimMontage* Montage, bool bInterru
 	bCanChainCombo = false;
 	bHasBufferedAttack = false;
 	CurrentComboIndex = 0;
+	
+	CurrentExecution->StopAttack();
+}
 
-	HitActorsThisSwing.Empty();
-	PreviousSocketLocations.Empty();
+void UVGCombatComponent::InstantiateExecutionObject()
+{
+	CurrentExecution = nullptr;
+	UVGWeaponDataAsset* Data = GetCurrentCombatData(); // Active 또는 Default
+	
+	if (Data && Data->AttackExecutionTemplate)
+	{
+		CurrentExecution = DuplicateObject(Data->AttackExecutionTemplate, this);
+		CurrentExecution->Initialize(this);
+	}
 }
 
 UVGWeaponDataAsset* UVGCombatComponent::GetCurrentCombatData() const
 {
 	return ActiveCombatData ? ActiveCombatData : DefaultCombatData;
+}
+
+UMeshComponent* UVGCombatComponent::GetActiveTraceMesh() const
+{
+	return ActiveTraceMesh.IsValid() ? ActiveTraceMesh.Get() : nullptr;
 }
 
 // ---------------------------------------------------------
@@ -324,150 +343,6 @@ void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage
 	}
 }
 
-// ---------------------------------------------------------
-// HIT DETECTION
-// ---------------------------------------------------------
-
-
-void UVGCombatComponent::StartMeleeTrace()
-{
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (!OwnerCharacter || !OwnerCharacter->IsLocallyControlled())
-	{
-		return;
-	}
-
-	HitActorsThisSwing.Empty();
-	PreviousSocketLocations.Empty();
-
-	UVGWeaponDataAsset* Data = GetCurrentCombatData();
-	if (!Data)
-	{
-		return;
-	}
-
-	UMeshComponent* TraceMesh = ActiveTraceMesh.IsValid() ?  ActiveTraceMesh.Get() : nullptr;
-	if (!TraceMesh)
-	{
-		TraceMesh = OwnerCharacter->GetMesh();
-
-	}
-	
-	if (!TraceMesh)
-	{
-		return;
-	}
-
-	// Data Asset에 정의된 모든 소켓의 시작 위치 기록
-	for (const FName& SocketName : Data->HitboxSocketNames)
-	{
-		FVector StartLoc = TraceMesh->GetSocketLocation(SocketName);
-		PreviousSocketLocations.Add(SocketName, StartLoc);
-	}
-}
-
-void UVGCombatComponent::TickMeleeTrace()
-{
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	if (!OwnerCharacter || !OwnerCharacter->IsLocallyControlled())
-	{
-		return;
-	}
-
-	UVGWeaponDataAsset* Data = GetCurrentCombatData();
-	if (!Data)
-	{
-		return;
-	}
-
-	UMeshComponent* TraceMesh = ActiveTraceMesh.IsValid() ?  ActiveTraceMesh.Get() : nullptr;
-	if (!TraceMesh)
-	{
-		TraceMesh = OwnerCharacter->GetMesh();
-	}
-
-	if (!TraceMesh)
-	{
-		return;
-	}
-
-	float AttackRadius = 20.0f;
-	FCollisionShape Sphere = FCollisionShape::MakeSphere(AttackRadius);
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(OwnerCharacter);
-	// QueryParams.bTraceComplex = true;
-
-	for (const FName& SocketName : Data->HitboxSocketNames)
-	{
-		if (!PreviousSocketLocations.Contains(SocketName))
-		{
-			continue;
-		}
-
-		FVector PreviousLoc = PreviousSocketLocations[SocketName];
-		FVector CurrentLoc = TraceMesh->GetSocketLocation(SocketName);
-
-		TArray<FHitResult> HitResults;
-
-		bool bHit = GetWorld()->SweepMultiByChannel(
-			HitResults,
-			PreviousLoc,
-			CurrentLoc,
-			FQuat::Identity,
-			ECC_Pawn,
-			Sphere,
-			QueryParams
-		);
-
-		// --- Debug ---
-		/**
-		FVector TraceVector = CurrentLoc - PreviousLoc;
-		float TraceLength = TraceVector.Size();
-		if (TraceLength > KINDA_SMALL_NUMBER)
-		{
-			FQuat CapsuleRot = FRotationMatrix::MakeFromZ(TraceVector).ToQuat();
-			DrawDebugCapsule(
-				GetWorld(),
-				PreviousLoc + (TraceVector * 0.5f),
-				(TraceLength * 0.5f) + AttackRadius,
-				AttackRadius,
-				CapsuleRot,
-				bHit ? FColor::Green : FColor::Red,
-				false,
-				2.0f
-			);
-		}
-		**/
-		// ---
-
-		if (bHit)
-		{
-			for (const FHitResult& HitResult : HitResults)
-			{
-				AActor* HitActor = HitResult.GetActor();
-				if (HitActor && !HitActorsThisSwing.Contains(HitActor))
-				{
-					HitActorsThisSwing.Add(HitActor);
-					Server_ProcessHit(HitActor);
-				}
-			}
-		}
-
-		PreviousSocketLocations[SocketName] = CurrentLoc;
-	}
-}
-
-void UVGCombatComponent::StopMeleeTrace()
-{
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
-	{
-		return;
-	}
-
-	HitActorsThisSwing.Empty();
-}
-
 
 void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 {
@@ -500,3 +375,33 @@ bool UVGCombatComponent::Server_ProcessHit_Validate(AActor* HitActor)
 {
 	return true;
 }
+
+// ---------------------------------------------------------
+// HIT DETECTION
+// ---------------------------------------------------------
+
+
+void UVGCombatComponent::StartAttackExecution()
+{
+	if (CurrentExecution)
+	{
+		CurrentExecution->StartAttack();
+	}
+}
+
+void UVGCombatComponent::TickAttackExecution()
+{
+	if (CurrentExecution)
+	{
+		CurrentExecution->TickAttack();
+	}
+}
+
+void UVGCombatComponent::StopAttackExecution()
+{
+	if (CurrentExecution)
+	{
+		CurrentExecution->StopAttack();
+	}
+}
+

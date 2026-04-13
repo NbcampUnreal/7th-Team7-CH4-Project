@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "VGCombatComponent.generated.h"
 
+class UVGAttackExecution;
 class UVGWeaponDataAsset;
 class UInputAction;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -28,19 +29,27 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Combat|Animation")
 	void OnComboWindowClosed();
 	
-	// --- Hit Detection Anim Notify Hooks ---
+	// --- Anim Notify Hooks ---
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
-	void StartMeleeTrace();
+	void StartAttackExecution();
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
-	void TickMeleeTrace();
+	void TickAttackExecution();
 	UFUNCTION(BlueprintCallable, Category = "Combat|HitDetection")
-	void StopMeleeTrace();
+	void StopAttackExecution();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
 	TObjectPtr<UInputAction> LightAttackAction;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
 	TObjectPtr<UInputAction> HeavyAttackAction;
+	
+public:
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ProcessHit(AActor* HitActor);
+	
+	UVGWeaponDataAsset* GetCurrentCombatData() const;
+	UMeshComponent* GetActiveTraceMesh() const;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -49,10 +58,7 @@ protected:
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_TryAttack(bool bIsHeavy, int32 ExpectedComboIndex);
-	
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ProcessHit(AActor* HitActor);
-	
+
 	UFUNCTION(Client, Reliable)
 	void Client_CancelAttackPrediction();
 	
@@ -74,8 +80,6 @@ private:
 	
 	TWeakObjectPtr<UMeshComponent> ActiveTraceMesh;
 	
-	UVGWeaponDataAsset* GetCurrentCombatData() const;
-	
 	// Combat State
 	UPROPERTY(Replicated)
 	FGameplayTagContainer CurrentCombatTags;
@@ -85,11 +89,9 @@ private:
 	bool bHasBufferedAttack = false;
 	bool bIsBufferedAttackHeavy = false;
 	
-	// Hit Detection State
 	UPROPERTY(Transient)
-	TArray<TObjectPtr<AActor>> HitActorsThisSwing;
+	TObjectPtr<UVGAttackExecution> CurrentExecution;
 	
-	UPROPERTY(Transient)
-	TMap<FName, FVector> PreviousSocketLocations;
-
+private:
+	void InstantiateExecutionObject();
 };

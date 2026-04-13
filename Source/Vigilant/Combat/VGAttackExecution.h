@@ -6,7 +6,7 @@
 
 class UVGCombatComponent;
 
-UCLASS()
+UCLASS(Abstract, Blueprintable, EditInlineNew)
 class VIGILANT_API UVGAttackExecution : public UObject
 {
 	GENERATED_BODY()
