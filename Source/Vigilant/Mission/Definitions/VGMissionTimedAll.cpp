@@ -44,9 +44,10 @@ void AVGMissionTimedAll::OnTimerExpired()
 		if (Gimmick)
 		{
 			Gimmick->ResetGimmickState();
-			ClearContributers();
 		}
 	}
+	
+	ClearContributers();
 }
 
 bool AVGMissionTimedAll::AreAllGimmickActive() const

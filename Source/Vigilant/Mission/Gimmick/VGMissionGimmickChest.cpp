@@ -27,20 +27,37 @@ bool AVGMissionGimmickChest::CanInteractWith(AActor* Interactor) const
 	// 왼손 또는 오른손에 필요한 아이템이 있는지 확인
 	AVGMissionItemBase* LeftItem =
 		Cast<AVGMissionItemBase>(EquipComp->LeftHandItem);
-	if (LeftItem && LeftItem->ItemDataAsset &&
-		LeftItem->ItemDataAsset->ItemTypeTag == RequiredItemTypeTag)
+	if (LeftItem && LeftItem->EquipmentData)
 	{
-		return true;
+		if (UVGMissionItemDataAsset* ItemData 
+			= Cast<UVGMissionItemDataAsset>(LeftItem->EquipmentData))
+		{
+			if (ItemData->ItemTypeTag == RequiredItemTypeTag)
+			{
+				UE_LOG(LogTemp, Log, TEXT("[%s] Found Item - %s"), *GetName(),
+					*LeftItem->GetName());
+				return true;
+			}
+		}
 	}
 
 	AVGMissionItemBase* RightItem =
 		Cast<AVGMissionItemBase>(EquipComp->RightHandItem);
-	if (RightItem && RightItem->ItemDataAsset &&
-		RightItem->ItemDataAsset->ItemTypeTag == RequiredItemTypeTag)
+	if (RightItem && RightItem->EquipmentData)
 	{
-		return true;
+		if (UVGMissionItemDataAsset* ItemData 
+			= Cast<UVGMissionItemDataAsset>(RightItem->EquipmentData))
+		{
+			if (ItemData->ItemTypeTag == RequiredItemTypeTag)
+			{
+				UE_LOG(LogTemp, Log, TEXT("[%s] Found Item - %s"), *GetName(),
+					*RightItem->GetName());
+				return true;
+			}
+		}
 	}
-
+	
+	UE_LOG(LogTemp, Error, TEXT("[%s] You don't have required Item!"), *GetName());
 	return false;
 }
 
@@ -48,11 +65,6 @@ void AVGMissionGimmickChest::OnInteractWith(AActor* Interactor, const FTransform
 {
 	if (!HasAuthority())
 	{
-		if (UVGEquipmentComponent* EquipComp =
-			Interactor->FindComponentByClass<UVGEquipmentComponent>())
-		{
-			EquipComp->Server_InteractWithActor(this, Interactor, InteractTransform);
-		}
 		return;
 	}
 	if (!CanInteractWith(Interactor)) return;
@@ -76,10 +88,21 @@ void AVGMissionGimmickChest::OnInteractWith(AActor* Interactor, const FTransform
 
 	if (bUsed)
 	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Chest Open!"), *GetName());
 		SetStateTag(VigilantMissionTags::GimmickCompleted);
 		OnGimmickInteracted.Broadcast(this, Interactor);
 	}
 	
+}
+
+void AVGMissionGimmickChest::OnRep_GimmickStateTag()
+{
+	Super::OnRep_GimmickStateTag();
+	
+	if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
+	{
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 bool AVGMissionGimmickChest::TryUseItemFromSlot(UVGEquipmentComponent* EquipComp, AVGEquippableActor* SlotItem, EVGEquipmentSlot Slot)
@@ -90,12 +113,13 @@ bool AVGMissionGimmickChest::TryUseItemFromSlot(UVGEquipmentComponent* EquipComp
 		return false;
 	}
 	
-	if (!MissionItem->ItemDataAsset)
+	if (!MissionItem->EquipmentData)
 	{
 		return false;
 	}
 	
-	if (MissionItem->ItemDataAsset->ItemTypeTag != RequiredItemTypeTag)
+	UVGMissionItemDataAsset* ItemData = Cast<UVGMissionItemDataAsset>(MissionItem->EquipmentData);
+	if (!ItemData ||ItemData->ItemTypeTag != RequiredItemTypeTag)
 	{
 		return false;
 	}
