@@ -134,11 +134,6 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 
 void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge))
-	{
-		return;
-	}
-
 	Super::Move(Value);
 }
 

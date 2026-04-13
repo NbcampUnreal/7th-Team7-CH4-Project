@@ -47,6 +47,9 @@ protected:
 	
 	virtual void PawnClientRestart() override;
 	
+	virtual void Move(const FInputActionValue& Value) override;
+	virtual void StartSprint(const FInputActionValue& Value) override;
+	
 	void Input_SkillQ(const FInputActionValue& Value);
 	void Input_SkillE(const FInputActionValue& Value);
 	
