@@ -22,6 +22,6 @@ class VIGILANT_API AVGTitlePlayerController : public APlayerController
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ASUIPlayerController", meta = (AllowPrivateAccess = true))
 	TSubclassOf<class UUserWidget> TitleWidgetClass;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ASUIPlayerController", meta = (AllowPrivateAccess = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ASUIPlayerController", meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UUserWidget> TitleWidgetInstance;
 };

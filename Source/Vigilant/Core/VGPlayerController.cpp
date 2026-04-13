@@ -23,6 +23,12 @@ void AVGPlayerController::BeginPlay()
 		return;
 	}
 	
+	FInputModeGameOnly InputGameOnly;
+	
+		SetInputMode(InputGameOnly);
+		bShowMouseCursor = false;
+	
+	
 	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
