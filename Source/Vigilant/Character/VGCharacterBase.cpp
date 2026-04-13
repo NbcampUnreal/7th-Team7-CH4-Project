@@ -337,10 +337,6 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 	}
 }
 
-void AVGCharacterBase::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-	FString DebugMsg = FString::Printf(TEXT("[%s] Speed: %.1f"), *GetName(), GetCharacterMovement()->MaxWalkSpeed);
 
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
