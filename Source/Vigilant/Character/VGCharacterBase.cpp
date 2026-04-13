@@ -336,6 +336,21 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 	}
 }
 
+bool AVGCharacterBase::CanInteract_Implementation(AActor* Interactor) const
+{
+	return true;
+}
+
+void AVGCharacterBase::OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform)
+{
+	if (!HasAuthority()) return;
+
+	if (AVGCharacterBase* VGChallenger = Cast<AVGCharacterBase>(Interactor))
+	{
+		VGChallenger->NotifyPlayerInteraction(this);
+	}
+}
+
 void AVGCharacterBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
