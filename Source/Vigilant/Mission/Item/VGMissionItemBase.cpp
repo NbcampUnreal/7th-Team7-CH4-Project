@@ -17,6 +17,8 @@ AVGMissionItemBase::AVGMissionItemBase()
 	MeshComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	
 	ItemStateTag = VigilantMissionTags::ItemInactive;
+	
+	Tags.Add(FName("InteractTarget"));
 }
 
 void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
