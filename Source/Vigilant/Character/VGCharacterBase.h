@@ -115,7 +115,7 @@ protected:
 	
 #pragma region 스프린트 관련
 	//입력 바인딩
-	void StartSprint(const FInputActionValue& Value);
+	virtual void StartSprint(const FInputActionValue& Value);
 	void StopSprint(const FInputActionValue& Value);
 	//실제 구현
 	void PerformStartSprint();
@@ -148,5 +148,5 @@ protected:
 public:
 	// (이용호 추가) 플레이어간 상호작용 호출했을 때 받을 함수
 	void NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer);
-	virtual void Tick(float DeltaSeconds) override;
+	
 };

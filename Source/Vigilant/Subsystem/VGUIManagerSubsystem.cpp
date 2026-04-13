@@ -42,6 +42,14 @@ void UVGUIManagerSubsystem::RequestSubmitVote(int32 TargetIndex)
 	OnVoteRequested.Broadcast(TargetIndex);
 }
 
+void UVGUIManagerSubsystem::EquipSlotChanged(int32 SlotIndex)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->ChangeSelectedEquipSlot(SlotIndex);
+	}
+}
+
 void UVGUIManagerSubsystem::CreateHUDWidget()
 {
 	if (CurrentHUDWidget)
