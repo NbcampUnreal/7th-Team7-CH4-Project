@@ -14,6 +14,8 @@ AVGMissionGimmickBase::AVGMissionGimmickBase()
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	
 	GimmickStateTag = VigilantMissionTags::GimmickInactive;
+	
+	Tags.Add(FName("InteractTarget"));
 }
 
 void AVGMissionGimmickBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
