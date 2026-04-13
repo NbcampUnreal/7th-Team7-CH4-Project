@@ -133,6 +133,18 @@ void AVGBossCharacter::StartSprint(const FInputActionValue& Value)
 	Super::StartSprint(Value);
 }
 
+void AVGBossCharacter::FaceRotation(FRotator NewControlRotation, float DeltaTime)
+{
+	// 캐릭터가 스킬 시전 중이라면
+	if (CharacterTags.HasTag(VigilantBoss::Casting))
+	{
+		// 캐릭터 고정 카메라만 돌아감
+		return;
+	}
+
+	Super::FaceRotation(NewControlRotation, DeltaTime);
+}
+
 void AVGBossCharacter::Input_SkillQ(const FInputActionValue& Value)
 {
 	if (SkillComponent)

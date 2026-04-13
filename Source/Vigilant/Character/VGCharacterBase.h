@@ -109,6 +109,7 @@ protected:
 	void StopJump(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
+	virtual void FaceRotation(FRotator NewControlRotation, float DeltaTime) override;
 	void CameraZoom(const FInputActionValue& Value);
 	void LightAttack(const FInputActionValue& Value);
 	void HeavyAttack(const FInputActionValue& Value);
