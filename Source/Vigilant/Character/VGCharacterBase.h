@@ -117,7 +117,7 @@ protected:
 	
 #pragma region 스프린트 관련
 	//입력 바인딩
-	void StartSprint(const FInputActionValue& Value);
+	virtual void StartSprint(const FInputActionValue& Value);
 	void StopSprint(const FInputActionValue& Value);
 	//실제 구현
 	void PerformStartSprint();

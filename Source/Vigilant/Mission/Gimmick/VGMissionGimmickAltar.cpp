@@ -157,11 +157,11 @@ bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp
 			continue;
 		}
 
-		CarryItem->PlaceOnTarget(this, Slot.AttachOffset);
 		EquipComp->Server_DropItem(HandSlot);
+		CarryItem->PlaceOnTarget(this, Slot.AttachOffset);
 
 		Slot.PlacedItem = CarryItem;
-		CarryItem->SetActorRelativeLocation(Slot.AttachOffset);
+		
 		UE_LOG(LogTemp, Warning, TEXT("[%s] Attach %s at %s RelativeLocation"),
 			*GetName(), *CarryItem->GetName(), *Slot.AttachOffset.ToString());
 

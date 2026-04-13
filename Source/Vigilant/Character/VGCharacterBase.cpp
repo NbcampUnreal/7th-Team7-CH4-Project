@@ -39,7 +39,7 @@ AVGCharacterBase::AVGCharacterBase()
 	  SprintAction(nullptr),
 	  CameraZoomAction(nullptr)
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Configure Character Movement
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
@@ -75,6 +75,7 @@ void AVGCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCharacterBase::HandleSprintStamina);
+	
 }
 
 //빙의 후 클라이언트만 실행하는 생명주기 함수
@@ -159,6 +160,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge))
+	{
+		return;
+	}
+	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -251,7 +257,7 @@ void AVGCharacterBase::Server_StopSprint_Implementation()
 	{
 		StatComponent->StopContinuousConsumeStamina();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("서버스탑실행"));
+	
 	PerformStopSprint();
 }
 
@@ -356,9 +362,6 @@ void AVGCharacterBase::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	FString DebugMsg = FString::Printf(TEXT("[%s] Speed: %.1f"), *GetName(), GetCharacterMovement()->MaxWalkSpeed);
 
-	// 두 번째 인자(Time)를 0.0f로 주면 매 프레임 깔끔하게 갱신됩니다.
-	GEngine->AddOnScreenDebugMessage((uint64)GetUniqueID(), 0.0f, FColor::Yellow, DebugMsg);
-}
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 {

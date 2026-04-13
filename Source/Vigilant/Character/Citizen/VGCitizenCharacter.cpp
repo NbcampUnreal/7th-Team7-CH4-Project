@@ -37,6 +37,20 @@ void AVGCitizenCharacter::BeginPlay()
 	{
 		EquipmentComponent->OnItemEquipped.AddDynamic(this, &AVGCitizenCharacter::HandleItemEquipped);
 		EquipmentComponent->OnItemDropped.AddDynamic(this, &AVGCitizenCharacter::HandleItemDropped);
+		
+		
+		//컨트롤러->로컬플레이어->로컬플레이어서브시스템(UI매니저) -> HUDInstance 로 연결 바인딩
+		if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+		{
+			if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
+			{
+				if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+				{
+					EquipmentComponent->OnEquipmentSlotChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::EquipSlotChanged);
+				}
+			}
+		}
+		
 	}
 }
 
@@ -64,7 +78,7 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 		}
 		if (SlotSelectAction)
 		{
-			EnhancedInput->BindAction(SlotSelectAction, ETriggerEvent::Triggered, this, &AVGCitizenCharacter::SelectSlot);
+			EnhancedInput->BindAction(SlotSelectAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::SelectSlot);
 		}
 		if (DodgeAction)
 		{
@@ -120,11 +134,6 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 
 void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge))
-	{
-		return;
-	}
-
 	Super::Move(Value);
 }
 
