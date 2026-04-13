@@ -38,7 +38,21 @@ public:
 	TObjectPtr<UImage> Equip_Left;
 	
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Equip_Right_Frame;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Equip_Left_Frame;
+	
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> BloodImage;
+	
+	UFUNCTION()
+	void ChangeSelectedEquipSlot(int32 SlotIndex);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
+	TObjectPtr<UTexture2D> GlowingFrame;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
+	TObjectPtr<UTexture2D> NormalFrame;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="HpEffect")
 	float ShowBloodRatio;

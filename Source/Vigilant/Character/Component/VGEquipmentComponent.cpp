@@ -90,17 +90,20 @@ void UVGEquipmentComponent::DropItem()
 
 void UVGEquipmentComponent::SelectSlot(float SlotNumber)
 {
+	//브로드캐스트 매개변수를 int32로 변환해서 범용성을 챙김
 	if (FMath::IsNearlyEqual(SlotNumber, 1.0f))
 	{
 		ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
+		int32 ActiveSlotIndex = static_cast<int32>(ActiveEquipmentSlot);
 		UE_LOG(LogTemp, Warning, TEXT("왼손 슬롯 활성화"));
-		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
+		OnEquipmentSlotChanged.Broadcast(ActiveSlotIndex);
 	}
 	else if (FMath::IsNearlyEqual(SlotNumber, 2.0f))
 	{
 		ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
+		int32 ActiveSlotIndex = static_cast<int32>(ActiveEquipmentSlot);
 		UE_LOG(LogTemp, Warning, TEXT("오른손 슬롯 활성화"));
-		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
+		OnEquipmentSlotChanged.Broadcast(ActiveSlotIndex);
 	}
 }
 

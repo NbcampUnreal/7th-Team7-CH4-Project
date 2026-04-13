@@ -145,5 +145,5 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetSprinting(bool bIsSprinting);
 	
-	virtual void Tick(float DeltaSeconds) override;
+
 };
