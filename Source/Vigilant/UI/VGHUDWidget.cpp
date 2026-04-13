@@ -35,3 +35,26 @@ void UVGHUDWidget::UpdateHealthUI(float NewValue, float MaxValue)
 		}
 	}
 }
+
+void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
+{
+	if (GlowingFrame &&NormalFrame)
+	{
+		if (SlotIndex == 1) // 왼손 선택 상태면
+		{
+			Equip_Left_Frame->SetBrushFromTexture(GlowingFrame);
+			Equip_Right_Frame->SetBrushFromTexture(NormalFrame);
+		}
+		else if (SlotIndex == 2) //오른손 선택 상태면
+		{
+			Equip_Right_Frame->SetBrushFromTexture(GlowingFrame);
+			Equip_Left_Frame->SetBrushFromTexture(NormalFrame);
+		}
+		else
+		{
+			// 미래에 마피아 3번째 슬롯이 생긴다면 여기에 작성	
+		}
+	}
+}
+	
+

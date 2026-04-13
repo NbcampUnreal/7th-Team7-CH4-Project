@@ -23,7 +23,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemEquippedSignature, EVGEquipm
 // 아이템 해제 시 어느 슬롯이 비었는지 방송
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemDroppedSignature, EVGEquipmentSlot, Slot);
 // 어떤 슬롯이 활성화 되었는지 방송, 활성화 될때마다 캐스트
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentSlotChangedSignature, EVGEquipmentSlot, NewActiveSlot);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentSlotChangedSignature, EVGEquipmentSlot, NewActiveSlot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentSlotChangedSignature, int32, ActiveSlotIndex);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VIGILANT_API UVGEquipmentComponent : public UActorComponent

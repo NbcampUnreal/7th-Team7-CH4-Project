@@ -47,6 +47,10 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	UFUNCTION()
 	void RequestSubmitVote(int32 TargetIndex);
 	
+	UFUNCTION()
+	void EquipSlotChanged(int32 SlotIndex);
+	
+	
 #pragma region 위젯 생성과 표시, 숨김
 	void CreateHUDWidget();
 	void CreateVoteWidget();
