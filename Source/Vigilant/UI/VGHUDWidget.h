@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "VGHUDWidget.generated.h"
 
+class UImage;
 class UProgressBar;
 /**
  * 
@@ -25,5 +26,20 @@ public:
 	
 	
 	UPROPERTY(meta = (BindWidget))
-	UProgressBar* StaminaBar;
+	TObjectPtr<UProgressBar> StaminaBar;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> MissionProgress;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Equip_Right;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> Equip_Left;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> BloodImage;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="HpEffect")
+	float ShowBloodRatio;
 };

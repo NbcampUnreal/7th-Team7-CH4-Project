@@ -35,7 +35,7 @@ public:
 	
 	virtual void BeginPlay() override;
 	virtual void AcknowledgePossession(class APawn* P) override; //LifeCycle함수 - 빙의 후 (클라이언트전용) 
-	
+	virtual void OnPossess(class APawn* P) override;
 	UFUNCTION()
 	void OnChatMessageReceived(const FString& Message);
 	

@@ -9,6 +9,7 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Attacking, "Character.Action.Attacking
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Dodge, "Character.Action.Dodge");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Invincible, "Character.State.Invincible");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Falling, "Character.State.Falling");
+UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Sprint, "Character.State.Sprint");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedLeftHand, "Character.State.Occupied.Left");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Occupied.Right");
 
