@@ -12,8 +12,7 @@ void AVGMissionItemCarry::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(ThisClass, AttachmentTargetActor);
-	DOREPLIFETIME(ThisClass, AttachmentRelativeLocation);
+	DOREPLIFETIME(ThisClass, PlaceInfo);
 }
 
 void AVGMissionItemCarry::PlaceOnTarget(AVGMissionGimmickBase* TargetGimmick, FVector TargetRelativeLocation)
@@ -34,64 +33,34 @@ void AVGMissionItemCarry::PlaceOnTarget(AVGMissionGimmickBase* TargetGimmick, FV
 	
 	Carrier = nullptr;
 	OnRep_Carrier();
+	
+	FVGCarryPlaceInfo Info;
+	Info.AttachmentTargetActor = TargetGimmick;
+	Info.RelativeLocation = TargetRelativeLocation;
+	PlaceInfo = Info;
+	OnRep_PlaceInfo();
+	
 	SetStateTag(VigilantMissionTags::ItemPlaced);
-	
-	AttachmentTargetActor = TargetGimmick;
-	AttachmentRelativeLocation = TargetRelativeLocation;
-	
-	OnRep_AttachmentTargetActor();
-	OnRep_AttachmentRelativeLocation();
-	
 	UE_LOG(LogTemp, Log, TEXT("[%s] item placed!"),*GetName());
 }
 
-void AVGMissionItemCarry::OnRep_AttachmentTargetActor()
+
+void AVGMissionItemCarry::OnRep_PlaceInfo()
 {
-	if (!AttachmentTargetActor)
+	if (UPrimitiveComponent* RootComp =
+		Cast<UPrimitiveComponent>(GetRootComponent()))
 	{
-		return;
+		RootComp->SetSimulatePhysics(false);
+		RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	
-	AttachToActor(AttachmentTargetActor,
+	AttachToActor(PlaceInfo.AttachmentTargetActor,
 		FAttachmentTransformRules::KeepWorldTransform);
-	
-	SetActorRelativeLocation(AttachmentRelativeLocation);
+    	
+	SetActorRelativeLocation(PlaceInfo.RelativeLocation);
 	SetActorRelativeRotation(FRotator::ZeroRotator);
-}
-
-void AVGMissionItemCarry::OnRep_AttachmentRelativeLocation()
-{
-	if (!AttachmentTargetActor || !GetAttachParentActor())
-	{
-		return;
-	}
-    
-	SetActorRelativeLocation(AttachmentRelativeLocation);
-	SetActorRelativeRotation(FRotator::ZeroRotator);
-}
-
-void AVGMissionItemCarry::OnRep_Carrier()
-{
-	if (ItemStateTag == VigilantMissionTags::ItemPlaced)
-	{
-		// Altar 부착 상태 복구
-		if (AttachmentTargetActor)
-		{
-			AttachToActor(AttachmentTargetActor,
-				FAttachmentTransformRules::KeepWorldTransform);
-			SetActorRelativeLocation(AttachmentRelativeLocation);
-			SetActorRelativeRotation(FRotator::ZeroRotator);
-		}
-
-		if (UPrimitiveComponent* RootComp =
-			Cast<UPrimitiveComponent>(GetRootComponent()))
-		{
-			RootComp->SetSimulatePhysics(false);
-			RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		}
-		return;
-	}
 	
-	Super::OnRep_Carrier();
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Attachment placed! At %s %s"),*GetName(),
+	 *PlaceInfo.AttachmentTargetActor.GetName(),
+	  *PlaceInfo.RelativeLocation.ToString());
 }
-
