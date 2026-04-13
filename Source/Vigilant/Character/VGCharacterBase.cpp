@@ -325,18 +325,32 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 			if (GameStateTag->HasMatchingGameplayTag(VigilantPhaseTags::PhaseMission) || GameStateTag->
 				HasMatchingGameplayTag(VigilantPhaseTags::PhaseLobby))
 			{
-				ApplyStagger(PushDirection, 600.0f);
+				ApplyStagger(PushDirection, 800.0f);
 				return 0.0f;
 			}
 		}
 	}
 
-	// 3. TODO: 패리 확인
+	// 3. 패리 확인
+	if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
+	{
+		if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+		{
+			FVector ReversePushDirection = -PushDirection;
+			Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+		}
+		// TODO: SFX, VFX 추가
+		return 0.0f;
+	}
 
-	// 4. TODO: 일반 가드 확인
+	// 4. 일반 가드 확인
+	if (CharacterTags.HasTag(VigilantCharacter::Guard))
+	{
+		// TODO: Shield의 데이터에셋에서 읽어오기
+		DamageAmount *= 0.5f;
+	}
 
 	// 피해 적용
-
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (StatComponent && ActualDamage > 0.f)
 	{
