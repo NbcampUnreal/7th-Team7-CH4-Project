@@ -301,21 +301,35 @@ void AVGCharacterBase::OnRep_CharacterTags()
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                    class AController* EventInstigator, AActor* DamageCauser)
 {
-	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-
+	// 1. 무적 상태 확인
 	if (CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
-		//구르기 무적
-		ActualDamage = 0;
-		return ActualDamage;
+		return 0.0f;
 	}
-
-	if (StatComponent)
+	
+	// 공격자->방어자 방향 계산
+	FVector PushDirection = FVector::ZeroVector;
+	if (DamageCauser)
+	{
+		PushDirection = GetActorLocation() - DamageCauser->GetActorLocation();
+		PushDirection.Z = 0.0f;
+		PushDirection.Normalize();
+	}
+	
+	// 2. TODO: 미션 페이즈 확인
+	
+	// 3. TODO: 패리 확인
+	
+	// 4. TODO: 일반 가드 확인
+	
+	// 피해 적용
+	
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	if (StatComponent && ActualDamage > 0.f)
 	{
 		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
 	}
-
+	
 	return ActualDamage;
 }
 
@@ -326,6 +340,33 @@ void AVGCharacterBase::Tick(float DeltaSeconds)
 
 	// 두 번째 인자(Time)를 0.0f로 주면 매 프레임 깔끔하게 갱신됩니다.
 	GEngine->AddOnScreenDebugMessage((uint64)GetUniqueID(), 0.0f, FColor::Yellow, DebugMsg);
+}
+
+void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	LaunchCharacter(PushDirection * KnockbackForce, true, true);
+	Multicast_PlayStaggerVisual();
+}
+
+void AVGCharacterBase::Multicast_PlayStaggerVisual_Implementation()
+{
+	StopAnimMontage();
+	if (CombatComponent)
+	{
+		CombatComponent->StopAttackExecution();
+	}
+	
+	if (StaggerMontage)
+	{
+		PlayAnimMontage(StaggerMontage);
+	}
+	
+	// TODO: Stunned 태그 적용, 이동 및 공격 할 수 없도록
 }
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)

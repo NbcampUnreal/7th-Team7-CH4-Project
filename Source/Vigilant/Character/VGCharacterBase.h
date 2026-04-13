@@ -146,4 +146,14 @@ protected:
 	void ServerRPCSetSprinting(bool bIsSprinting);
 	
 	virtual void Tick(float DeltaSeconds) override;
+	
+#pragma region Stagger & Knockback
+	virtual void ApplyStagger(FVector PushDirection, float KnockbackForce);
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayStaggerVisual();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Animation")
+	TObjectPtr<UAnimMontage> StaggerMontage;
+#pragma endregion Stagger & Knockback
 };
