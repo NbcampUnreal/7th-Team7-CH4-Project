@@ -3,6 +3,8 @@
 #include "Common/VGGameplayTags.h"
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Character/VGCharacterBase.h"
+#include "Mission/Item/VGMissionItemBase.h"
+#include "Data/VGMissionItemDataAsset.h"
 
 AVGMissionGimmickBase::AVGMissionGimmickBase()
 {
@@ -78,6 +80,33 @@ void AVGMissionGimmickBase::SetStateTag(FGameplayTag NewStateTag)
 	OnRep_GimmickStateTag();
 	
 	OnGimmickStateChanged.Broadcast(this, NewStateTag);
+}
+
+AVGMissionItemBase* AVGMissionGimmickBase::FindMissionItemByTag(UVGEquipmentComponent* EquipComp,
+	FGameplayTag RequiredTag) const
+{
+	if (!EquipComp)
+	{
+		return nullptr;
+	}
+ 
+	for (AVGEquippableActor* HandItem : { EquipComp->LeftHandItem, EquipComp->RightHandItem })
+	{
+		if (!HandItem || !HandItem->EquipmentData)
+		{
+			continue;
+		}
+ 
+		UVGMissionItemDataAsset* ItemData =
+			Cast<UVGMissionItemDataAsset>(HandItem->EquipmentData);
+ 
+		if (ItemData && ItemData->ItemTypeTag == RequiredTag)
+		{
+			return Cast<AVGMissionItemBase>(HandItem);
+		}
+	}
+ 
+	return nullptr;
 }
 
 void AVGMissionGimmickBase::OnRep_GimmickStateTag()

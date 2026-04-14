@@ -82,22 +82,34 @@ void AVGMissionGimmickChest::OnInteractWith(AActor* Interactor, const FTransform
 		return;
 	}
 	
-	// 왼손부터 확인, 없으면 오른손 확인
-	bool bUsed = TryUseItemFromSlot(
-		EquipComp, EquipComp->LeftHandItem, EVGEquipmentSlot::LeftHand);
-	if (!bUsed)
+	// 왼손 → 오른손 순으로 사용 가능한 슬롯 탐색
+	const EVGEquipmentSlot Slots[] = { EVGEquipmentSlot::LeftHand, EVGEquipmentSlot::RightHand };
+	AVGEquippableActor* HandItems[] = { EquipComp->LeftHandItem, EquipComp->RightHandItem };
+ 
+	for (int32 i = 0; i < 2; ++i)
 	{
-		bUsed = TryUseItemFromSlot(
-		EquipComp, EquipComp->RightHandItem, EVGEquipmentSlot::RightHand);
-	}
-
-	if (bUsed)
-	{
+		AVGMissionItemBase* MissionItem =
+			Cast<AVGMissionItemBase>(HandItems[i]);
+		if (!MissionItem)
+		{
+			continue;
+		}
+ 
+		UVGMissionItemDataAsset* ItemData =
+			Cast<UVGMissionItemDataAsset>(MissionItem->EquipmentData);
+		if (!ItemData || ItemData->ItemTypeTag != RequiredItemTypeTag)
+		{
+			continue;
+		}
+ 
+		MissionItem->SetStateTag(VigilantMissionTags::ItemUsed);
+		EquipComp->Server_DropItem(Slots[i]);
+ 
 		UE_LOG(LogTemp, Log, TEXT("[%s] Chest Open!"), *GetName());
 		SetStateTag(VigilantMissionTags::GimmickCompleted);
 		OnGimmickInteracted.Broadcast(this, Interactor);
+		return;
 	}
-	
 }
 
 void AVGMissionGimmickChest::OnRep_GimmickStateTag()
@@ -108,28 +120,4 @@ void AVGMissionGimmickChest::OnRep_GimmickStateTag()
 	{
 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
-}
-
-bool AVGMissionGimmickChest::TryUseItemFromSlot(UVGEquipmentComponent* EquipComp, AVGEquippableActor* SlotItem, EVGEquipmentSlot Slot)
-{
-	AVGMissionItemBase* MissionItem = Cast<AVGMissionItemBase>(SlotItem);
-	if (!MissionItem)
-	{
-		return false;
-	}
-	
-	if (!MissionItem->EquipmentData)
-	{
-		return false;
-	}
-	
-	UVGMissionItemDataAsset* ItemData = Cast<UVGMissionItemDataAsset>(MissionItem->EquipmentData);
-	if (!ItemData ||ItemData->ItemTypeTag != RequiredItemTypeTag)
-	{
-		return false;
-	}
-	// 아이템 사용 처리
-	MissionItem->SetStateTag(VigilantMissionTags::ItemUsed);
-	EquipComp->Server_DropItem(Slot);
-	return true;
 }
