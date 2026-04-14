@@ -258,8 +258,7 @@ void AVGGameMode::CheckWinCondition()
 		}
 	}
 	
-	// PR 올리기 전 false 로 수정해야함
-	bool bGameOver = true;
+	bool bGameOver = false;
 	FGameplayTag WinnerTeam;
 	
 	// 마피아 죽으면 시민 승리
