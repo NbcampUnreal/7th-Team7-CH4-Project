@@ -83,6 +83,11 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 		{
 			EnhancedInput->BindAction(DodgeAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::Dodge);
 		}
+		if (BlockAction)
+		{
+			EnhancedInput->BindAction(BlockAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::StartBlock);
+			EnhancedInput->BindAction(BlockAction, ETriggerEvent::Completed, this, &AVGCitizenCharacter::StopBlock);
+		}
 	}
 }
 
@@ -135,6 +140,24 @@ void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 {
 	Super::Move(Value);
 }
+
+
+void AVGCitizenCharacter::StartBlock(const FInputActionValue& Value)
+{
+	if (CombatComponent)
+	{
+		CombatComponent->TryStartBlock();
+	}
+}
+
+void AVGCitizenCharacter::StopBlock(const FInputActionValue& Value)
+{
+	if (CombatComponent)
+	{
+		CombatComponent->TryStopBlock();
+	}
+}
+
 
 #pragma region 구르기 로직 및 RPC
 void AVGCitizenCharacter::Dodge()
