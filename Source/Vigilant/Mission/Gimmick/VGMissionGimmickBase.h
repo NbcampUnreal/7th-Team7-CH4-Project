@@ -88,7 +88,6 @@ protected:
 	UParticleSystem* ActiveParticle;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
 	UParticleSystem* CompleteParticle;
-	
-private:
-	UMaterialInstanceDynamic* DynamicMaterialInstance;
+
+	UMaterialInstanceDynamic* BodyDynMat;
 };

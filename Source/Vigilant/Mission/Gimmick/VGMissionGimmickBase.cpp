@@ -112,7 +112,7 @@ AVGMissionItemBase* AVGMissionGimmickBase::FindMissionItemByTag(UVGEquipmentComp
 void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 {
 	// Todo State 변경에 따른 피드백 처리
-	if (!DynamicMaterialInstance)
+	if (!BodyDynMat)
 	{
 		// [Fix] 메시에 머티리얼이 없을 경우 GetMaterial(0)이 nullptr → Create 크래시 방지
 		UMaterialInterface* BaseMaterial = MeshComponent ? MeshComponent->GetMaterial(0) : nullptr;
@@ -120,13 +120,13 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 		{
 			return;
 		}
-		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(BaseMaterial, this);
-		if (!DynamicMaterialInstance)
+		BodyDynMat = UMaterialInstanceDynamic::Create(BaseMaterial, this);
+		if (!BodyDynMat)
 		{
 			return;
 		}
 		
-		MeshComponent->SetMaterial(0, DynamicMaterialInstance);
+		MeshComponent->SetMaterial(0, BodyDynMat);
 	}
 	
 	FLinearColor Color = FLinearColor::White;
@@ -139,5 +139,5 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 		Color = FLinearColor(0.f, 1.f, 1.f);
 	}
 	
-	DynamicMaterialInstance->SetVectorParameterValue(TEXT("Color"), Color);
+	BodyDynMat->SetVectorParameterValue(TEXT("Color"), Color);
 }
