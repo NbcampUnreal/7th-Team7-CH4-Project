@@ -17,6 +17,11 @@ bool AVGMissionGimmickChest::CanInteractWith(AActor* Interactor) const
 		return false;
 	}
 	
+	if (!Interactor)
+	{
+		return false;
+	}
+    	
 	UVGEquipmentComponent* EquipComp =
 		Interactor->FindComponentByClass<UVGEquipmentComponent>();
 	if (!EquipComp)

@@ -46,7 +46,7 @@ private:
 	// 슬롯에 아이템 배치 시도
 	bool TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot);
 
-	bool AreAllSlotsFilled();
+	bool AreAllSlotsFilled() const;
 protected:
 	// Altar 슬롯 정보
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Altar")
