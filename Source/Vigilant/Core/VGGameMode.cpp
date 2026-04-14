@@ -70,7 +70,9 @@ AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	{
 		TArray<AActor*> FoundStarts;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundStarts);
-
+		
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 월드에서 찾은 PlayerStart 개수: %d개"), FoundStarts.Num());
+		
 		for (AActor* StartActor : FoundStarts)
 		{
 			if (APlayerStart* PlayerStart = Cast<APlayerStart>(StartActor))
@@ -105,9 +107,8 @@ AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
-/*
-FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId,
-	const FString& Options, const FString& Portal)
+FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options,
+	const FString& Portal)
 {
 	FString ErrorMessage = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 	
@@ -115,37 +116,22 @@ FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const
 	{
 		return ErrorMessage;
 	}
-
-	// 2. Options 문자열에서 "Name" 키값을 파싱
-	FString ParsedName = UGameplayStatics::ParseOption(Options, TEXT("VGName"));
-    
-	if (!ParsedName.IsEmpty())
-	{
-		// 3. PlayerController를 통해 PlayerState를 가져와 이름 세팅
-		if (AVGPlayerState* VGPlayerState = NewPlayerController->GetPlayerState<AVGPlayerState>())
-		{
-			VGPlayerState->VGPlayerName = ParsedName;
-			UE_LOG(LogTemp, Log, TEXT("[VGGameMode] InitNewPlayer - 접속자 이름 설정: %s"), *ParsedName);
-		}
-	}
-
-	return ErrorMessage;
-}
-*/
-
-void AVGGameMode::PostLogin(APlayerController* NewPlayer)
-FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options,
-	const FString& Portal)
-{
-	FString ErrorMessage = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 	
 	if (AVGPlayerState* VGPlayerState = NewPlayerController->GetPlayerState<AVGPlayerState>())
 	{
 		// 이미 부여받았어야하지만 안전을 위해 또 호출
 		AssignPlayerSlot(VGPlayerState);
-        
-		FString PlayerName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
+		
+		FString PlayerName = UGameplayStatics::ParseOption(Options, TEXT("VGName"));
+		if (PlayerName.IsEmpty())
+		{
+			PlayerName = TEXT("Unknown_Player");
+		}
+		
 		VGPlayerState->SetVGPlayerName(PlayerName.IsEmpty() ? TEXT("Unknown_Player") : PlayerName);
+		
+		UE_LOG(LogTemp, Log, TEXT("[VGGameMode] InitNewPlayer - 접속 완료: %s (슬롯: %d)"), 
+			*PlayerName, VGPlayerState->EntryIndex);
 	}
     
 	return ErrorMessage;
