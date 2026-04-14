@@ -50,54 +50,27 @@ void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* Targ
 		return;
 	}
 	
-	// 상호작용한 대상이 VGCharacter인지 확인
-	if (AVGCharacterBase* TargetCharacter = Cast<AVGCharacterBase>(TargetActor))
-	{
-		UE_LOG(LogTemp,Warning,TEXT("VGChacter에 들어왔는지 확인") );
-		// 자기 자신과의 상호 작용 방지용
-		if (TargetCharacter != Interactor)
-		{
-			UE_LOG(LogTemp,Warning,TEXT("자기자신 아닌지 확인") );
-			// 캐릭터에 있는 상호작용 함수 호출
-			if (AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner()))
-			{
-				UE_LOG(LogTemp,Warning,TEXT("GetOwner 작동하는지 확인") );
-				OwnerCharacter->NotifyPlayerInteraction(TargetCharacter);
-			}
-			// 플레이어와의 상호작용만 하고 기믹 상호작용은 스킵
-			return; 
-		}
-	}
-    
-	// EquipmentComponent는 GimmickBase를 모른다
-	// IVGInteractable 인터페이스만 안다
 	if (TargetActor->Implements<UVGInteractable>())
 	{
 		if (IVGInteractable::Execute_CanInteract(TargetActor, Interactor))
 		{
+			// 각 액터에 맞는 함수 실행
 			IVGInteractable::Execute_OnInteract(TargetActor, Interactor, InteractTransform);
 		}
 	}
 }
-
 void UVGEquipmentComponent::Interact()
 {
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
-	{
-		return;
-	}
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled()) return;
 
 	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
-	if (!OwnerCharacter)
+	if (!OwnerCharacter) return;
+	
+	if (CurrentInteractableTarget)
 	{
-		return;
-	}
-
-	// 하이라이트(가장 가까운) 된 타겟에게 상호작용 서버 요청
-	if (CurrentInteractableTarget && CurrentInteractableTarget->Implements<UVGInteractable>())
-	{
-		Server_InteractWithActor(CurrentInteractableTarget, OwnerCharacter, CurrentInteractableTarget->GetActorTransform());
+		FTransform HitTransform = FTransform(GetOwner()->GetActorRotation(), CurrentInteractableTarget->GetActorLocation());
+		Server_InteractWithActor(CurrentInteractableTarget, OwnerCharacter, HitTransform);
 	}
 }
 
