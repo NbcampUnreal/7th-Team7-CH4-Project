@@ -398,12 +398,6 @@ void AVGCharacterBase::OnInteract_Implementation(AActor* Interactor, const FTran
 	}
 }
 
-void AVGCharacterBase::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-	FString DebugMsg = FString::Printf(TEXT("[%s] Speed: %.1f"), *GetName(), GetCharacterMovement()->MaxWalkSpeed);
-
-
 void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 {
 	if (!HasAuthority())

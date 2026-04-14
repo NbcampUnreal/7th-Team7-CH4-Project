@@ -154,8 +154,6 @@ public:
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
 	
-	virtual void Tick(float DeltaSeconds) override;
-	
 #pragma region Stagger & Knockback
 	virtual void ApplyStagger(FVector PushDirection, float KnockbackForce);
 	
