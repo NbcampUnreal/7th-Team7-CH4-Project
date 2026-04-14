@@ -24,7 +24,8 @@ public class Vigilant : ModuleRules
 			"EnhancedInput", 
 			"GameplayTags",
 			"UMG",
-			"DeveloperSettings"
+			"DeveloperSettings",
+			"InteractiveToolsFramework"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] 
