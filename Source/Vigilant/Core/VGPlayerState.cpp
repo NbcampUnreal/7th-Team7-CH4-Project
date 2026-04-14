@@ -15,6 +15,20 @@ void AVGPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	DOREPLIFETIME(AVGPlayerState, EntryIndex);
 }
 
+void AVGPlayerState::CopyProperties(APlayerState* PlayerState)
+{
+	Super::CopyProperties(PlayerState);
+
+	// 게임이 초기화될 때 새로운 PlayerState에 복사
+	if (AVGPlayerState* NewVGPlayerState = Cast<AVGPlayerState>(PlayerState))
+	{
+		// 닉네임 복사
+		NewVGPlayerState->VGPlayerName = this->VGPlayerName;
+        
+		UE_LOG(LogTemp, Warning, TEXT("[VGPlayerState] 닉네임 복사 완료: %s"), *this->VGPlayerName);
+	}
+}
+
 void AVGPlayerState::Client_ReceiveRole_Implementation(FGameplayTag AssignedRoleTag)
 {
 	if (AssignedRoleTag.IsValid())

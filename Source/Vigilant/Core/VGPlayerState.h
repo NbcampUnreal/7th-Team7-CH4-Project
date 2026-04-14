@@ -51,4 +51,6 @@ public:
 	void Client_ReceiveRole(FGameplayTag AssignedRoleTag);
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	virtual void CopyProperties(APlayerState* PlayerState) override;
 };
