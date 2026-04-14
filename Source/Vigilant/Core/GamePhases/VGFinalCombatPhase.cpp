@@ -90,9 +90,15 @@ void UVGFinalCombatPhase::EnterPhase()
                     CitizenLoc = CitizenStarts[SafeIndex]->GetActorLocation();
                     CitizenRot = CitizenStarts[SafeIndex]->GetActorRotation();
                 }
-
-                // 시민 캐릭터를 투기장으로 강제 텔레포트
-                CurrentPawn->SetActorLocationAndRotation(CitizenLoc, CitizenRot);
+               
+            	if (PlayerController)
+            	{
+            		// 유저 카메라 먼저 전환
+            		PlayerController->SetControlRotation(CitizenRot);
+            		PlayerController->ClientSetRotation(CitizenRot);
+            	}
+            	// 시민 플레이어 텔레포트
+            	CurrentPawn->TeleportTo(CitizenLoc, CitizenRot, false, true);
                 CitizenSpawnIndex++;
                 
                 UE_LOG(LogTemp, Log, TEXT("[VGFinalCombatPhase] 시민 플레이어, 투기장으로 이동"));

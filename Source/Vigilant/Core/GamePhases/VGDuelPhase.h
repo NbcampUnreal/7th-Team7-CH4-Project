@@ -22,4 +22,15 @@ public:
 	
 	virtual void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim) override;
 	
+protected:	
+	// 플레이어 복귀 위치 저장용 맵
+	UPROPERTY(Transient)
+	TMap<class AVGPlayerState*, FTransform> OriginalTransforms;
+    
+	// 아레나 스폰 포인트들을 임시 저장할 배열
+	UPROPERTY(Transient)
+	TArray<AActor*> ParticipantStarts;
+	UPROPERTY(Transient)
+	TArray<AActor*> SpectatorStarts;
+	
 };

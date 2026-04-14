@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "CharacterInterface/VGCharacterGameplayTagEditor.h"
 #include "GameFramework/Character.h"
+#include "Interaction/VGInteractable.h"
 #include "VGCharacterBase.generated.h"
 
 class UInputAction;
@@ -19,7 +20,8 @@ UCLASS()
 class VIGILANT_API AVGCharacterBase : 
 public ACharacter,
 public IVGCharacterGameplayTagEditor,
-public IGameplayTagAssetInterface
+public IGameplayTagAssetInterface,
+public IVGInteractable
 {
 	GENERATED_BODY()
 
@@ -115,7 +117,7 @@ protected:
 	
 #pragma region 스프린트 관련
 	//입력 바인딩
-	void StartSprint(const FInputActionValue& Value);
+	virtual void StartSprint(const FInputActionValue& Value);
 	void StopSprint(const FInputActionValue& Value);
 	//실제 구현
 	void PerformStartSprint();
@@ -144,6 +146,13 @@ protected:
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetSprinting(bool bIsSprinting);
+	
+public:
+	// (이용호 추가) 플레이어간 상호작용 호출했을 때 받을 함수
+	void NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer);
+	
+	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
+	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
 	
 	virtual void Tick(float DeltaSeconds) override;
 	

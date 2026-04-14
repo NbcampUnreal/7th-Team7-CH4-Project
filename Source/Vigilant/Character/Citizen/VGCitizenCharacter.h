@@ -7,6 +7,7 @@
 #include "Character/VGCharacterBase.h"
 #include "Character/CharacterInterface/VGCharacterGameplayTagEditor.h"
 #include "Character/Component/VGEquipmentComponent.h"
+#include "Interaction/VGInteractable.h"
 #include "VGCitizenCharacter.generated.h"
 
 class UVGEquipmentComponent;
@@ -17,6 +18,7 @@ struct FInputActionValue;
 UCLASS()
 class VIGILANT_API AVGCitizenCharacter :
 	public AVGCharacterBase
+
 
 
 {

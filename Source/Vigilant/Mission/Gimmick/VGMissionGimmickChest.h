@@ -6,7 +6,6 @@
 #include "VGMissionGimmickChest.generated.h"
 
 class AVGEquippableActor;
-class UBGEquipmentComponent;
 
 UCLASS()
 class VIGILANT_API AVGMissionGimmickChest : public AVGMissionGimmickBase

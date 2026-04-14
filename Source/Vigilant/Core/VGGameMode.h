@@ -3,13 +3,14 @@
 #include "CoreMinimal.h"
 #include "VGPlayerState.h"
 #include "GameFramework/GameMode.h"
+#include "Core/Interface/VGGameModeInterface.h"
 #include "VGGameMode.generated.h"
 
 class AVGCharacterBase;
 class UVGPhaseBase;
 
 UCLASS()
-class VIGILANT_API AVGGameMode : public AGameMode
+class VIGILANT_API AVGGameMode : public AGameMode, public IVGGameModeInterface
 {
 	GENERATED_BODY()
 protected:
@@ -81,4 +82,7 @@ public:
 
 	//채팅 관련 함수 -입력메시지를 뿌려주는 역할 -김형백
 	void ProcessChatMessage(const FString& SenderName, const FString& Message);
+	
+	// 플레이어간 상호작용 받을 함수
+	virtual void RequestDuelPhase_Implementation(AVGCharacterBase* Challenger, AVGCharacterBase* Target) override;
 };

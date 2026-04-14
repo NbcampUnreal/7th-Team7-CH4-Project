@@ -50,36 +50,28 @@ void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* Targ
 	{
 		return;
 	}
-    
-	// EquipmentComponent는 GimmickBase를 모른다
-	// IVGInteractable 인터페이스만 안다
+	
 	if (TargetActor->Implements<UVGInteractable>())
 	{
 		if (IVGInteractable::Execute_CanInteract(TargetActor, Interactor))
 		{
+			// 각 액터에 맞는 함수 실행
 			IVGInteractable::Execute_OnInteract(TargetActor, Interactor, InteractTransform);
 		}
 	}
 }
-
 void UVGEquipmentComponent::Interact()
 {
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
-	{
-		return;
-	}
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled()) return;
 
 	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
-	if (!OwnerCharacter)
+	if (!OwnerCharacter) return;
+	
+	if (CurrentInteractableTarget)
 	{
-		return;
-	}
-
-	// 하이라이트(가장 가까운) 된 타겟에게 상호작용 서버 요청
-	if (CurrentInteractableTarget && CurrentInteractableTarget->Implements<UVGInteractable>())
-	{
-		Server_InteractWithActor(CurrentInteractableTarget, OwnerCharacter, CurrentInteractableTarget->GetActorTransform());
+		FTransform HitTransform = FTransform(GetOwner()->GetActorRotation(), CurrentInteractableTarget->GetActorLocation());
+		Server_InteractWithActor(CurrentInteractableTarget, OwnerCharacter, HitTransform);
 	}
 }
 
@@ -91,17 +83,20 @@ void UVGEquipmentComponent::DropItem()
 
 void UVGEquipmentComponent::SelectSlot(float SlotNumber)
 {
+	//브로드캐스트 매개변수를 int32로 변환해서 범용성을 챙김
 	if (FMath::IsNearlyEqual(SlotNumber, 1.0f))
 	{
 		ActiveEquipmentSlot = EVGEquipmentSlot::LeftHand;
+		int32 ActiveSlotIndex = static_cast<int32>(ActiveEquipmentSlot);
 		UE_LOG(LogTemp, Warning, TEXT("왼손 슬롯 활성화"));
-		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
+		OnEquipmentSlotChanged.Broadcast(ActiveSlotIndex);
 	}
 	else if (FMath::IsNearlyEqual(SlotNumber, 2.0f))
 	{
 		ActiveEquipmentSlot = EVGEquipmentSlot::RightHand;
+		int32 ActiveSlotIndex = static_cast<int32>(ActiveEquipmentSlot);
 		UE_LOG(LogTemp, Warning, TEXT("오른손 슬롯 활성화"));
-		OnEquipmentSlotChanged.Broadcast(ActiveEquipmentSlot);
+		OnEquipmentSlotChanged.Broadcast(ActiveSlotIndex);
 	}
 }
 

@@ -4,6 +4,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/GameStateBase.h"
+#include "GameFramework/GameModeBase.h"
 #include "DrawDebugHelpers.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
@@ -11,6 +12,8 @@
 #include "Engine/DamageEvents.h"
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
+#include "UI/VGHUDWidget.h"
+#include "Core/Interface/VGGameModeInterface.h"
 
 
 #pragma region Interfaces GameplayTag
@@ -37,7 +40,7 @@ AVGCharacterBase::AVGCharacterBase()
 	  SprintAction(nullptr),
 	  CameraZoomAction(nullptr)
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	// Configure Character Movement
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
@@ -73,6 +76,7 @@ void AVGCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCharacterBase::HandleSprintStamina);
+	
 }
 
 //빙의 후 클라이언트만 실행하는 생명주기 함수
@@ -157,6 +161,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge))
+	{
+		return;
+	}
+	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -249,7 +258,7 @@ void AVGCharacterBase::Server_StopSprint_Implementation()
 	{
 		StatComponent->StopContinuousConsumeStamina();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("서버스탑실행"));
+	
 	PerformStopSprint();
 }
 
@@ -360,14 +369,40 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 	return ActualDamage;
 }
 
+void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer)
+{
+	// 서버에서만 실행
+	if (!HasAuthority()) return; 
+
+	AGameModeBase* CurrentGameMode = GetWorld()->GetAuthGameMode();
+    
+	// 게임모드 인터페이스를 통해 막고라 호출 함수 호출
+	if (CurrentGameMode && CurrentGameMode->Implements<UVGGameModeInterface>())
+	{
+		IVGGameModeInterface::Execute_RequestDuelPhase(CurrentGameMode, this, TargetPlayer);
+	}
+}
+
+bool AVGCharacterBase::CanInteract_Implementation(AActor* Interactor) const
+{
+	return true;
+}
+
+void AVGCharacterBase::OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform)
+{
+	if (!HasAuthority()) return;
+
+	if (AVGCharacterBase* VGChallenger = Cast<AVGCharacterBase>(Interactor))
+	{
+		VGChallenger->NotifyPlayerInteraction(this);
+	}
+}
+
 void AVGCharacterBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	FString DebugMsg = FString::Printf(TEXT("[%s] Speed: %.1f"), *GetName(), GetCharacterMovement()->MaxWalkSpeed);
 
-	// 두 번째 인자(Time)를 0.0f로 주면 매 프레임 깔끔하게 갱신됩니다.
-	GEngine->AddOnScreenDebugMessage((uint64)GetUniqueID(), 0.0f, FColor::Yellow, DebugMsg);
-}
 
 void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 {
