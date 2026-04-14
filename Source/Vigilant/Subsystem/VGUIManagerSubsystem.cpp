@@ -50,6 +50,11 @@ void UVGUIManagerSubsystem::EquipSlotChanged(int32 SlotIndex)
 	}
 }
 
+void UVGUIManagerSubsystem::RelayReadyEvent(bool bReady)
+{
+	OnPlayerReadySignature.Broadcast(bReady);
+}
+
 void UVGUIManagerSubsystem::CreateHUDWidget()
 {
 	if (CurrentHUDWidget)

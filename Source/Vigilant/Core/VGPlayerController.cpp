@@ -10,7 +10,7 @@
 
 
 AVGPlayerController::AVGPlayerController()
-	:InputMappingContext(nullptr)
+	: InputMappingContext(nullptr)
 {
 }
 
@@ -22,16 +22,12 @@ void AVGPlayerController::BeginPlay()
 	{
 		return;
 	}
-	
-	FInputModeGameOnly InputGameOnly;
-	
-		SetInputMode(InputGameOnly);
-		bShowMouseCursor = false;
-	
-	
+
+
 	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>())
 		{
 			if (InputMappingContext)
 			{
@@ -39,7 +35,7 @@ void AVGPlayerController::BeginPlay()
 			}
 		}
 	}
-	
+
 	if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 	{
 		VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
@@ -47,9 +43,10 @@ void AVGPlayerController::BeginPlay()
 	else
 	{
 		// 게임스테이트 없는 상태면 있을 때까지 바인드 시도
-		GetWorld()->GetTimerManager().SetTimer(BindTimerHandle, this, &AVGPlayerController::TryBindGameState, 0.1f, true);
+		GetWorld()->GetTimerManager().SetTimer(BindTimerHandle, this, &AVGPlayerController::TryBindGameState, 0.1f,
+		                                       true);
 	}
-	
+
 	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 	{
 		if (UVGUIManagerSubsystem* VGUIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
@@ -64,16 +61,23 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 	if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
 	{
 		// 이름 입력안하면 레디 불가능
-		if(VGPlayerState->VGPlayerName.IsEmpty()) return;
-		
+		if (VGPlayerState->VGPlayerName.IsEmpty()) return;
+
 		VGPlayerState->bIsReady = bReady;
 	}
-	
+
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 레디!"))
+
+		//마우스 게임으로!
+		FInputModeGameOnly InputGameOnly;
+
+		SetInputMode(InputGameOnly);
+		bShowMouseCursor = false;
+
 		VGGameMode->CheckAllPlayersReady();
-    }
+	}
 }
 
 void AVGPlayerController::Server_SetName_Implementation(const FString& NewName)
@@ -88,7 +92,7 @@ void AVGPlayerController::Server_SetName_Implementation(const FString& NewName)
 void AVGPlayerController::AcknowledgePossession(class APawn* P)
 {
 	Super::AcknowledgePossession(P);
-	
+
 	if (GetLocalPlayer())
 	{
 		if (IsLocalPlayerController() && GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
@@ -96,13 +100,13 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 			UVGUIManagerSubsystem* UISubsystem = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>();
 			UISubsystem->ShowHUD();
 		}
-	
+
 		if (UVGUIManagerSubsystem* UIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
 		{
 			UIManager->OnChatMessageRequested.AddUniqueDynamic(this, &AVGPlayerController::OnChatMessageReceived);
+			UIManager->OnPlayerReadySignature.AddUniqueDynamic(this, &AVGPlayerController::Server_SetReady);
 		}
 	}
-	
 }
 
 void AVGPlayerController::OnPossess(class APawn* P)
@@ -110,7 +114,6 @@ void AVGPlayerController::OnPossess(class APawn* P)
 	//빙의하고 바인드 연결 스탯 컴뽀넌트랑 
 	//서버에서만 실행되는 함수
 	Super::OnPossess(P);
-
 }
 
 void AVGPlayerController::OnChatMessageReceived(const FString& Message)
@@ -158,7 +161,7 @@ void AVGPlayerController::TryBindGameState()
 	{
 		// 델리게이트 연결
 		VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
-		
+
 		GetWorld()->GetTimerManager().ClearTimer(BindTimerHandle);
 		UE_LOG(LogTemp, Log, TEXT("[VGPlayerController] GameState 바인딩 성공"));
 	}
@@ -166,7 +169,7 @@ void AVGPlayerController::TryBindGameState()
 
 void AVGPlayerController::Client_ReceiveChatMessage_Implementation(const FString& Message)
 {
-	if (IsLocalPlayerController()&& GetLocalPlayer())
+	if (IsLocalPlayerController() && GetLocalPlayer())
 	{
 		if (UVGUIManagerSubsystem* UIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
 		{
@@ -178,12 +181,12 @@ void AVGPlayerController::Client_ReceiveChatMessage_Implementation(const FString
 void AVGPlayerController::Server_SendChatMessage_Implementation(const FString& ChatText)
 {
 	FString SenderName = TEXT("Unknown");
-	
+
 	if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
 	{
 		SenderName = VGPlayerState->VGPlayerName;
 	}
-	
+
 	if (AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(this))
 	{
 		AVGGameMode* VGGameMode = Cast<AVGGameMode>(GameModeBase);
