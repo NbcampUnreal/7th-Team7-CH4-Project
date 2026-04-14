@@ -49,7 +49,14 @@ protected:
 	// 6개의 슬롯이 찼는지 아닌지 체크하는 용도
 	bool bSlotOccupied[6] = { false, };
 	
+	// 게임 한 사이클이 종료되었을 때 호출될 함수
+	void HandleMatchFinished();
+	
+	int32 AssignPlayerSlot(class AVGPlayerState* VGPlayerState);
+	
 public:
+	
+	AVGGameMode();
 	
 	void ClearDuelParticipants();
 	
@@ -77,12 +84,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void PopPhase();
 	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void CheckWinCondition();
-	void ResetGameStatus();
 
 	void StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target);
 	
 	void CheckAllPlayersReady();
+	// 페이즈가 종료될 때 호출될 함수
+	void NotifyPhaseCompleted(class UVGPhaseBase* CompletedPhase);
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void AssignRolesAndStartGame();
