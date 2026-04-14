@@ -40,6 +40,15 @@ protected:
 	// 이미 게임이 시작되었는지 체크용
 	bool bGameHasStarted = false;
 	
+	virtual void PreLogin(
+		const FString& Options,
+		const FString& Address,
+		const FUniqueNetIdRepl& UniqueId,
+		FString& ErrorMessage) override;
+	
+	// 6개의 슬롯이 찼는지 아닌지 체크하는 용도
+	bool bSlotOccupied[6] = { false, };
+	
 public:
 	
 	void ClearDuelParticipants();

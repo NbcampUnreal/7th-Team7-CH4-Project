@@ -35,6 +35,23 @@ void AVGGameMode::BeginPlay()
 	
 }
 
+void AVGGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	// 게임이 이미 시작되었을 때(후에 관전자 시점으로 수정할 수도 있음)
+	if (bGameHasStarted)
+	{
+		ErrorMessage = TEXT("Game is already in progress.");
+		return;
+	}
+
+	// 서버에 이미 6명이 있을 때
+	if (ConnectedPlayerCount >= 6)
+	{
+		ErrorMessage = TEXT("Server is full (Max 6 Players).");
+		return;
+	}
+}
+
 void AVGGameMode::ClearDuelParticipants()
 {
 	DuelChallenger = nullptr;
@@ -70,12 +87,6 @@ AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	// 현재 스폰을 기다리는 플레이어의 번호표 확인
 	if (AVGPlayerState* VGPlayerState = Player->GetPlayerState<AVGPlayerState>())
 	{
-		if (VGPlayerState->EntryIndex == 0)
-		{
-			ConnectedPlayerCount++;
-			VGPlayerState->EntryIndex = ConnectedPlayerCount;
-			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 플레이어 번호 발급 완료: %d번"), VGPlayerState->EntryIndex);
-		}
 		// 내 번호표에 맞는 PlayerStart를 찾아 엔진에게 넘겨줌
 		if (APlayerStart** FoundStart = CachedJailSpawns.Find(VGPlayerState->EntryIndex))
 		{
@@ -91,7 +102,24 @@ FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const
 	const FString& Portal)
 {
 	FString ErrorMessage = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
-    
+	
+	if (AVGPlayerState* VGPlayerState = NewPlayerController->GetPlayerState<AVGPlayerState>())
+	{
+		// 0 ~ 5 까지 비어있는 슬롯 찾기
+		int32 AssignedIndex = -1;
+		for (int32 i = 0; i < 6; i++)
+		{
+			if (!bSlotOccupied[i])
+			{
+				AssignedIndex = i;
+				bSlotOccupied[i] = true;
+				break;
+			}
+		}
+        
+		// 찾은 번호의 + 1한 값을 PlayerState의 EntryIndex에 저장
+		VGPlayerState->EntryIndex = AssignedIndex + 1;
+	}
 	if (ErrorMessage.IsEmpty())
 	{
 		// 옵션 중에 Name 에 해당되는 플레이어가 입력한 이름 가져옴
@@ -118,27 +146,9 @@ FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const
 
 void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	// 게임 중 유저가 들어왔을 때 예외처리
-	if (bGameHasStarted)
-	{
-		// 최대 인원(6명) 확인
-		if (GameState->PlayerArray.Num() <= 6)
-		{
-			
-			NewPlayer->StartSpectatingOnly(); 
-			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 게임 진행 중 난입: 관전자 모드 진입"));
-            
-			
-			return; 
-		}
-		else
-		{
-			// 6명을 넘으면 접속안되는 로직 추가 예정
-		}
-	}
-	
 	Super::PostLogin(NewPlayer);
 	
+	ConnectedPlayerCount++;
 	UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 플레이어 접속 완료. 배정된 번호: %d"), NewPlayer->GetPlayerState<AVGPlayerState>()->EntryIndex);
 }
 
@@ -147,6 +157,13 @@ void AVGGameMode::Logout(AController* Exiting)
 	AVGPlayerState* ExitingPlayerState = Exiting->GetPlayerState<AVGPlayerState>();
 	if (ExitingPlayerState && bGameHasStarted)
 	{
+		// 해당되는 슬롯 비우기
+		int32 ReleasedIndex = ExitingPlayerState->EntryIndex - 1;
+		if (ReleasedIndex >= 0 && ReleasedIndex < 6)
+		{
+			bSlotOccupied[ReleasedIndex] = false;
+		}
+		
 		//  나간 사람의 직업 확인
 		if (ExitingPlayerState->IsRole(VigilantRoleTags::Mafia))
 		{
@@ -159,6 +176,8 @@ void AVGGameMode::Logout(AController* Exiting)
 			// 전체 공지해야함
 		}
 	}
+	
+	ConnectedPlayerCount = FMath::Max(0, ConnectedPlayerCount - 1);
 
 	// 레디 중인 사람이 나갔을 때를 위한 체크 
 	if (!bGameHasStarted)
