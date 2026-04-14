@@ -111,7 +111,7 @@ void AVGMissionGimmickChest::OnInteractWith(AActor* Interactor, const FTransform
 	}
 	
 	UE_LOG(LogTemp, Log, TEXT("[%s] Chest Open!"), *GetName());
-	SetStateTag(VigilantMissionTags::GimmickCompleted);
+	SetStateTag(VigilantMissionTags::GimmickActive);
 	OnGimmickInteracted.Broadcast(this, Interactor);
 }
 
@@ -119,15 +119,17 @@ void AVGMissionGimmickChest::OnRep_GimmickStateTag()
 {
 	Super::OnRep_GimmickStateTag();
 	
-	if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
+	if (GimmickStateTag == VigilantMissionTags::GimmickActive)
 	{
-		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		LidMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		
 		if (bChestOpened == false)
 		{
 			LidTimeline->PlayFromStart();
 		}
+	}
+	else if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
+	{
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		LidMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
@@ -149,6 +151,11 @@ void AVGMissionGimmickChest::OnLidTimelineFinished()
 	
 	bChestOpened = true;
 	OnRep_bChestOpened();
+	
+	if (HasAuthority())
+	{
+		SetStateTag(VigilantMissionTags::GimmickCompleted);
+	}
 }
 
 void AVGMissionGimmickChest::OnRep_bChestOpened()
