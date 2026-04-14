@@ -8,4 +8,5 @@ AVGWeapon::AVGWeapon()
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	RootComponent = WeaponMesh;
 	WeaponMesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 }
