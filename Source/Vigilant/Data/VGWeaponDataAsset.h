@@ -4,6 +4,8 @@
 #include "VGEquipmentDataAsset.h"
 #include "VGWeaponDataAsset.generated.h"
 
+class UVGAttackExecution;
+
 /**
  * 무기의 공격 관련 데이터를 담는 Data Asset.
  *
@@ -37,4 +39,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Animation")
 	TObjectPtr<UAnimMontage> HeavyAttackMontage;
+	
+	UPROPERTY(EditDefaultsOnly, Instanced, BlueprintReadOnly, Category = "Weapon|Execution")
+	TObjectPtr<UVGAttackExecution> AttackExecutionTemplate;
 };

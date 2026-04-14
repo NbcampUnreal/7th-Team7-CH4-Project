@@ -6,10 +6,13 @@
 //지금 아래건 예시 입니다!, 따옴표 안의 글자 오타 조심!
 //캐릭터의 상태 및 태그
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Attacking, "Character.Action.Attacking");
+UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Guard, "Character.Action.Guard");
+UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::PerfectGuard, "Character.Action.Guard.Perfect");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Dodge, "Character.Action.Dodge");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Invincible, "Character.State.Invincible");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Falling, "Character.State.Falling");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Sprint, "Character.State.Sprint");
+UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Stunned, "Character.State.Stunned");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedLeftHand, "Character.State.Occupied.Left");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Occupied.Right");
 

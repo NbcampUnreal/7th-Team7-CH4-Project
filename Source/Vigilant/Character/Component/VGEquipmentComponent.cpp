@@ -5,6 +5,7 @@
 #include "Common/VGGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
+#include "InputBehavior.h"
 #include "Character/VGCharacterBase.h"
 #include "Data/VGEquipmentDataAsset.h"
 #include "Components/MeshComponent.h"
@@ -104,7 +105,7 @@ void UVGEquipmentComponent::OnRep_LefthandItem(AVGEquippableActor* OldItem)
 	if (LeftHandItem)
 	{
 		HandleItemAttachment(LeftHandItem, LeftHandItem->EquipmentData->LeftHandSocketName, true);
-		OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, RightHandItem);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, LeftHandItem->EquipmentData, LeftHandItem->GetItemMesh());
 	}
 	else if (OldItem)
 	{
@@ -118,7 +119,7 @@ void UVGEquipmentComponent::OnRep_RighthandItem(AVGEquippableActor* OldItem)
 	if (RightHandItem)
 	{
 		HandleItemAttachment(RightHandItem, RightHandItem->EquipmentData->RightHandSocketName, true);
-		OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, RightHandItem);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, RightHandItem->EquipmentData, RightHandItem->GetItemMesh());
 	}
 	else if (OldItem)
 	{
@@ -217,7 +218,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 		EVGEquipmentSlot EquippedSlot = (ItemData->EquipRule == EVGEquipRules::LeftHandOnly)
 			                                ? EVGEquipmentSlot::LeftHand
 			                                : EVGEquipmentSlot::RightHand;
-		OnItemEquipped.Broadcast(EquippedSlot, ItemToEquip);
+		OnItemEquipped.Broadcast(EquippedSlot, ItemToEquip->EquipmentData, ItemToEquip->GetItemMesh());
 	}
 }
 
@@ -277,7 +278,7 @@ bool UVGEquipmentComponent::TryEquipToRightHand(AVGEquippableActor* ItemToEquip)
 		LeftHandItem = RightHandItem;
 		HandleItemAttachment(LeftHandItem, LeftHandItem->EquipmentData->LeftHandSocketName, true);
 
-		OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, LeftHandItem);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::LeftHand, LeftHandItem->EquipmentData, LeftHandItem->GetItemMesh());
 		
 		RightHandItem = ItemToEquip;
 		HandleItemAttachment(RightHandItem, ItemToEquip->EquipmentData->RightHandSocketName, true);
@@ -303,7 +304,7 @@ bool UVGEquipmentComponent::TryEquipToLeftHand(AVGEquippableActor* ItemToEquip)
 		RightHandItem = LeftHandItem;
 		HandleItemAttachment(RightHandItem, RightHandItem->EquipmentData->RightHandSocketName, true);
 
-		OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, RightHandItem);
+		OnItemEquipped.Broadcast(EVGEquipmentSlot::RightHand, RightHandItem->EquipmentData, RightHandItem->GetItemMesh());
 		
 		LeftHandItem = ItemToEquip;
 		HandleItemAttachment(LeftHandItem, ItemToEquip->EquipmentData->LeftHandSocketName, true);

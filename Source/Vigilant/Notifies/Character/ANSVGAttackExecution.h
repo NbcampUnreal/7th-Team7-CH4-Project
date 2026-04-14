@@ -2,10 +2,10 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
-#include "ANSVGMeleeTrace.generated.h"
+#include "ANSVGAttackExecution.generated.h"
 
 UCLASS()
-class VIGILANT_API UANSVGMeleeTrace : public UAnimNotifyState
+class VIGILANT_API UANSVGAttackExecution : public UAnimNotifyState
 {
 	GENERATED_BODY()
 

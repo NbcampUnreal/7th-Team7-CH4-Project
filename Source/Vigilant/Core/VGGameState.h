@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagAssetInterface.h"
 #include "GameFramework/GameState.h"
 #include "GameplayTagContainer.h"
 #include "VGGameState.generated.h"
@@ -13,12 +14,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDuelWinnerAnnounced, const FStrin
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossNerfUpdated, float, BossRate);
 
 UCLASS()
-class VIGILANT_API AVGGameState : public AGameState
+class VIGILANT_API AVGGameState : public AGameState, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 	
 public:
 	AVGGameState();
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 
 	// UI가 바인드할 채널
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
