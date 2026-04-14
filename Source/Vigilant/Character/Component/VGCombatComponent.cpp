@@ -129,7 +129,8 @@ void UVGCombatComponent::TryLightAttack()
 {
 	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
 	{
-		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) || TagInterface->HasMatchingGameplayTag(
+			VigilantCharacter::Stunned))
 		{
 			return;
 		}
@@ -177,7 +178,8 @@ void UVGCombatComponent::TryHeavyAttack()
 {
 	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
 	{
-		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) || TagInterface->HasMatchingGameplayTag(
+			VigilantCharacter::Stunned))
 		{
 			return;
 		}
@@ -438,7 +440,8 @@ void UVGCombatComponent::TryStartBlock()
 	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
 	{
 		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking) ||
-			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) ||
+			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Stunned))
 		{
 			return;
 		}
@@ -450,7 +453,7 @@ void UVGCombatComponent::TryStartBlock()
 	{
 		return;
 	}
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter)
 	{
@@ -459,9 +462,9 @@ void UVGCombatComponent::TryStartBlock()
 		{
 			return;
 		}
-		
+
 		// TODO: 스태미나 검사 추가
-		
+
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
 		if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
 		{
