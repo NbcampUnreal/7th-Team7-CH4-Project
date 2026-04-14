@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "VGHUDWidget.generated.h"
 
+class UOverlay;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReadyDelegate, bool, bReady);
 
 class UButton;
@@ -41,6 +42,9 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ReadyButton;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UOverlay> ReadyOverlay;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Equip_Right;

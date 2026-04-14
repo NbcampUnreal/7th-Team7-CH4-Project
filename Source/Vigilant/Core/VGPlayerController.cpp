@@ -58,13 +58,13 @@ void AVGPlayerController::BeginPlay()
 
 void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 {
-	if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
-	{
-		// 이름 입력안하면 레디 불가능
-		if (VGPlayerState->VGPlayerName.IsEmpty()) return;
-
-		VGPlayerState->bIsReady = bReady;
-	}
+	// if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
+	// {
+	// 	// 이름 입력안하면 레디 불가능
+	// 	if (VGPlayerState->VGPlayerName.IsEmpty()) return;
+	//
+	// 	VGPlayerState->bIsReady = bReady;
+	// }
 
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{

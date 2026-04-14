@@ -75,6 +75,7 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 
 void UVGHUDWidget::OnReadyButtonClicked()
 {
+	UE_LOG(LogTemp, Warning, TEXT("버튼 누름"));
 	OnReadyDelegate.Broadcast(true);
 }
 	
