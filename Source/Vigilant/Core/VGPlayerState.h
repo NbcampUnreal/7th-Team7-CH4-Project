@@ -37,6 +37,8 @@ public:
 	// 플레이어 이름
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")
 	FString VGPlayerName;
+	
+	void SetVGPlayerName(const FString& NewName);
 
 	// 플레이어 입장 순서
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")

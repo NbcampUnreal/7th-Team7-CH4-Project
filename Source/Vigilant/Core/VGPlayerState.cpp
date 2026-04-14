@@ -54,5 +54,10 @@ bool AVGPlayerState::IsRole(const FGameplayTag& RoleTagToCheck) const
 	return SecretRoleTag == RoleTagToCheck;
 }
 
+void AVGPlayerState::SetVGPlayerName(const FString& NewName)
+{
+	VGPlayerName = NewName;
+}
+
 
 
