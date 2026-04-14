@@ -31,8 +31,15 @@ void AVGTitlePlayerController::BeginPlay()
 	}
 }
 
-void AVGTitlePlayerController::JoinServer(const FString& InIPAddress)
+void AVGTitlePlayerController::JoinServer(const FString& InIPAddress, const FString& NickName)
 {
-	FName NextLevelName = FName(*InIPAddress);
-	UGameplayStatics::OpenLevel(GetWorld(), NextLevelName, true);
+	// FName NextLevelName = FName(*InIPAddress);
+	// UGameplayStatics::OpenLevel(GetWorld(), NextLevelName, true);
+	
+	// ?Name=닉네임 형태로 Options 문자열 구성
+	FString URL = FString::Printf(TEXT("%s?VGName=%s"), *InIPAddress, *NickName);
+    
+	// URL을 FName으로 변환하여 OpenLevel 호출
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*URL), true);
 }
+

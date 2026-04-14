@@ -10,8 +10,6 @@ class VIGILANT_API UVGLobbyPhase : public UVGPhaseBase
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vigilant|Phase")
-	TSubclassOf<class UVGPhaseBase> NextPhaseClass;
 
 	// 페이즈 생명주기
 	virtual void EnterPhase() override;

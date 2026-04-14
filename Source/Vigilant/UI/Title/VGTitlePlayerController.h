@@ -17,7 +17,7 @@ class VIGILANT_API AVGTitlePlayerController : public APlayerController
 	public:	
 	virtual void BeginPlay() override;
 	
-	void JoinServer(const FString& InIPAddress);
+	void JoinServer(const FString& InIPAddress, const FString& NickName);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ASUIPlayerController", meta = (AllowPrivateAccess = true))

@@ -76,7 +76,6 @@ void AVGCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCharacterBase::HandleSprintStamina);
-	
 }
 
 //빙의 후 클라이언트만 실행하는 생명주기 함수
@@ -161,11 +160,12 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge))
+	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge) ||
+		CharacterTags.HasTag(VigilantCharacter::Stunned))
 	{
 		return;
 	}
-	
+
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -184,6 +184,11 @@ void AVGCharacterBase::Move(const FInputActionValue& Value)
 
 void AVGCharacterBase::StartJump(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::Stunned))
+	{
+		return;
+	}
+	
 	Jump();
 }
 
@@ -258,7 +263,7 @@ void AVGCharacterBase::Server_StopSprint_Implementation()
 	{
 		StatComponent->StopContinuousConsumeStamina();
 	}
-	
+
 	PerformStopSprint();
 }
 
@@ -372,10 +377,10 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer)
 {
 	// 서버에서만 실행
-	if (!HasAuthority()) return; 
+	if (!HasAuthority()) return;
 
 	AGameModeBase* CurrentGameMode = GetWorld()->GetAuthGameMode();
-    
+
 	// 게임모드 인터페이스를 통해 막고라 호출 함수 호출
 	if (CurrentGameMode && CurrentGameMode->Implements<UVGGameModeInterface>())
 	{

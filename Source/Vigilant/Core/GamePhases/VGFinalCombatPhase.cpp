@@ -114,10 +114,9 @@ void UVGFinalCombatPhase::ExitPhase()
 
 void UVGFinalCombatPhase::ExecutePhaseResult()
 {
-	if (GameModeRef && NextPhaseClass)
+	if (GameModeRef)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 전투 종료, 다음 페이즈로 전환"));
-		GameModeRef->TransitionToPhase(NextPhaseClass);
+		GameModeRef->NotifyPhaseCompleted(this);
 	}
 }
 
