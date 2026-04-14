@@ -171,6 +171,7 @@ void UVGStatComponent::StartContinuousConsumeStamina(float ConsumeAmountPerSecon
 		return;
 	}
 
+	
 	ContinuousConsumeRate = ConsumeAmountPerSecond;
 
 	GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
@@ -209,6 +210,17 @@ void UVGStatComponent::UseStaminaTick()
 	if (GetOwnerRole() != ROLE_Authority)
 	{
 		return;
+	}
+	
+	//움직이지않으면 감소 X
+	AActor* Owner = GetOwner();
+	if (Owner)
+	{
+		float Velocity = Owner->GetVelocity().SizeSquared2D();
+		if (Velocity < 1.f)
+		{
+			return;
+		}
 	}
 	
 	float ConsumeAmount = ContinuousConsumeRate * StaminaConsumeInterval;

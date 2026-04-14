@@ -139,7 +139,7 @@ void UVGDuelPhase::ExecutePhaseResult()
 {
 	if (GameModeRef)
 	{
-		GameModeRef->TransitionToPhase(nullptr);
+		GameModeRef->NotifyPhaseCompleted(this);
 	}
 }
 

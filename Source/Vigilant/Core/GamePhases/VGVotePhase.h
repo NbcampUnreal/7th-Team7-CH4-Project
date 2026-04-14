@@ -12,8 +12,6 @@ class VIGILANT_API UVGVotePhase : public UVGPhaseBase
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = "Vigilant|Phase")
-	TSubclassOf<class UVGPhaseBase> NextPhaseClass;
 	
 	// 투표 결과에 따른 보스 스탯 변동량
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vigilant|Vote")

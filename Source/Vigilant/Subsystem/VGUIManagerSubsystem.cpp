@@ -4,6 +4,8 @@
 #include "VGUIManagerSubsystem.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Components/Button.h"
+#include "Components/Overlay.h"
 #include "Data/VGUIDataAsset.h"
 #include "Core/DeveloperSettings/VGDevelopSettings.h"
 #include "UI/VGHUDWidget.h"
@@ -50,6 +52,18 @@ void UVGUIManagerSubsystem::EquipSlotChanged(int32 SlotIndex)
 	}
 }
 
+void UVGUIManagerSubsystem::RelayReadyEvent(bool bReady)
+{
+	
+	if (CurrentHUDWidget)
+	{
+		//함수 만들어서 가져와야하지만 일단 귀찮으니 직접참조
+		CurrentHUDWidget->ReadyOverlay->SetVisibility(ESlateVisibility::Collapsed);
+		UE_LOG(LogTemp, Warning, TEXT("UIManager 전달 성공"));
+	}
+	OnPlayerReadySignature.Broadcast(bReady);
+}
+
 void UVGUIManagerSubsystem::CreateHUDWidget()
 {
 	if (CurrentHUDWidget)
@@ -69,6 +83,9 @@ void UVGUIManagerSubsystem::CreateHUDWidget()
 				GetLocalPlayer()->GetPlayerController(GetWorld())
 				, LoadedUIDataAsset->MainHUDWidgetClass
 			);
+			
+			//HUD와 바인딩 델리게이트
+			CurrentHUDWidget->OnReadyDelegate.AddUniqueDynamic(this, &UVGUIManagerSubsystem::RelayReadyEvent);
 		}
 	}
 }

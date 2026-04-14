@@ -23,7 +23,4 @@ public:
 	// 블루프린트에서 할당할 보스 캐릭터 클래스
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Classes")
 	TSubclassOf<AVGCharacterBase> BossCharacterClass;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vigilant|Phase")
-	TSubclassOf<class UVGPhaseBase> NextPhaseClass;
 };
