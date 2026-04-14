@@ -4,6 +4,8 @@
 #include "VGMissionGimmickBase.h"
 #include "VGMissionGimmickLever.generated.h"
 
+class UTimelineComponent;
+
 UCLASS()
 class VIGILANT_API AVGMissionGimmickLever : public AVGMissionGimmickBase
 {
@@ -55,11 +57,11 @@ protected:
  
 	// 레버가 내려간(비활성) 상태의 Pitch 각도
 	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Lever")
-	float InactivePitch = -45.f;
+	float InactivePitch = 200.f;
  
 	// 레버가 올라간(활성) 상태의 Pitch 각도
 	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Lever")
-	float ActivePitch = 45.f;
+	float ActivePitch = 359.f;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Gimmick|Lever")
 	float TargetPitch = 0.f;

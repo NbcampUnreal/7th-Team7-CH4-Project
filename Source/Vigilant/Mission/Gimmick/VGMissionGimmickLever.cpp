@@ -115,12 +115,13 @@ void AVGMissionGimmickLever::PlayLeverAnimation()
 {
 	if (!LeverTimeline) return;
  
-	if (GimmickStateTag == VigilantMissionTags::GimmickActive)
+	if (GimmickStateTag == VigilantMissionTags::GimmickActive
+		|| GimmickStateTag == VigilantMissionTags::GimmickCompleted)
 	{
-		LeverTimeline->PlayFromStart();
+		LeverTimeline->Play();
 	}
 	else if (GimmickStateTag == VigilantMissionTags::GimmickInactive)
 	{
-		LeverTimeline->ReverseFromEnd();
+		LeverTimeline->Reverse();
 	}
 }
