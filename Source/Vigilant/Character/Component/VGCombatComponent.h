@@ -89,7 +89,7 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_StopBlock();
 	
-	UFUNCTION(NetMulticast, Unreliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayBlockMontage(UAnimMontage* MontageToPlay);
 	
 	UFUNCTION(NetMulticast, Reliable)

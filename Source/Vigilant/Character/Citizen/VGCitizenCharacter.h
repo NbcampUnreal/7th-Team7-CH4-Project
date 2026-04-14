@@ -48,6 +48,9 @@ protected:
 	//구르기
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* DodgeAction;
+	// 가드
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* BlockAction;
 
 	// 캐릭터의 이동 상태(걷기, 낙하 등)가 변할 때마다 엔진이 호출해 주는 함수
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
@@ -61,9 +64,12 @@ protected:
 
 	//base의 무브 함수 재정의
 	virtual void Move(const FInputActionValue& Value) override;
-
+	
+	void StartBlock(const FInputActionValue& Value);
+	void StopBlock(const FInputActionValue& Value);
+	
 	void Dodge();
-
+	
 	UFUNCTION(Server, Reliable)
 	void Server_Dodge(FVector Direction);
 	UFUNCTION(NetMulticast, Reliable)

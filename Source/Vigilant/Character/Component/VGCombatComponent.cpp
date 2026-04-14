@@ -129,7 +129,8 @@ void UVGCombatComponent::TryLightAttack()
 {
 	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
 	{
-		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) || TagInterface->HasMatchingGameplayTag(
+			VigilantCharacter::Stunned))
 		{
 			return;
 		}
@@ -177,7 +178,8 @@ void UVGCombatComponent::TryHeavyAttack()
 {
 	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
 	{
-		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) || TagInterface->HasMatchingGameplayTag(
+			VigilantCharacter::Stunned))
 		{
 			return;
 		}
@@ -438,17 +440,31 @@ void UVGCombatComponent::TryStartBlock()
 	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
 	{
 		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking) ||
-			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge))
+			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) ||
+			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Stunned))
 		{
 			return;
 		}
 	}
-	
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+
 	UVGShieldDataAsset* Data = GetCurrentShieldData();
-	
-	if (OwnerCharacter && Data && Data->BlockMontage)
+
+	if (!Data || !Data->BlockMontage)
 	{
+		return;
+	}
+
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (OwnerCharacter)
+	{
+		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+		if (AnimInstance && AnimInstance->Montage_IsPlaying(Data->BlockMontage))
+		{
+			return;
+		}
+
+		// TODO: 스태미나 검사 추가
+
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
 		if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
 		{
@@ -461,7 +477,7 @@ void UVGCombatComponent::TryStopBlock()
 {
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	UVGShieldDataAsset* Data = GetCurrentShieldData();
-	
+
 	if (OwnerCharacter && Data && Data->BlockMontage)
 	{
 		OwnerCharacter->StopAnimMontage(Data->BlockMontage);
@@ -476,7 +492,7 @@ void UVGCombatComponent::Server_StartBlock_Implementation()
 {
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	UVGShieldDataAsset* Data = GetCurrentShieldData();
-	
+
 	if (OwnerCharacter && Data && Data->BlockMontage)
 	{
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
@@ -494,7 +510,7 @@ void UVGCombatComponent::Server_StopBlock_Implementation()
 {
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	UVGShieldDataAsset* Data = GetCurrentShieldData();
-	
+
 	if (OwnerCharacter && Data && Data->BlockMontage)
 	{
 		OwnerCharacter->StopAnimMontage(Data->BlockMontage);
@@ -544,6 +560,6 @@ void UVGCombatComponent::Multicast_StopBlockMontage_Implementation(UAnimMontage*
 	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (OwnerCharacter)
 	{
-		OwnerCharacter->PlayAnimMontage(MontageToStop);
+		OwnerCharacter->StopAnimMontage(MontageToStop);
 	}
 }
