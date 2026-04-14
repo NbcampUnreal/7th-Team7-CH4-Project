@@ -454,6 +454,12 @@ void UVGCombatComponent::TryStartBlock()
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter)
 	{
+		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+		if (AnimInstance && AnimInstance->Montage_IsPlaying(Data->BlockMontage))
+		{
+			return;
+		}
+		
 		// TODO: 스태미나 검사 추가
 		
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
@@ -551,6 +557,6 @@ void UVGCombatComponent::Multicast_StopBlockMontage_Implementation(UAnimMontage*
 	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (OwnerCharacter)
 	{
-		OwnerCharacter->PlayAnimMontage(MontageToStop);
+		OwnerCharacter->StopAnimMontage(MontageToStop);
 	}
 }
