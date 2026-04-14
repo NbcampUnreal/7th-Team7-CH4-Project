@@ -24,11 +24,24 @@ void UVGTitleWidget::NativeConstruct()
 
 void UVGTitleWidget::OnPlayButtonClicked()
 {
+	FText NickName = InputNick->GetText();
+	if (NickName.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("이름을 입력해 주세요!"));
+		// 나중에 위젯으로 띄울지도?
+		return;
+	}
+	if (NickName.ToString().Len() >= 10)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("이름은 10글자를 넘을 수 없습니다."));
+		// 나중에 위젯으로 띄울지도?
+		return;
+	}
 	AVGTitlePlayerController* PlayerController = GetOwningPlayer<AVGTitlePlayerController>();
 	if (IsValid(PlayerController) == true)
 	{
 		FText ServerIP = ServerIPEditableText->GetText();
-		PlayerController->JoinServer(ServerIP.ToString());
+		PlayerController->JoinServer(ServerIP.ToString(), NickName.ToString());
 
 		UE_LOG(LogTemp, Warning, TEXT("접속 시도!"));
 	}

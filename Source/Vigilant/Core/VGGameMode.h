@@ -50,7 +50,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Lobby")
 	int32 MinimumPlayersNeeded = 2;
 	
+	
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal = L"") override;
 	virtual void PostLogin(APlayerController *NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	

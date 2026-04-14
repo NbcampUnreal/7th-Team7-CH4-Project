@@ -36,4 +36,7 @@ protected:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UEditableText> ServerIPEditableText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UEditableText> InputNick;
 };
