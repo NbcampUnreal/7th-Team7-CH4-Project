@@ -87,6 +87,35 @@ AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
+FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options,
+	const FString& Portal)
+{
+	FString ErrorMessage = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+    
+	if (ErrorMessage.IsEmpty())
+	{
+		// 옵션 중에 Name 에 해당되는 플레이어가 입력한 이름 가져옴
+		FString PlayerName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
+        
+		if (PlayerName.IsEmpty())
+		{
+			// 이름이 없을 경우 기본값
+			PlayerName = TEXT("Unknown_Player"); 
+		}
+
+		// PlayerState를 가져와 이름을 설정
+		if (AVGPlayerState* VGPlayerState = NewPlayerController->GetPlayerState<AVGPlayerState>())
+		{
+			// PlayerState에 이름 저장
+			VGPlayerState->SetVGPlayerName(PlayerName);
+            
+			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 새 플레이어 접속 완료: %s"), *PlayerName);
+		}
+	}
+    
+	return ErrorMessage;
+}
+
 void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	// 게임 중 유저가 들어왔을 때 예외처리
