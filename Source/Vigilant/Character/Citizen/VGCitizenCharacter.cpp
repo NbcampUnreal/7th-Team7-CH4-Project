@@ -8,6 +8,7 @@
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
+#include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
@@ -234,27 +235,34 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 
 void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent * EquippedMesh)
 {
-	if (!EquipmentData)
+	if (!EquipmentData || !CombatComponent)
 	{
 		return;
 	}
 	
 	if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(EquipmentData))
 	{
-		if (CombatComponent)
-		{
-			CombatComponent->SetActiveCombatData(WeaponData, EquippedMesh);
-		}
+		CombatComponent->SetActiveCombatData(WeaponData, EquippedMesh);
+	}
+	else if (UVGShieldDataAsset* ShieldData = Cast<UVGShieldDataAsset>(EquipmentData))
+	{
+		CombatComponent->SetActiveShieldData(ShieldData);
 	}
 }
 
 void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
 {
+	if (!CombatComponent)
+	{
+		return;
+	}
+	
 	if (Slot == EVGEquipmentSlot::RightHand || Slot == EVGEquipmentSlot::BothHands)
 	{
-		if (CombatComponent)
-		{
-			CombatComponent->SetActiveCombatData(nullptr, nullptr);
-		}
+		CombatComponent->SetActiveCombatData(nullptr, nullptr);
+	}
+	if (Slot == EVGEquipmentSlot::LeftHand || Slot == EVGEquipmentSlot::BothHands)
+	{
+		CombatComponent->SetActiveShieldData(nullptr);
 	}
 }

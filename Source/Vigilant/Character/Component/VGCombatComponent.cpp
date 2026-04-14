@@ -443,12 +443,19 @@ void UVGCombatComponent::TryStartBlock()
 			return;
 		}
 	}
+
+	UVGShieldDataAsset* Data = GetCurrentShieldData();
+
+	if (!Data || !Data->BlockMontage)
+	{
+		return;
+	}
 	
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
-	UVGShieldDataAsset* Data = GetCurrentShieldData();
-	
-	if (OwnerCharacter && Data && Data->BlockMontage)
+	if (OwnerCharacter)
 	{
+		// TODO: 스태미나 검사 추가
+		
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
 		if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
 		{
@@ -461,7 +468,7 @@ void UVGCombatComponent::TryStopBlock()
 {
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	UVGShieldDataAsset* Data = GetCurrentShieldData();
-	
+
 	if (OwnerCharacter && Data && Data->BlockMontage)
 	{
 		OwnerCharacter->StopAnimMontage(Data->BlockMontage);
@@ -476,7 +483,7 @@ void UVGCombatComponent::Server_StartBlock_Implementation()
 {
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	UVGShieldDataAsset* Data = GetCurrentShieldData();
-	
+
 	if (OwnerCharacter && Data && Data->BlockMontage)
 	{
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
@@ -494,7 +501,7 @@ void UVGCombatComponent::Server_StopBlock_Implementation()
 {
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	UVGShieldDataAsset* Data = GetCurrentShieldData();
-	
+
 	if (OwnerCharacter && Data && Data->BlockMontage)
 	{
 		OwnerCharacter->StopAnimMontage(Data->BlockMontage);
