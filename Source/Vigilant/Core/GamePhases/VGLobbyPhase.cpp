@@ -6,10 +6,6 @@ void UVGLobbyPhase::EnterPhase()
 {
 	Super::EnterPhase();
 	
-	if (GameModeRef)
-	{
-		GameModeRef->ResetGameStatus();
-	}
 	UE_LOG(LogTemp, Warning, TEXT("[VGLobbyPhase] 로비 페이즈 진입"));
 }
 
@@ -21,9 +17,9 @@ void UVGLobbyPhase::ExitPhase()
 
 void UVGLobbyPhase::ExecutePhaseResult()
 {
-	if (GameModeRef && NextPhaseClass)
+	if (GameModeRef)
 	{
-		GameModeRef->TransitionToPhase(NextPhaseClass);
+		GameModeRef->NotifyPhaseCompleted(this);
 	}
 }
 

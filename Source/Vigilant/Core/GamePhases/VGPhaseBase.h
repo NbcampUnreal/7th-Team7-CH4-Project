@@ -23,6 +23,9 @@ protected:
 	FTimerHandle PhaseTimerHandle;
 	
 public:
+	
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = "Vigilant|Phase")
+	TSubclassOf<class UVGPhaseBase> NextPhaseClass;
 	// 현재 페이즈 표시용
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vigilant|Phase")
 	FGameplayTag PhaseTag;

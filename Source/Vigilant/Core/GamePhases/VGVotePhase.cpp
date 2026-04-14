@@ -33,9 +33,9 @@ void UVGVotePhase::ExitPhase()
 
 void UVGVotePhase::ExecutePhaseResult()
 {
-	if (GameModeRef && NextPhaseClass)
+	if (GameModeRef)
 	{
-		GameModeRef->TransitionToPhase(NextPhaseClass);
+		GameModeRef->NotifyPhaseCompleted(this);
 	}
 }
 

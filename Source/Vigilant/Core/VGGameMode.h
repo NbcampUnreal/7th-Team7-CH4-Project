@@ -40,7 +40,23 @@ protected:
 	// 이미 게임이 시작되었는지 체크용
 	bool bGameHasStarted = false;
 	
+	virtual void PreLogin(
+		const FString& Options,
+		const FString& Address,
+		const FUniqueNetIdRepl& UniqueId,
+		FString& ErrorMessage) override;
+	
+	// 6개의 슬롯이 찼는지 아닌지 체크하는 용도
+	bool bSlotOccupied[6] = { false, };
+	
+	// 게임 한 사이클이 종료되었을 때 호출될 함수
+	void HandleMatchFinished();
+	
+	int32 AssignPlayerSlot(class AVGPlayerState* VGPlayerState);
+	
 public:
+	
+	AVGGameMode();
 	
 	void ClearDuelParticipants();
 	
@@ -51,6 +67,11 @@ public:
 	int32 MinimumPlayersNeeded = 2;
 	
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual FString InitNewPlayer(
+		APlayerController* NewPlayerController,
+		const FUniqueNetIdRepl& UniqueId,
+		const FString& Options,
+		const FString& Portal = TEXT("")) override;
 	virtual void PostLogin(APlayerController *NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	
@@ -63,12 +84,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void PopPhase();
 	
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void CheckWinCondition();
-	void ResetGameStatus();
 
 	void StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target);
 	
 	void CheckAllPlayersReady();
+	// 페이즈가 종료될 때 호출될 함수
+	void NotifyPhaseCompleted(class UVGPhaseBase* CompletedPhase);
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void AssignRolesAndStartGame();

@@ -15,6 +15,11 @@
 #include "Mission/VGMissionSubsystem.h"
 
 
+AVGGameMode::AVGGameMode()
+{
+	bUseSeamlessTravel = true;
+}
+
 void AVGGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -33,6 +38,23 @@ void AVGGameMode::BeginPlay()
 		PushPhase(InitialPhase); 
 	}
 	
+}
+
+void AVGGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	// 게임이 이미 시작되었을 때(후에 관전자 시점으로 수정할 수도 있음)
+	if (bGameHasStarted)
+	{
+		ErrorMessage = TEXT("Game is already in progress.");
+		return;
+	}
+
+	// 서버에 이미 6명이 있을 때
+	if (ConnectedPlayerCount >= 6)
+	{
+		ErrorMessage = TEXT("Server is full (Max 6 Players).");
+		return;
+	}
 }
 
 void AVGGameMode::ClearDuelParticipants()
@@ -70,14 +92,10 @@ AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	// 현재 스폰을 기다리는 플레이어의 번호표 확인
 	if (AVGPlayerState* VGPlayerState = Player->GetPlayerState<AVGPlayerState>())
 	{
-		if (VGPlayerState->EntryIndex == 0)
-		{
-			ConnectedPlayerCount++;
-			VGPlayerState->EntryIndex = ConnectedPlayerCount;
-			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 플레이어 번호 발급 완료: %d번"), VGPlayerState->EntryIndex);
-		}
-		// 내 번호표에 맞는 PlayerStart를 찾아 엔진에게 넘겨줌
-		if (APlayerStart** FoundStart = CachedJailSpawns.Find(VGPlayerState->EntryIndex))
+		int32 MyIndex = (VGPlayerState->EntryIndex == 0) ? AssignPlayerSlot(VGPlayerState) : VGPlayerState->EntryIndex;
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 스폰 위치 탐색 중 - 번호: %d"), MyIndex);
+        
+		if (APlayerStart** FoundStart = CachedJailSpawns.Find(MyIndex))
 		{
 			return *FoundStart;
 		}
@@ -87,29 +105,28 @@ AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
+FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options,
+	const FString& Portal)
+{
+	FString ErrorMessage = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+	
+	if (AVGPlayerState* VGPlayerState = NewPlayerController->GetPlayerState<AVGPlayerState>())
+	{
+		// 이미 부여받았어야하지만 안전을 위해 또 호출
+		AssignPlayerSlot(VGPlayerState);
+        
+		FString PlayerName = UGameplayStatics::ParseOption(Options, TEXT("Name"));
+		VGPlayerState->SetVGPlayerName(PlayerName.IsEmpty() ? TEXT("Unknown_Player") : PlayerName);
+	}
+    
+	return ErrorMessage;
+}
+
 void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	// 게임 중 유저가 들어왔을 때 예외처리
-	if (bGameHasStarted)
-	{
-		// 최대 인원(6명) 확인
-		if (GameState->PlayerArray.Num() <= 6)
-		{
-			
-			NewPlayer->StartSpectatingOnly(); 
-			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 게임 진행 중 난입: 관전자 모드 진입"));
-            
-			
-			return; 
-		}
-		else
-		{
-			// 6명을 넘으면 접속안되는 로직 추가 예정
-		}
-	}
-	
 	Super::PostLogin(NewPlayer);
 	
+	ConnectedPlayerCount++;
 	UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 플레이어 접속 완료. 배정된 번호: %d"), NewPlayer->GetPlayerState<AVGPlayerState>()->EntryIndex);
 }
 
@@ -118,6 +135,13 @@ void AVGGameMode::Logout(AController* Exiting)
 	AVGPlayerState* ExitingPlayerState = Exiting->GetPlayerState<AVGPlayerState>();
 	if (ExitingPlayerState && bGameHasStarted)
 	{
+		// 해당되는 슬롯 비우기
+		int32 ReleasedIndex = ExitingPlayerState->EntryIndex - 1;
+		if (ReleasedIndex >= 0 && ReleasedIndex < 6)
+		{
+			bSlotOccupied[ReleasedIndex] = false;
+		}
+		
 		//  나간 사람의 직업 확인
 		if (ExitingPlayerState->IsRole(VigilantRoleTags::Mafia))
 		{
@@ -130,6 +154,8 @@ void AVGGameMode::Logout(AController* Exiting)
 			// 전체 공지해야함
 		}
 	}
+	
+	ConnectedPlayerCount = FMath::Max(0, ConnectedPlayerCount - 1);
 
 	// 레디 중인 사람이 나갔을 때를 위한 체크 
 	if (!bGameHasStarted)
@@ -242,7 +268,7 @@ void AVGGameMode::CheckWinCondition()
 		WinnerTeam = VigilantRoleTags::Citizen;
 		bGameOver = true;
 	}
-	// 마피아 수가 시민 수보다 같거나 많아지면 마피아 승리
+	// 마피아 수가 시민 수보다 많아지면 마피아 승리
 	else if (AliveMafia > AliveCitizen)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("마피아 측 승리! 시민들이 제압되었습니다."));
@@ -252,60 +278,11 @@ void AVGGameMode::CheckWinCondition()
 	
 	if (bGameOver)
 	{
-
-		// 아마 여기서 승리 팀 정보 저장해서 UI에서 쓸 듯함
-
-		// 다음 페이즈로 보냄
 		if (PhaseStack.Num() > 0)
 		{
 			PhaseStack.Last()->ExecutePhaseResult();
 		}
 	}
-}
-
-void AVGGameMode::ResetGameStatus()
-{
-	// 게임모드 관리 변수 초기화
-	bGameHasStarted = false;
-	ClearDuelParticipants();
-
-	// 전광판 글로벌 수치 초기화
-	if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
-	{
-		VGGameState->BossNerfRate = 1.0f; // 보스 스탯 복구
-		// 후에 승리팀 저장되어있으면 그것도 초기화
-	}
-
-	// 전체 플레이어 개별 초기화 순회
-	for (APlayerState* PlayerState : GameState->PlayerArray)
-	{
-		AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState);
-		if (!VGPlayerState) continue;
-
-		// PlayerState 데이터 리셋
-		VGPlayerState->bIsReady = false; 
-		VGPlayerState->SecretRoleTag = FGameplayTag::EmptyTag; // 직업 압수
-		VGPlayerState->PlayerStatusTags.Reset(); // Dead, Duel 등의 상태 태그 컨테이너를 아예 깨끗하게 비움
-
-		// Character 스탯 복구 및 감옥 텔레포트
-		if (AVGCharacterBase* VGCharacter = Cast<AVGCharacterBase>(VGPlayerState->GetPawn()))
-		{
-			// 후에 캐릭터 파일 확인해서 캐릭터 스탯 및 죽음 원복
-
-			// 자기 번호표에 맞는 감옥으로 이송
-			/*
-			int32 SpawnIndex = VGPlayerState->EntryIndex - 1;
-			if (JailSpawnPoints.IsValidIndex(SpawnIndex) && JailSpawnPoints[SpawnIndex])
-			{
-				Character->SetActorLocationAndRotation(
-					JailSpawnPoints[SpawnIndex]->GetActorLocation(),
-					JailSpawnPoints[SpawnIndex]->GetActorRotation()
-				);
-			}
-			*/
-		}
-	}
-	
 }
 
 void AVGGameMode::StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target)
@@ -347,6 +324,50 @@ void AVGGameMode::CheckAllPlayersReady()
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 전원 레디 완료, 직업 분배"));
 		AssignRolesAndStartGame();
 	}
+}
+
+void AVGGameMode::NotifyPhaseCompleted(class UVGPhaseBase* CompletedPhase)
+{
+	if (CompletedPhase->PhaseTag.MatchesTag(VigilantPhaseTags::PhaseCombat)) 
+	{
+		HandleMatchFinished();
+		return;
+	}
+	
+	if (CompletedPhase->NextPhaseClass)
+	{
+		TransitionToPhase(CompletedPhase->NextPhaseClass);
+	}
+	else
+	{
+		TransitionToPhase(nullptr);
+	}
+}
+
+
+void AVGGameMode::HandleMatchFinished()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 모든 페이즈 종료. 서버 트래블 초기화 시작"));
+	GetWorld()->ServerTravel(TEXT("/Game/Vigilant/Levels/MainLevel_WP?listen"));
+}
+
+int32 AVGGameMode::AssignPlayerSlot(class AVGPlayerState* VGPlayerState)
+{
+	if (!VGPlayerState || VGPlayerState->EntryIndex > 0) return VGPlayerState ? VGPlayerState->EntryIndex : -1;
+
+	// 0 ~ 5 슬롯 중 비어있는 곳 찾기
+	for (int32 i = 0; i < 6; i++)
+	{
+		if (!bSlotOccupied[i])
+		{
+			bSlotOccupied[i] = true;
+			// 1 ~ 6 까지 숫자를 넣어야하므로 i + 1 값 대입
+			VGPlayerState->EntryIndex = i + 1; 
+			UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 실시간 번호 부여 완료: %d번"), VGPlayerState->EntryIndex);
+			return VGPlayerState->EntryIndex;
+		}
+	}
+	return -1;
 }
 
 void AVGGameMode::AssignRolesAndStartGame()
