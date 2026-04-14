@@ -50,21 +50,14 @@ void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* Targ
 		return;
 	}
 	
-	// 상호작용한 대상이 VGCharacter인지 확인
 	if (AVGCharacterBase* TargetCharacter = Cast<AVGCharacterBase>(TargetActor))
 	{
-		UE_LOG(LogTemp,Warning,TEXT("VGChacter에 들어왔는지 확인") );
-		// 자기 자신과의 상호 작용 방지용
 		if (TargetCharacter != Interactor)
 		{
-			UE_LOG(LogTemp,Warning,TEXT("자기자신 아닌지 확인") );
-			// 캐릭터에 있는 상호작용 함수 호출
 			if (AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(GetOwner()))
 			{
-				UE_LOG(LogTemp,Warning,TEXT("GetOwner 작동하는지 확인") );
 				OwnerCharacter->NotifyPlayerInteraction(TargetCharacter);
 			}
-			// 플레이어와의 상호작용만 하고 기믹 상호작용은 스킵
 			return; 
 		}
 	}
@@ -94,8 +87,7 @@ void UVGEquipmentComponent::Interact()
 		return;
 	}
 
-	// 하이라이트(가장 가까운) 된 타겟에게 상호작용 서버 요청
-	if (CurrentInteractableTarget && CurrentInteractableTarget->Implements<UVGInteractable>())
+	if (CurrentInteractableTarget)
 	{
 		Server_InteractWithActor(CurrentInteractableTarget, OwnerCharacter, CurrentInteractableTarget->GetActorTransform());
 	}
@@ -395,46 +387,38 @@ void UVGEquipmentComponent::UpdateInteractableTarget()
 	for (const FOverlapResult& Result : OverlapResults)
 	{
 		AActor* HitActor = Result.GetActor();
-    
-		// 1차: 상호작용 인터페이스가 있는지 확인
-		if (HitActor && HitActor->Implements<UVGInteractable>())
+		if (!HitActor) continue;
+
+		bool bIsValidTarget = false;
+
+		if (AVGCharacterBase* TargetCharacter = Cast<AVGCharacterBase>(HitActor))
 		{
-			bool bIsValidTarget = false;
+			if (TargetCharacter == OwnerCharacter) continue;
 
-			// 상대방이 플레이어(캐릭터)인 경우 
-			if (HitActor->IsA<AVGCharacterBase>()) 
-			{
-				// 막고라 아이템을 들고 있는지 검사 (태그나 클래스로 확인)
-				bool bHasMakgoraItem = false;
-            
-				// 양손 무기 중 막고라 전용 태그나 이름이 있는지 확인
-				if (RightHandItem && RightHandItem->ActorHasTag(FName("MakgoraItem"))) bHasMakgoraItem = true;
-				if (LeftHandItem && LeftHandItem->ActorHasTag(FName("MakgoraItem"))) bHasMakgoraItem = true;
+			bool bHasMakgoraItem = false;
+			if (RightHandItem && RightHandItem->ActorHasTag(FName("MakgoraItem"))) bHasMakgoraItem = true;
+			if (LeftHandItem && LeftHandItem->ActorHasTag(FName("MakgoraItem"))) bHasMakgoraItem = true;
 
-				// 막고라 아이템을 쥐고 있을 때만 타겟으로 인정
-				if (bHasMakgoraItem)
-				{
-					bIsValidTarget = true;
-				}
-			}
-			// 일반 상호작용 오브젝트인 경우
-			else if (HitActor->ActorHasTag(FName("InteractTarget")))
+			if (bHasMakgoraItem)
 			{
 				bIsValidTarget = true;
 			}
-
-			// 타겟으로 합격한 녀석들만 거리 계산 진행
-			if (bIsValidTarget)
+		}
+		else if (HitActor->Implements<UVGInteractable>() && HitActor->ActorHasTag(FName("InteractTarget")))
+		{
+			if (IVGInteractable::Execute_CanInteract(HitActor, OwnerCharacter))
 			{
-				if (IVGInteractable::Execute_CanInteract(HitActor, OwnerCharacter))
-				{
-					float DistSquared = FVector::DistSquared(SearchCenter, HitActor->GetActorLocation());
-					if (DistSquared < MinDistanceSquared)
-					{
-						MinDistanceSquared = DistSquared;
-						ClosestTarget = HitActor;
-					}
-				}
+				bIsValidTarget = true;
+			}
+		}
+
+		if (bIsValidTarget)
+		{
+			float DistSquared = FVector::DistSquared(SearchCenter, HitActor->GetActorLocation());
+			if (DistSquared < MinDistanceSquared)
+			{
+				MinDistanceSquared = DistSquared;
+				ClosestTarget = HitActor;
 			}
 		}
 	}

@@ -462,12 +462,6 @@ void AVGGameMode::RequestDuelPhase_Implementation(AVGCharacterBase* Challenger, 
 		if(PhaseStack.Last()->PhaseTag == VigilantPhaseTags::PhaseMission)
 		{
 			StartDuelPhase(Challenger, Target);
-			UE_LOG(LogTemp,Warning,TEXT("StartDuelPhase 함수 실행") );
-		}
-		// 디버그용
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 현재 미션 페이즈가 아니므로 막고라 요청이 무시되었습니다."));
 		}
 	}
 }

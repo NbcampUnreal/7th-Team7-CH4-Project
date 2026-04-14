@@ -25,10 +25,7 @@ public IGameplayTagAssetInterface
 
 	// Components
 protected:
-	/**
-	 * 
-	 */
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GameplayTags", meta = (AllowPrivateAccess = "true"), 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameplayTags",
 		ReplicatedUsing=OnRep_CharacterTags, meta = (AllowPrivateAccess = "true"))
 	FGameplayTagContainer CharacterTags;
 	
@@ -141,9 +138,6 @@ protected:
 	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, 
 		class AController* EventInstigator, AActor* DamageCauser) override;
-	
-	UFUNCTION(Server, Reliable)
-	void ServerRPCSetSprinting(bool bIsSprinting);
 	
 public:
 	// (이용호 추가) 플레이어간 상호작용 호출했을 때 받을 함수
