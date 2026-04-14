@@ -18,6 +18,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* ChatMessageTextBlock;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="FontsizeControll")
+	float FontSize = 20;
+	
 	UFUNCTION()
 	void SetChatMessage(const FString& Message);
 	

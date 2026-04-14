@@ -66,7 +66,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Lobby")
 	int32 MinimumPlayersNeeded = 2;
 	
+	
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+  //형백
+	//virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal = L"") override;
+  
 	virtual FString InitNewPlayer(
 		APlayerController* NewPlayerController,
 		const FUniqueNetIdRepl& UniqueId,

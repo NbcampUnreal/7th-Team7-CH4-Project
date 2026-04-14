@@ -105,6 +105,35 @@ AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
+/*
+FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId,
+	const FString& Options, const FString& Portal)
+{
+	FString ErrorMessage = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+	
+	if (!ErrorMessage.IsEmpty())
+	{
+		return ErrorMessage;
+	}
+
+	// 2. Options 문자열에서 "Name" 키값을 파싱
+	FString ParsedName = UGameplayStatics::ParseOption(Options, TEXT("VGName"));
+    
+	if (!ParsedName.IsEmpty())
+	{
+		// 3. PlayerController를 통해 PlayerState를 가져와 이름 세팅
+		if (AVGPlayerState* VGPlayerState = NewPlayerController->GetPlayerState<AVGPlayerState>())
+		{
+			VGPlayerState->VGPlayerName = ParsedName;
+			UE_LOG(LogTemp, Log, TEXT("[VGGameMode] InitNewPlayer - 접속자 이름 설정: %s"), *ParsedName);
+		}
+	}
+
+	return ErrorMessage;
+}
+*/
+
+void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options,
 	const FString& Portal)
 {

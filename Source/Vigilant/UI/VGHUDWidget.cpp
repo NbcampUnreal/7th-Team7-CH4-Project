@@ -3,8 +3,20 @@
 
 #include "VGHUDWidget.h"
 
+#include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
+
+void UVGHUDWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+	
+	if (ReadyButton)
+	{
+		ReadyButton->OnClicked.AddDynamic(this, &UVGHUDWidget::OnReadyButtonClicked);
+		
+	}
+}
 
 void UVGHUDWidget::UpdateStaminaUI(float NewValue, float MaxValue)
 {
@@ -36,6 +48,10 @@ void UVGHUDWidget::UpdateHealthUI(float NewValue, float MaxValue)
 	}
 }
 
+void UVGHUDWidget::UpdateMissionUI(float NewValue, float MaxValue)
+{
+}
+
 void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 {
 	if (GlowingFrame &&NormalFrame)
@@ -55,6 +71,12 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 			// 미래에 마피아 3번째 슬롯이 생긴다면 여기에 작성	
 		}
 	}
+}
+
+void UVGHUDWidget::OnReadyButtonClicked()
+{
+	UE_LOG(LogTemp, Warning, TEXT("버튼 누름"));
+	OnReadyDelegate.Broadcast(true);
 }
 	
 

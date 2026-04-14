@@ -12,6 +12,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChatMessageRequestedSignature, co
 // (이용호 추가) 투표 전달용
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVoteRequestedSignature, int32, TargetIndex);
 
+//플레이어 컨트롤러에 전달할 델리게이트
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUIOnPlayerReadySignature, bool, bReady);
+
 class UVGPopupWidget;
 class UVGVoteWidget;
 class UVGHUDWidget;
@@ -50,7 +53,10 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	UFUNCTION()
 	void EquipSlotChanged(int32 SlotIndex);
 	
+	UFUNCTION()
+	void RelayReadyEvent(bool bReady);
 	
+	FUIOnPlayerReadySignature OnPlayerReadySignature;
 #pragma region 위젯 생성과 표시, 숨김
 	void CreateHUDWidget();
 	void CreateVoteWidget();
