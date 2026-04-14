@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/GameStateBase.h"
 #include "GameFramework/GameModeBase.h"
 #include "DrawDebugHelpers.h"
 #include "Common/VGGameplayTags.h"
@@ -160,6 +161,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge))
+	{
+		return;
+	}
+	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -305,17 +311,57 @@ void AVGCharacterBase::OnRep_CharacterTags()
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                    class AController* EventInstigator, AActor* DamageCauser)
 {
-	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-
+	// 1. 무적 상태 확인
 	if (CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
-		//구르기 무적
-		ActualDamage = 0;
-		return ActualDamage;
+		return 0.0f;
 	}
 
-	if (StatComponent)
+	// 공격자->방어자 방향 계산
+	FVector PushDirection = FVector::ZeroVector;
+	if (DamageCauser)
+	{
+		PushDirection = GetActorLocation() - DamageCauser->GetActorLocation();
+		PushDirection.Z = 0.0f;
+		PushDirection.Normalize();
+	}
+
+	// 2. 미션 페이즈: 데미지 적용 X, 밀치기 O
+	if (AGameStateBase* GameState = GetWorld()->GetGameState())
+	{
+		if (IGameplayTagAssetInterface* GameStateTag = Cast<IGameplayTagAssetInterface>(GameState))
+		{
+			if (GameStateTag->HasMatchingGameplayTag(VigilantPhaseTags::PhaseMission) || GameStateTag->
+				HasMatchingGameplayTag(VigilantPhaseTags::PhaseLobby))
+			{
+				ApplyStagger(PushDirection, 800.0f);
+				return 0.0f;
+			}
+		}
+	}
+
+	// 3. 패리 확인
+	if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
+	{
+		if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+		{
+			FVector ReversePushDirection = -PushDirection;
+			Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+		}
+		// TODO: SFX, VFX 추가
+		return 0.0f;
+	}
+
+	// 4. 일반 가드 확인
+	if (CharacterTags.HasTag(VigilantCharacter::Guard))
+	{
+		// TODO: Shield의 데이터에셋에서 읽어오기
+		DamageAmount *= 0.5f;
+	}
+
+	// 피해 적용
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	if (StatComponent && ActualDamage > 0.f)
 	{
 		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
 	}
@@ -337,7 +383,47 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 	}
 }
 
+bool AVGCharacterBase::CanInteract_Implementation(AActor* Interactor) const
+{
+	return true;
+}
 
+void AVGCharacterBase::OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform)
+{
+	if (!HasAuthority()) return;
+
+	if (AVGCharacterBase* VGChallenger = Cast<AVGCharacterBase>(Interactor))
+	{
+		VGChallenger->NotifyPlayerInteraction(this);
+	}
+}
+
+void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	LaunchCharacter(PushDirection * KnockbackForce, true, true);
+	Multicast_PlayStaggerVisual();
+}
+
+void AVGCharacterBase::Multicast_PlayStaggerVisual_Implementation()
+{
+	StopAnimMontage();
+	if (CombatComponent)
+	{
+		CombatComponent->StopAttackExecution();
+	}
+
+	if (StaggerMontage)
+	{
+		PlayAnimMontage(StaggerMontage);
+	}
+
+	// TODO: Stunned 태그 적용, 이동 및 공격 할 수 없도록
+}
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 {

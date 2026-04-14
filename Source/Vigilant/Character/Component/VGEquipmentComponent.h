@@ -19,7 +19,7 @@ enum class EVGEquipmentSlot : uint8
 };
 
 // 아이템 장착 시 어느 슬롯에 어떤 아이템이 들어왔는지 방송
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemEquippedSignature, EVGEquipmentSlot, Slot, class AVGEquippableActor*, EquippedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnItemEquippedSignature, EVGEquipmentSlot, Slot, UVGEquipmentDataAsset*, EquipmentData, UMeshComponent*, EquippedMesh);
 // 아이템 해제 시 어느 슬롯이 비었는지 방송
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemDroppedSignature, EVGEquipmentSlot, Slot);
 // 어떤 슬롯이 활성화 되었는지 방송, 활성화 될때마다 캐스트

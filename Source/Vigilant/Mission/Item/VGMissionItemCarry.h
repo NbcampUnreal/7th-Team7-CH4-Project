@@ -6,6 +6,16 @@
 
 class AVGMissionGimmickBase;
 
+USTRUCT()
+struct VIGILANT_API FVGCarryPlaceInfo
+{
+	GENERATED_BODY()
+	
+public:
+	TObjectPtr<AActor> AttachmentTargetActor;
+	FVector RelativeLocation;
+};
+
 UCLASS()
 class VIGILANT_API AVGMissionItemCarry : public AVGMissionItemBase
 {
@@ -19,20 +29,11 @@ public:
 	
 	// 목표 위치에 놓였을 때 호출 — Gimmick에서 호출
 	void PlaceOnTarget(AVGMissionGimmickBase* TargetGimmick, FVector TargetRelativeLocation);
-	
+
 	UFUNCTION()
-	void OnRep_AttachmentTargetActor();
-	UFUNCTION()
-	void OnRep_AttachmentRelativeLocation();
+	void OnRep_PlaceInfo();
 	
 protected:
-	virtual void OnRep_Carrier() override;
-	
-protected:
-	UPROPERTY(ReplicatedUsing=OnRep_AttachmentTargetActor)
-	TObjectPtr<AActor> AttachmentTargetActor;
-	
-	UPROPERTY(ReplicatedUsing=OnRep_AttachmentRelativeLocation)
-	FVector AttachmentRelativeLocation;
-	
+	UPROPERTY(ReplicatedUsing=OnRep_PlaceInfo)
+	FVGCarryPlaceInfo PlaceInfo;
 };

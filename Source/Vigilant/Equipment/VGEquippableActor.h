@@ -13,6 +13,8 @@ class VIGILANT_API AVGEquippableActor : public AVGInteractableActorBase
 	
 public:
 	AVGEquippableActor();
+	
+	virtual UMeshComponent* GetItemMesh() const { return nullptr; }
 
 protected:
 	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;

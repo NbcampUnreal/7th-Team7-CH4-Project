@@ -86,7 +86,7 @@ protected:
 	void OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled = false);
 	
 	UFUNCTION()
-	void HandleItemEquipped(EVGEquipmentSlot Slot, AVGEquippableActor* EquippedItem);
+	void HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent * EquippedMesh);
 	
 	UFUNCTION()
 	void HandleItemDropped(EVGEquipmentSlot Slot);

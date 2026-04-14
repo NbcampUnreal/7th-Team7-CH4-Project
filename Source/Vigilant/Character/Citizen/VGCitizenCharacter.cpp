@@ -2,15 +2,13 @@
 
 
 #include "Character/Citizen/VGCitizenCharacter.h"
-#include "Character/Component/VGEquipmentComponent.h"
-#include "EnhancedInputComponent.h"
 #include "DrawDebugHelpers.h"
+#include "EnhancedInputComponent.h"
 #include "Character/Component/VGCombatComponent.h"
+#include "Character/Component/VGEquipmentComponent.h"
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Data/VGWeaponDataAsset.h"
-#include "Equipment/VGEquippableActor.h"
-#include "Equipment/VGWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 
@@ -134,11 +132,6 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 
 void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge))
-	{
-		return;
-	}
-
 	Super::Move(Value);
 }
 
@@ -239,23 +232,18 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 	}
 }
 
-void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, AVGEquippableActor* EquippedItem)
+void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent * EquippedMesh)
 {
-	if (!EquippedItem || !EquippedItem->EquipmentData)
+	if (!EquipmentData)
 	{
 		return;
 	}
 	
-	if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(EquippedItem->EquipmentData))
+	if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(EquipmentData))
 	{
 		if (CombatComponent)
 		{
-			UMeshComponent* TraceMesh = nullptr;
-			if (AVGWeapon* Weapon = Cast<AVGWeapon>(EquippedItem))
-			{
-				TraceMesh = Weapon->GetWeaponMesh();
-			}
-			CombatComponent->SetActiveCombatData(WeaponData, TraceMesh);
+			CombatComponent->SetActiveCombatData(WeaponData, EquippedMesh);
 		}
 	}
 }
