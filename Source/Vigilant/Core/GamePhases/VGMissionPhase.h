@@ -12,9 +12,6 @@ class VIGILANT_API UVGMissionPhase : public UVGPhaseBase
 	
 public:
 	
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = "Vigilant|Phase")
-	TSubclassOf<class UVGPhaseBase> NextPhaseClass;
-	
 	virtual void EnterPhase() override;
 	virtual void ExitPhase() override;
 	
