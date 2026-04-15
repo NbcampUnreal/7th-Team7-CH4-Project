@@ -262,13 +262,12 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 		// 플레이어 중심에서 손 방향으로 구를 굴려 중간에 장애물(벽)이 있는지 검사
 		if (GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, Sphere, QueryParams))
 		{
-			// 2. 장애물이 있다면: 캐릭터 발밑으로 위치 변경
+			// 장애물이 있다면 캐릭터 발밑으로 위치 변경
 			float HalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
             
-			// 중심(Waist)에서 캡슐의 절반 높이만큼 내리면 정확히 발바닥. 바닥 뚫림 방지를 위해 위로 살짝(10.0f) 띄움
+			// 바닥 뚫림 방지를 위해 위로 살짝 띄움
 			SafeDropLocation = StartLocation - FVector(0.0f, 0.0f, HalfHeight - 10.0f);
-
-			// 발밑에 버릴 때는 무기가 바닥을 찌르지 않도록 평행하게(Pitch, Roll = 0) 눕혀줌
+			
 			DropRotation = FRotator(0.0f, OwnerCharacter->GetActorRotation().Yaw, 0.0f);
 		}
 	}

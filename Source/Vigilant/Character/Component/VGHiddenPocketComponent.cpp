@@ -31,12 +31,12 @@ void UVGHiddenPocketComponent::TogglePocket()
 	AVGPlayerState* PlayerState = OwnerPawn->GetPlayerState<AVGPlayerState>();
 	if (!PlayerState) return;
 	
-	// FGameplayTag MafiaTag = FGameplayTag::RequestGameplayTag(FName("Mafia"));
-	// // 마피아 태그가 없다면 아무 동작도 하지 않고 바로 종료
-	// if (!PlayerState->HasPlayerTag(MafiaTag))
-	// {
-	// 	return; 
-	// }
+	FGameplayTag MafiaTag = FGameplayTag::RequestGameplayTag(FName("Mafia"));
+	// 마피아 태그가 없다면 아무 동작도 하지 않고 바로 종료
+	if (!PlayerState->HasPlayerTag(MafiaTag))
+	{
+		return; 
+	}
 	
 	// 이미 주머니에 무언가 있다면 -> 버리기 로직
 	if (HiddenItem != nullptr)
