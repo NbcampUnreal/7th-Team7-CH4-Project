@@ -382,9 +382,7 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 
 	// Validation
 	float Distance = FVector::Distance(Owner->GetActorLocation(), HitActor->GetActorLocation());
-	float MaxAllowedDistance = 300.0f;
-
-	if (Distance <= MaxAllowedDistance)
+	if (Distance <= Data->MaxAttackRange)
 	{
 		UGameplayStatics::ApplyDamage
 		(
@@ -462,8 +460,6 @@ void UVGCombatComponent::TryStartBlock()
 		{
 			return;
 		}
-
-		// TODO: 스태미나 검사 추가
 
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
 		if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
