@@ -97,23 +97,20 @@ void UVGMissionPhase::OnMissionCleared(float TimeReducedAmount)
 		
 		float RemainingTime = VGGameState->GetRemainingPhaseTime();
 		
+		GameModeRef->GetWorldTimerManager().ClearTimer(PhaseTimerHandle);
+		
 		if (RemainingTime <= 0.0f)
 		{
-			if (GameModeRef)
-			{
-				GameModeRef->GetWorldTimerManager().ClearTimer(PhaseTimerHandle);
 				OnMissionTimeUp();
-			}
-			else if (GameModeRef)
-			{
-				GameModeRef->GetWorldTimerManager().SetTimer(
-				PhaseTimerHandle,
-				this,
-				&UVGMissionPhase::OnMissionTimeUp,
-				RemainingTime,
-				false);
-			}
-			
+		}
+		else
+		{
+			GameModeRef->GetWorldTimerManager().SetTimer(
+			PhaseTimerHandle,
+			this,
+			&UVGMissionPhase::OnMissionTimeUp,
+			RemainingTime,
+			false);
 		}
 	}
 }
