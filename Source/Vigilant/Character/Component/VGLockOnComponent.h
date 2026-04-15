@@ -31,8 +31,10 @@ protected:
 	TArray<AActor*> LockOnTargetList;
 	
 	TObjectPtr<UUserWidget> LockOnWidgetInstance;
-	float CameraInterpSpeed;
-
+	
+	
+	UPROPERTY(EditAnywhere, Category = "LockOn")
+	float CameraInterpSpeed = 10.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float MaxLockOnDistance = 2000.0f;
