@@ -1,20 +1,20 @@
 #include "Character/VGCharacterBase.h"
-#include "Camera/CameraComponent.h"
-#include "EnhancedInputComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/GameStateBase.h"
-#include "GameFramework/GameModeBase.h"
 #include "DrawDebugHelpers.h"
+#include "EnhancedInputComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Character/Component/VGHiddenPocketComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
 #include "Component/VGStatComponent.h"
+#include "Core/Interface/VGGameModeInterface.h"
 #include "Engine/DamageEvents.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
-#include "Core/Interface/VGGameModeInterface.h"
-
 
 #pragma region Interfaces GameplayTag
 void AVGCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -38,7 +38,8 @@ AVGCharacterBase::AVGCharacterBase()
 	  MoveAction(nullptr),
 	  LookAction(nullptr),
 	  SprintAction(nullptr),
-	  CameraZoomAction(nullptr)
+	  CameraZoomAction(nullptr),
+      HiddenPocketAction(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -64,6 +65,8 @@ AVGCharacterBase::AVGCharacterBase()
 
 	// create the stat component
 	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
+	
+	HiddenPocketComponent = CreateDefaultSubobject<UVGHiddenPocketComponent>(TEXT("HiddenPocketComponent"));
 }
 
 void AVGCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -153,6 +156,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::HeavyAttack);
 			}
+		}
+		
+		if (HiddenPocketAction)
+		{
+			EnhancedInput->BindAction(HiddenPocketAction, ETriggerEvent::Started, this, &AVGCharacterBase::HiddenPocketToggle);
 		}
 	}
 }
@@ -302,6 +310,14 @@ void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 	if (CombatComponent)
 	{
 		CombatComponent->TryHeavyAttack();
+	}
+}
+
+void AVGCharacterBase::HiddenPocketToggle(const FInputActionValue& Value)
+{
+	if (HiddenPocketComponent)
+	{
+		HiddenPocketComponent->TogglePocket();
 	}
 }
 
