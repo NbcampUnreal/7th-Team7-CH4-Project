@@ -157,7 +157,13 @@ void AVGCitizenCharacter::StartBlock(const FInputActionValue& Value)
 		return;
 	}
 	
-	if (StatComponent->GetCurrentStamina() < 20.0f)
+	UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData();
+	if (!ShieldData)
+	{
+		return;
+	}
+	
+	if (StatComponent->GetCurrentStamina() < ShieldData->BlockActivationStaminaCost)
 	{
 		// TODO: SFX 적용
 		return;
@@ -330,15 +336,21 @@ void AVGCitizenCharacter::CheckGuardBreakOnStaminaChanged(float CurrentStamina, 
 
 void AVGCitizenCharacter::ApplyGuardStaminaCost(bool bIsGuarding)
 {
-	if (!HasAuthority() || !StatComponent)
+	if (!HasAuthority() || !StatComponent || !CombatComponent)
+	{
+		return;
+	}
+	
+	UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData();
+	if (!ShieldData)
 	{
 		return;
 	}
 	
 	if (bIsGuarding)
 	{
-		StatComponent->StartContinuousConsumeStamina(10.0f);
-		StatComponent->ConsumeStamina(20.f);
+		StatComponent->StartContinuousConsumeStamina(ShieldData->BlockStaminaDrainPerSecond);
+		StatComponent->ConsumeStamina(ShieldData->BlockActivationStaminaCost);
 	}
 	else
 	{

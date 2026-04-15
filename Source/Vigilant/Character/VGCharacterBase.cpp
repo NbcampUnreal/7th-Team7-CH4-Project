@@ -14,6 +14,7 @@
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
 #include "Core/Interface/VGGameModeInterface.h"
+#include "Data/VGShieldDataAsset.h"
 
 
 #pragma region Interfaces GameplayTag
@@ -366,8 +367,15 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		// --- 4. 일반 가드 확인 ---
 		if (CharacterTags.HasTag(VigilantCharacter::Guard))
 		{
-			// TODO: Shield의 데이터에셋에서 읽어오기
-			DamageAmount *= 0.5f;
+			if (!CombatComponent)
+			{
+				return 0.0f;
+			}
+			
+			if (UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData())
+			{
+				DamageAmount *= ShieldData->DamageMitigation;
+			}
 		}
 	}
 	
