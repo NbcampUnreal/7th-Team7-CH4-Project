@@ -31,13 +31,12 @@ AVGCitizenCharacter::AVGCitizenCharacter()
 void AVGCitizenCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (EquipmentComponent)
 	{
 		EquipmentComponent->OnItemEquipped.AddDynamic(this, &AVGCitizenCharacter::HandleItemEquipped);
 		EquipmentComponent->OnItemDropped.AddDynamic(this, &AVGCitizenCharacter::HandleItemDropped);
-		
-		
+
 		//컨트롤러->로컬플레이어->로컬플레이어서브시스템(UI매니저) -> HUDInstance 로 연결 바인딩
 		if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 		{
@@ -45,11 +44,16 @@ void AVGCitizenCharacter::BeginPlay()
 			{
 				if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
 				{
-					EquipmentComponent->OnEquipmentSlotChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::EquipSlotChanged);
+					EquipmentComponent->OnEquipmentSlotChanged.AddDynamic(
+						UIManager, &UVGUIManagerSubsystem::EquipSlotChanged);
 				}
 			}
 		}
-		
+	}
+
+	if (StatComponent)
+	{
+		StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCitizenCharacter::HandleGuardStamina);
 	}
 }
 
@@ -57,7 +61,6 @@ void AVGCitizenCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
-
 
 
 void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -256,13 +259,14 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 	}
 }
 
-void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent * EquippedMesh)
+void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData,
+                                             UMeshComponent* EquippedMesh)
 {
 	if (!EquipmentData || !CombatComponent)
 	{
 		return;
 	}
-	
+
 	if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(EquipmentData))
 	{
 		CombatComponent->SetActiveCombatData(WeaponData, EquippedMesh);
@@ -279,7 +283,7 @@ void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
 	{
 		return;
 	}
-	
+
 	if (Slot == EVGEquipmentSlot::RightHand || Slot == EVGEquipmentSlot::BothHands)
 	{
 		CombatComponent->SetActiveCombatData(nullptr, nullptr);
@@ -288,4 +292,26 @@ void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
 	{
 		CombatComponent->SetActiveShieldData(nullptr);
 	}
+}
+
+void AVGCitizenCharacter::HandleGuardStamina(float CurrentStamina, float MaxStamina)
+{
+	if (CurrentStamina <= 0.f && (CharacterTags.HasTag(VigilantCharacter::Guard) || CharacterTags.HasTag(
+		VigilantCharacter::PerfectGuard)))
+	{
+		if (IsLocallyControlled())
+		{
+			if (CombatComponent)
+			{
+				CombatComponent->TryStopBlock();
+			}
+		}
+		
+		if (HasAuthority())
+		{
+			StatComponent->StopContinuousConsumeStamina();
+			ApplyStagger(FVector::ZeroVector, 0.0f);
+		}
+	}
+
 }

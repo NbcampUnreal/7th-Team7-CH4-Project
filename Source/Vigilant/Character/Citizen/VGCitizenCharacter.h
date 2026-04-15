@@ -96,4 +96,7 @@ protected:
 	
 	UFUNCTION()
 	void HandleItemDropped(EVGEquipmentSlot Slot);
+	
+	UFUNCTION()
+	void HandleGuardStamina(float CurrentStamina, float MaxStamina);
 };
