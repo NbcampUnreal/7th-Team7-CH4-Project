@@ -66,6 +66,8 @@ public:
 	FOnGimmickInteracted OnGimmickInteracted;
 	
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission")
+	TObjectPtr<USceneComponent> RootComp;
 	// 오브젝트 매쉬
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;

@@ -5,14 +5,18 @@
 #include "Character/VGCharacterBase.h"
 #include "Mission/Item/VGMissionItemBase.h"
 #include "Data/VGMissionItemDataAsset.h"
+#include "Components/SceneComponent.h"
 
 AVGMissionGimmickBase::AVGMissionGimmickBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	
+	RootComp = CreateDefaultSubobject<USceneComponent>("RootComp");
+	SetRootComponent(RootComp);
+	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
-	SetRootComponent(MeshComponent);
+	MeshComponent->SetupAttachment(RootComp);
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	
 	GimmickStateTag = VigilantMissionTags::GimmickInactive;
