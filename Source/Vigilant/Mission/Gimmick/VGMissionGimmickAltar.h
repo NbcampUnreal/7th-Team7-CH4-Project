@@ -38,7 +38,6 @@ class VIGILANT_API AVGMissionGimmickAltar : public AVGMissionGimmickBase
 public:
 	AVGMissionGimmickAltar();
 
-	bool HasMatchingItemInHands(UVGEquipmentComponent* EquipComp, FGameplayTag GameplayTag) const;
 	virtual bool CanInteractWith(AActor* Interactor) const override;
 	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	

@@ -13,55 +13,6 @@ AVGMissionGimmickAltar::AVGMissionGimmickAltar()
 	GimmickTypeTag = VigilantMissionTags::AltarGimmick;
 }
 
-bool AVGMissionGimmickAltar::HasMatchingItemInHands(UVGEquipmentComponent* EquipComp, FGameplayTag RequiredItemTypeTag) const
-{
-	// public 함수이므로 EquipComp null 체크 추가
-	if (!EquipComp)
-	{
-		return false;
-	}
-	
-	if (EquipComp->LeftHandItem)
-	{
-		AVGMissionItemBase* LeftItem =
-		Cast<AVGMissionItemBase>(EquipComp->LeftHandItem);
-		if (LeftItem && LeftItem->EquipmentData)
-		{
-			if (UVGMissionItemDataAsset* ItemData 
-				= Cast<UVGMissionItemDataAsset>(LeftItem->EquipmentData))
-			{
-				if (ItemData->ItemTypeTag == RequiredItemTypeTag)
-				{
-					UE_LOG(LogTemp, Log, TEXT("[%s] Found Item - %s"), *GetName(),
-						*LeftItem->GetName());
-					return true;
-				}
-			}
-		}
-	}
-	
-	if(EquipComp->RightHandItem)
-	{
-		AVGMissionItemBase* RightItem =
-		Cast<AVGMissionItemBase>(EquipComp->RightHandItem);
-		if (RightItem && RightItem->EquipmentData)
-		{
-			if (UVGMissionItemDataAsset* ItemData 
-				= Cast<UVGMissionItemDataAsset>(RightItem->EquipmentData))
-			{
-				if (ItemData->ItemTypeTag == RequiredItemTypeTag)
-				{
-					UE_LOG(LogTemp, Log, TEXT("[%s] Found Item - %s"), *GetName(),
-						*RightItem->GetName());
-					return true;
-				}
-			}
-		}
-	}
-	
-	return false;
-}
-
 bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 {
 	if (GimmickStateTag != VigilantMissionTags::GimmickInactive)
@@ -82,7 +33,8 @@ bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 		UE_LOG(LogTemp, Error, TEXT("[%s] EquipComp is missing."), *GetName());
 		return false;
 	}
-	// 빈 슬롯 중 인터랙터 보유 아이템과 매칭되는 것이 있는지 확인
+	
+	// 비어있는 슬롯 중 인터랙터 보유 아이템과 매칭되는 것이 있는지 확인
 	for (const FVGAltarPlacementSlot& Slot : PlacementSlots)
 	{
 		if (Slot.IsOccupied())
@@ -90,9 +42,8 @@ bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 			continue;
 		}
 		
-		if (HasMatchingItemInHands(EquipComp, Slot.RequiredItemTypeTag))
+		if (FindMissionItemByTag(EquipComp, Slot.RequiredItemTypeTag))
 		{
-			UE_LOG(LogTemp, Log, TEXT("[%s] Found required item."), *GetName());
 			return true;
 		}
 	}
@@ -127,11 +78,10 @@ void AVGMissionGimmickAltar::OnInteractWith(AActor* Interactor, const FTransform
 			continue;
 		}
 		
-		bool bPlaced = TryPlaceItemToSlot(EquipComp, Slot);
-		if (bPlaced)
+		if (TryPlaceItemToSlot(EquipComp, Slot))
 		{
 			OnGimmickInteracted.Broadcast(this, Interactor);
-			break; // 한 번에 하나씩
+			break;
 		}
 	}
 	
@@ -144,41 +94,29 @@ void AVGMissionGimmickAltar::OnInteractWith(AActor* Interactor, const FTransform
 
 bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot)
 {
-	for (EVGEquipmentSlot HandSlot : 
-		 { EVGEquipmentSlot::LeftHand, EVGEquipmentSlot::RightHand })
+	// 헬퍼로 일치하는 아이템을 찾은 뒤 CarryItem으로 캐스팅
+	AVGMissionItemBase* FoundItem =
+		FindMissionItemByTag(EquipComp, Slot.RequiredItemTypeTag);
+	
+	AVGMissionItemCarry* CarryItem = Cast<AVGMissionItemCarry>(FoundItem);
+	if (!CarryItem)
 	{
-		AVGEquippableActor* HandItem = (HandSlot == EVGEquipmentSlot::LeftHand)
-			? EquipComp->LeftHandItem : EquipComp->RightHandItem;
-		if (!HandItem)
-		{
-			continue;
-		}
-		
-		AVGMissionItemCarry* CarryItem = Cast<AVGMissionItemCarry>(HandItem);
-		if (!CarryItem || !CarryItem->EquipmentData)
-		{
-			UE_LOG(LogTemp, Log, TEXT("[%s] This item isn't Carry"),*GetName());
-			continue;
-		}
-		
-		UVGMissionItemDataAsset* ItemData = Cast<UVGMissionItemDataAsset>(CarryItem->EquipmentData);
-		if (!ItemData || ItemData->ItemTypeTag != Slot.RequiredItemTypeTag)
-		{
-			UE_LOG(LogTemp, Log, TEXT("[%s] No itemData or No RequiredItemTypeTag"),*GetName());
-			continue;
-		}
-
-		EquipComp->Server_DropItem(HandSlot);
-		CarryItem->PlaceOnTarget(this, Slot.AttachOffset);
-
-		Slot.PlacedItem = CarryItem;
-		
-		UE_LOG(LogTemp, Warning, TEXT("[%s] Attach %s at %s RelativeLocation"),
-			*GetName(), *CarryItem->GetName(), *Slot.AttachOffset.ToString());
-
-		return true;
+		return false;
 	}
-	return false;
+ 
+	// 어느 손에 들고 있는지 확인해서 드롭 슬롯 결정
+	EVGEquipmentSlot HandSlot = (EquipComp->LeftHandItem == CarryItem)
+		? EVGEquipmentSlot::LeftHand
+		: EVGEquipmentSlot::RightHand;
+ 
+	EquipComp->Server_DropItem(HandSlot);
+	CarryItem->PlaceOnTarget(this, Slot.AttachOffset);
+	Slot.PlacedItem = CarryItem;
+ 
+	UE_LOG(LogTemp, Warning, TEXT("[%s] Attach %s at %s"),
+		*GetName(), *CarryItem->GetName(), *Slot.AttachOffset.ToString());
+ 
+	return true;
 }
 
 bool AVGMissionGimmickAltar::AreAllSlotsFilled() const

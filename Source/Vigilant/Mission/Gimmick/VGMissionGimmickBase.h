@@ -9,6 +9,8 @@
 #include "Interaction/VGInteractableActorBase.h"
 #include "VGMissionGimmickBase.generated.h"
 
+class AVGMissionItemBase;
+class UVGEquipmentComponent;
 // Gimmick 상태 변경 시 어떤 기믹의 상태가 외부에 변했는지 알리기
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FOnGimmickStateChanged,
@@ -47,6 +49,12 @@ public:
 	// [Fix] const 추가 - 인덱스 조회는 객체를 변경하지 않음
 	int32 GetGimmickIndex() const {return GimmickIndex;}
 
+	// 장비 컴포넌트의 양손 슬롯에서 RequiredTag와 일치하는 미션 아이템을 반환
+	// 없으면 nullptr 반환 — Chest/Altar 등 아이템 검색이 필요한 기믹에서 공통 사용
+	AVGMissionItemBase* FindMissionItemByTag(
+		UVGEquipmentComponent* EquipComp,
+		FGameplayTag RequiredTag) const;
+	
 protected:
 	UFUNCTION()
 	virtual void OnRep_GimmickStateTag();
@@ -80,7 +88,6 @@ protected:
 	UParticleSystem* ActiveParticle;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
 	UParticleSystem* CompleteParticle;
-	
-private:
-	UMaterialInstanceDynamic* DynamicMaterialInstance;
+
+	UMaterialInstanceDynamic* BodyDynMat;
 };

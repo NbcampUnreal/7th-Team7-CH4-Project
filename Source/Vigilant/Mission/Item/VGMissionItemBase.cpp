@@ -42,6 +42,26 @@ bool AVGMissionItemBase::CanInteractWith(AActor* Interactor) const
 	// 이미 사용됐거나 놓인 상태면 불가
 	if (ItemStateTag != VigilantMissionTags::ItemInactive) return false;
 
+	// 인터랙터의 장비 슬롯에 여유가 있는지 확인
+	// 슬롯이 가득 찬 상태에서 줍기를 시도하면 아이템이 장착도 안 되고
+	// Carried 상태만 되어 영구적으로 사용 불가 상태가 되는 버그 방지
+	if (Interactor)
+	{
+		UVGEquipmentComponent* EquipComp =
+			Interactor->FindComponentByClass<UVGEquipmentComponent>();
+		if (EquipComp)
+		{
+			const bool bLeftFull  = (EquipComp->LeftHandItem  != nullptr);
+			const bool bRightFull = (EquipComp->RightHandItem != nullptr);
+ 
+			// EitherHand 아이템은 양손이 모두 차 있으면 줍기 불가
+			if (bLeftFull && bRightFull)
+			{
+				return false;
+			}
+		}
+	}
+	
 	return Super::CanInteractWith(Interactor);
 }
 
