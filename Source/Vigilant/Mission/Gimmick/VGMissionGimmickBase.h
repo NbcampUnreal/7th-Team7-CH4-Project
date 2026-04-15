@@ -67,7 +67,7 @@ public:
 	
 protected:
 	// 오브젝트 매쉬
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	
 	// 기믹 현재 타입 태그
@@ -88,6 +88,20 @@ protected:
 	UParticleSystem* ActiveParticle;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
 	UParticleSystem* CompleteParticle;
-
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	FLinearColor InactiveColor = FLinearColor::White;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	FLinearColor ActiveColor = FLinearColor(0.f, 1.f, 1.f);
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	FLinearColor CompleteColor = FLinearColor::Black;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	FLinearColor InactiveEmissiveColor;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	FLinearColor ActiveEmissiveColor;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
+	FLinearColor CompleteEmissiveColor;
+	
 	UMaterialInstanceDynamic* BodyDynMat;
 };

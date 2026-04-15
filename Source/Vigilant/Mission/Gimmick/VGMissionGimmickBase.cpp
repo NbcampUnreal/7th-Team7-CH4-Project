@@ -129,15 +129,21 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 		MeshComponent->SetMaterial(0, BodyDynMat);
 	}
 	
-	FLinearColor Color = FLinearColor::White;
+	FLinearColor Color = InactiveColor;
+	FLinearColor EmissiveColor = InactiveEmissiveColor;
 	if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
 	{
-		Color = FLinearColor::Black;
+		Color = CompleteColor;
+		EmissiveColor = CompleteEmissiveColor;
+		
+		MeshComponent->SetOverlayMaterial(nullptr);
 	}
 	else if (GimmickStateTag == VigilantMissionTags::GimmickActive)
 	{
-		Color = FLinearColor(0.f, 1.f, 1.f);
+		Color = ActiveColor;
+		EmissiveColor = ActiveEmissiveColor;
 	}
 	
 	BodyDynMat->SetVectorParameterValue(TEXT("Color"), Color);
+	BodyDynMat->SetVectorParameterValue(TEXT("EmissiveColor"), EmissiveColor);
 }
