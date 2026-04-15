@@ -258,6 +258,7 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 	// 잠겨있다면 다시 잠궈주기
 	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("잠금"));
 		SetCharacterRotationState(true);
 	}
 	

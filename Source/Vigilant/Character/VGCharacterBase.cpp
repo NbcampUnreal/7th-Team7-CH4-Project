@@ -54,7 +54,7 @@ AVGCharacterBase::AVGCharacterBase()
 	CameraBoom->TargetArmLength = DefaultCameraDistance;
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->bEnableCameraLag = false;
-	CameraBoom->bEnableCameraRotationLag = true;
+	CameraBoom->bEnableCameraRotationLag = false;
 
 	// create the orbiting camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -228,6 +228,7 @@ void AVGCharacterBase::Look(const FInputActionValue& Value)
 	}
 }
 
+#pragma region 락온 관련 함수 구현
 void AVGCharacterBase::LockOn(const FInputActionValue& Value)
 {
 	// 💡 1. E키 입력이 캐릭터 본체에 도달했는지 확인
@@ -242,24 +243,35 @@ void AVGCharacterBase::LockOn(const FInputActionValue& Value)
 		UE_LOG(LogTemp, Error, TEXT("클라이언트 인스턴스(%s)의 LockOnComponent가 nullptr입니다!"), *GetName());
 	}
 }
-
+void AVGCharacterBase::Server_SetLockOnTag_Implementation(bool bIsLockedOn)
+{
+	if (bIsLockedOn)
+	{
+		CharacterTags.AddTag(VigilantCharacter::LockOn);
+	}
+	else
+	{
+		CharacterTags.RemoveTag(VigilantCharacter::LockOn);
+	}
+}
 void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
 {
 	if (NewTarget)
 	{
 		// 락온 성공 시
 		CharacterTags.AddTag(VigilantCharacter::LockOn);
-		
+		Server_SetLockOnTag(true);
 		SetCharacterRotationState(true); // 락온용 회전 상태 
 	}
 	else
 	{
 		// 락온 해제 시
 		CharacterTags.RemoveTag(VigilantCharacter::LockOn);
-		
+		Server_SetLockOnTag(false);
 		SetCharacterRotationState(false); // 일반 이동용 회전 상태
 	}
 }
+#pragma endregion
 
 #pragma region 스프린트 관련 함수 구현
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
@@ -277,7 +289,7 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 	// 잠겨있다면 잠시 풀기
 	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
 	{
-		SetCharacterRotationState(false);
+		//SetCharacterRotationState(false);
 	}
 	
 	bWantsToSprint = true;
@@ -291,7 +303,8 @@ void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 	//회전잠금해제
 	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
 	{
-		SetCharacterRotationState(true);
+		UE_LOG(LogTemp, Warning, TEXT("잠금"));
+		//SetCharacterRotationState(true);
 	}
 	
 	bWantsToSprint = false;
@@ -506,6 +519,10 @@ void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 void AVGCharacterBase::SetCharacterRotationState(bool bIsLockedOn)
 {
 	// 캐릭터의 bOrientRotationToMovement 등을 상황에 맞게 전환
+	// 누가 언제 이 함수를 호출하는지 추적
+	UE_LOG(LogTemp, Warning, TEXT("[%s] SetCharacterRotationState 호출됨! 변경된 값: %s"), 
+		*GetName(), bIsLockedOn ? TEXT("TRUE") : TEXT("FALSE"));
+	
 	GetCharacterMovement()->bOrientRotationToMovement = !bIsLockedOn;
 	bUseControllerRotationYaw = bIsLockedOn;
 }

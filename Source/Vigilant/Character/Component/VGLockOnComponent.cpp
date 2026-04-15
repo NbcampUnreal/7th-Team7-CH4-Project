@@ -149,7 +149,7 @@ void UVGLockOnComponent::LockOnPerform()
 	if (!OwnerPawn)
 	{
 		// 2. 캐스팅 실패 확인
-		UE_LOG(LogTemp, Error, TEXT("[LockOnPerform] ❌ 실패: GetOwner()를 APawn으로 캐스팅할 수 없습니다."));
+		UE_LOG(LogTemp, Error, TEXT("[LockOnPerform] 실패: GetOwner()를 APawn으로 캐스팅할 수 없습니다."));
 		return;
 	}
     if (OwnerPawn->IsLocallyControlled())
@@ -163,7 +163,7 @@ void UVGLockOnComponent::LockOnPerform()
 	if (!Cast<APlayerController>(OwnerPawn->GetController()))
 	{
 		// 3. 컨트롤러(빙의 상태) 확인
-		UE_LOG(LogTemp, Error, TEXT("[LockOnPerform] ❌ 실패: [%s] 액터가 GetController() == nullptr 상태입니다. (빙의되지 않음)"), *OwnerPawn->GetName());
+		UE_LOG(LogTemp, Error, TEXT("[LockOnPerform] 실패: [%s] 액터가 GetController() == nullptr 상태입니다. (빙의되지 않음)"), *OwnerPawn->GetName());
 		return;
 	}
     
