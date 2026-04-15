@@ -77,6 +77,10 @@ public:
 	void DropItem();
 	void SelectSlot(float SlotNumber);
 	
+	// 다른 컴포넌트에서 현재 하이라이트된 타겟을 가져가기 위한 Getter
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	AActor* GetCurrentInteractableTarget() const { return CurrentInteractableTarget; }
+	
 protected:
 	UFUNCTION()
 	void OnRep_LefthandItem(AVGEquippableActor* OldItem);

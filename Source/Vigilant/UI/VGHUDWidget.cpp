@@ -13,7 +13,7 @@ void UVGHUDWidget::NativeConstruct()
 	
 	if (ReadyButton)
 	{
-		ReadyButton->OnClicked.AddDynamic(this, &UVGHUDWidget::OnReadyButtonClicked);
+		ReadyButton->OnClicked.AddUniqueDynamic(this, &UVGHUDWidget::OnReadyButtonClicked);
 		
 	}
 }

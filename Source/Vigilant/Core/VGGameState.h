@@ -53,6 +53,9 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Time")
 	float PhaseEndTime;
 	
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Time")
+	float PhaseStartTime;
+	
 	// 미션 페이즈 결과에 따른 보스 스탯 배율
 	UPROPERTY(ReplicatedUsing = OnRep_BossNerfRate, BlueprintReadOnly, Category = "Vigilant|Stats")
 	float BossNerfRate;
@@ -60,6 +63,10 @@ public:
 	// UI에서 사용할 남은 시간 구하는 함수
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Vigilant|Time")
 	float GetRemainingPhaseTime() const;
+	
+	// 현재까지 경과된 시간 계산
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Time")
+	float GetElapsedTime() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tag")
     void SetCurrentPhaseTag(FGameplayTag NewTag);
