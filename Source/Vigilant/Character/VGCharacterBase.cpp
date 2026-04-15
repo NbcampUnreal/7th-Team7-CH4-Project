@@ -388,6 +388,26 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 	}
 }
 
+void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
+{
+	// z값 제외 전부 무시
+	FRotator SafeRotation = FRotator(0.0f, NewRotation.Yaw, 0.0f);
+
+	// 물리 충돌 무시
+	SetActorRotation(SafeRotation, ETeleportType::TeleportPhysics);
+
+	// 카메라 회전
+	if (AController* PlayerController = GetController())
+	{
+		PlayerController->SetControlRotation(SafeRotation);
+	}
+	// 관성 삭제
+	if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		CharacterMovementComponent->Velocity = FVector::ZeroVector;
+	}
+}
+
 bool AVGCharacterBase::CanInteract_Implementation(AActor* Interactor) const
 {
 	return true;

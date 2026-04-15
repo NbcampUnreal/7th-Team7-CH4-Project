@@ -151,6 +151,9 @@ public:
 	// (이용호 추가) 플레이어간 상호작용 호출했을 때 받을 함수
 	void NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer);
 	
+	UFUNCTION(Client, Reliable)
+	void Client_ForceRotation(FRotator NewRotation);
+	
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
 	
