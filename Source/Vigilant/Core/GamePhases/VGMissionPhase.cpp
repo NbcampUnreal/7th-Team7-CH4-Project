@@ -8,7 +8,14 @@ void UVGMissionPhase::EnterPhase()
 	Super::EnterPhase();
 	UE_LOG(LogTemp, Warning, TEXT("[VGMissionPhase] 미션 페이즈가 시작"));
 	
-	// 테스트용 타이머
+	if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
+	{
+		// 서버 기준 시작 시간 저장
+		VGGameState->PhaseStartTime = VGGameState->GetServerWorldTimeSeconds();
+		// 서버 기준 페이즈 끝 시간 저장
+		VGGameState->PhaseEndTime = VGGameState->PhaseStartTime + PhaseDuration;
+	}
+	
 	if (GameModeRef)
 	{
 		GameModeRef->GetWorldTimerManager().SetTimer(
