@@ -5,14 +5,18 @@
 #include "Character/VGCharacterBase.h"
 #include "Mission/Item/VGMissionItemBase.h"
 #include "Data/VGMissionItemDataAsset.h"
+#include "Components/SceneComponent.h"
 
 AVGMissionGimmickBase::AVGMissionGimmickBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	
+	RootComp = CreateDefaultSubobject<USceneComponent>("RootComp");
+	SetRootComponent(RootComp);
+	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
-	SetRootComponent(MeshComponent);
+	MeshComponent->SetupAttachment(RootComp);
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	
 	GimmickStateTag = VigilantMissionTags::GimmickInactive;
@@ -129,15 +133,21 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 		MeshComponent->SetMaterial(0, BodyDynMat);
 	}
 	
-	FLinearColor Color = FLinearColor::White;
+	FLinearColor Color = InactiveColor;
+	FLinearColor EmissiveColor = InactiveEmissiveColor;
 	if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
 	{
-		Color = FLinearColor::Black;
+		Color = CompleteColor;
+		EmissiveColor = CompleteEmissiveColor;
+		
+		MeshComponent->SetOverlayMaterial(nullptr);
 	}
 	else if (GimmickStateTag == VigilantMissionTags::GimmickActive)
 	{
-		Color = FLinearColor(0.f, 1.f, 1.f);
+		Color = ActiveColor;
+		EmissiveColor = ActiveEmissiveColor;
 	}
 	
 	BodyDynMat->SetVectorParameterValue(TEXT("Color"), Color);
+	BodyDynMat->SetVectorParameterValue(TEXT("EmissiveColor"), EmissiveColor);
 }
