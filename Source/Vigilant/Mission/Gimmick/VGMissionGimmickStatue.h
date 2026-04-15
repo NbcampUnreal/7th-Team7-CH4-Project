@@ -37,16 +37,16 @@ private:
 
 public:
 	// 한 번 상호작용 시 회전하는 각도 (에디터 지정, 기본 90도)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Statue")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
 	float RotateStep = 90.f;
 
 	// 허용 오차 범위
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Statue")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
 	float AngleTolerance = 2.f;
 
 protected:
 	// 시작 각도 — 리셋용
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
 	float InitialAngle = 0.f;
 
 	// 정답 각도 — 에디터 지정

@@ -4,6 +4,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Character/VGCharacterBase.h"
+#include "Components/ArrowComponent.h"
 
 AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 {
@@ -12,6 +13,8 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	bReplicates = true;
 	GimmickTypeTag = VigilantMissionTags::StatueGimmick;
+	
+	
 }
 
 bool AVGMissionGimmickStatue::CanInteractWith(AActor* Interactor) const
@@ -47,7 +50,8 @@ void AVGMissionGimmickStatue::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SetActorRotation(FRotator(0,InitialAngle,0));
+	InitialAngle = GetActorRotation().Yaw;
+	// SetActorRotation(FRotator(0,InitialAngle,0));
 }
 
 void AVGMissionGimmickStatue::Tick(float DeltaTime)
