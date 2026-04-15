@@ -93,15 +93,15 @@ void AVGMissionGimmickStatue::RotateToTarget(float DeltaTime)
 		SetActorRotation(Target);
 		SetActorTickEnabled(false);
 		
+		// 서버에서만 정답 체크
 		if (HasAuthority())
 		{
-			if (IsAtAnswerAngle())
+			if (IsAtAnswerAngle() && !bIsOnAnswerStop)
 			{
 				SetStateTag(VigilantMissionTags::GimmickCompleted);
 			}
 			else
 			{
-				// 서버에서만 정답 체크
 				SetStateTag(VigilantMissionTags::GimmickInactive);
 			}
 		}
