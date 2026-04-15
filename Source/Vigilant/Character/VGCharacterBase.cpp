@@ -216,6 +216,10 @@ void AVGCharacterBase::StopJump(const FInputActionValue& Value)
 
 void AVGCharacterBase::Look(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		return;
+	}
 	if (GetController() != nullptr)
 	{
 		const FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -245,12 +249,14 @@ void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
 	{
 		// 락온 성공 시
 		CharacterTags.AddTag(VigilantCharacter::LockOn);
+		
 		SetCharacterRotationState(true); // 락온용 회전 상태 
 	}
 	else
 	{
 		// 락온 해제 시
 		CharacterTags.RemoveTag(VigilantCharacter::LockOn);
+		
 		SetCharacterRotationState(false); // 일반 이동용 회전 상태
 	}
 }

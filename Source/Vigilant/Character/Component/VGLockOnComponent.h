@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "VGLockOnComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockOnTargetChanged, AActor*, NewTarget);
@@ -32,6 +33,11 @@ protected:
 	
 	TObjectPtr<UUserWidget> LockOnWidgetInstance;
 	
+
+
+	
+	UPROPERTY(EditAnywhere, Category = "LockOn")
+	TSubclassOf<APawn> TargetClassFilter;
 	
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float CameraInterpSpeed = 10.0f;
@@ -47,7 +53,9 @@ protected:
 	float DotWeight = 0.7f;
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float DistWeight = 0.3f;
-	
+	UPROPERTY()
+	USpringArmComponent* CachedSpringArm;
+
 private:
 	AActor* FindBestTarget();
 	

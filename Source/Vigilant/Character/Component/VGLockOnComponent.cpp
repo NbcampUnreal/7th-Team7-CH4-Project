@@ -7,6 +7,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Common/VGGameplayTags.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 // Sets default values for this component's properties
 UVGLockOnComponent::UVGLockOnComponent()
@@ -14,7 +15,8 @@ UVGLockOnComponent::UVGLockOnComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	SetIsReplicatedByDefault(true);
+	TargetClassFilter = APawn::StaticClass();
 	// ...
 }
 
@@ -23,23 +25,26 @@ UVGLockOnComponent::UVGLockOnComponent()
 void UVGLockOnComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	// 오너의 SpringArmComponent를 찾아 캐싱
+	if (AActor* Owner = GetOwner())
+	{
+		CachedSpringArm = Owner->FindComponentByClass<USpringArmComponent>();
+	}
 	// ...
 }
 
 
 AActor* UVGLockOnComponent::FindBestTarget()
 {
-	IVGCharacterGameplayTagEditor* TagEditor = Cast<IVGCharacterGameplayTagEditor>(GetOwner());
-	
-	//오너 캐싱
+
 	AActor* Owner = GetOwner();
 	if (!Owner)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("오너를 못찾앗다"));
 		return nullptr;
 	}
-	// 카메라 캐싱
+
 	UCameraComponent* FollowCamera = Owner->FindComponentByClass<UCameraComponent>();
 	if (!FollowCamera)
 	{
@@ -63,7 +68,9 @@ AActor* UVGLockOnComponent::FindBestTarget()
 	32,
 	FColor::Red,
 	false,
-	3.0f
+	3.0f,0
+	,
+	2
 );
 	
 	UE_LOG(LogTemp, Warning, TEXT("오너 위치: %s, 탐색 반경: %f"), 
@@ -75,7 +82,7 @@ AActor* UVGLockOnComponent::FindBestTarget()
 			Owner->GetActorLocation(),
 			MaxLockOnDistance,
 			ObjectTypes,
-			nullptr,
+			TargetClassFilter,
 			IgnoreTargets,
 			LockOnTargetList);
 
@@ -117,7 +124,8 @@ AActor* UVGLockOnComponent::FindBestTarget()
 		if (BestTarget)
 		{
 			CurrentLockOnTarget = BestTarget;
-			UE_LOG(LogTemp, Warning, TEXT("락온 타겟 설정"));
+			
+			UE_LOG(LogTemp, Warning, TEXT("락온 타겟 설정 : %s"), *BestTarget->GetName());
 		}
 		
 	}
@@ -144,16 +152,22 @@ void UVGLockOnComponent::LockOnPerform()
 		UE_LOG(LogTemp, Error, TEXT("[LockOnPerform] ❌ 실패: GetOwner()를 APawn으로 캐스팅할 수 없습니다."));
 		return;
 	}
-    
-	if (!OwnerPawn->GetController())
+    if (OwnerPawn->IsLocallyControlled())
+    {
+	    UE_LOG(LogTemp, Warning, TEXT("로컬입니다."));
+    }
+    else
+    {
+	    UE_LOG(LogTemp, Warning, TEXT("로컬이 아닙니다"));
+    }
+	if (!Cast<APlayerController>(OwnerPawn->GetController()))
 	{
 		// 3. 컨트롤러(빙의 상태) 확인
 		UE_LOG(LogTemp, Error, TEXT("[LockOnPerform] ❌ 실패: [%s] 액터가 GetController() == nullptr 상태입니다. (빙의되지 않음)"), *OwnerPawn->GetName());
 		return;
 	}
     
-	// 4. 모든 방어선 통과 확인
-	UE_LOG(LogTemp, Warning, TEXT("[LockOnPerform] 2. [%s] 컨트롤러 검사 통과! 락온 탐색 시작!"), *OwnerPawn->GetName());
+	
 	
 	// CDO가 아닌 실제 인스턴스인지 확인 및 실행 주체 이름 출력
 	if (!OwnerPawn->GetController())
@@ -183,6 +197,7 @@ void UVGLockOnComponent::LockOnPerform()
 	{
 		return;
 	}
+	
 	
 	UE_LOG(LogTemp, Warning, TEXT("락온 동작"));
 	//아직은 락온 전환 기능은 없습니다. 어려워잉
@@ -234,7 +249,7 @@ void UVGLockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FVector TargetLocation = CurrentLockOnTarget->GetActorLocation();
 	
 	
-	TargetLocation.Z += 50.0f; 
+	
 
 	// 3. 목표 회전값 계산
 	FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
