@@ -161,7 +161,7 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
 	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge) ||
-		CharacterTags.HasTag(VigilantCharacter::Stunned))
+		CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Guard))
 	{
 		return;
 	}
@@ -184,11 +184,6 @@ void AVGCharacterBase::Move(const FInputActionValue& Value)
 
 void AVGCharacterBase::StartJump(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Stunned))
-	{
-		return;
-	}
-	
 	Jump();
 }
 
@@ -210,7 +205,7 @@ void AVGCharacterBase::Look(const FInputActionValue& Value)
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
 	//게임플레이 태그 검사, 스태미나 검사
-	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
+	if (CharacterTags.HasTag(VigilantCharacter::Sprint) || CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Attacking))
 	{
 		return;
 	}
@@ -417,7 +412,7 @@ void AVGCharacterBase::OnInteract_Implementation(AActor* Interactor, const FTran
 
 void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 {
-	if (!HasAuthority())
+	if (!HasAuthority() || CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
 		return;
 	}
@@ -438,8 +433,6 @@ void AVGCharacterBase::Multicast_PlayStaggerVisual_Implementation()
 	{
 		PlayAnimMontage(StaggerMontage);
 	}
-
-	// TODO: Stunned 태그 적용, 이동 및 공격 할 수 없도록
 }
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)

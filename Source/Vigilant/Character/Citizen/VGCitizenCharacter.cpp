@@ -50,10 +50,15 @@ void AVGCitizenCharacter::BeginPlay()
 			}
 		}
 	}
+	
+	if (CombatComponent)
+	{
+		CombatComponent->OnGuardStateChanged.AddDynamic(this, &AVGCitizenCharacter::ApplyGuardStaminaCost);
+	}
 
 	if (StatComponent)
 	{
-		StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCitizenCharacter::HandleGuardStamina);
+		StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCitizenCharacter::CheckGuardBreakOnStaminaChanged);
 	}
 }
 
@@ -147,10 +152,18 @@ void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 
 void AVGCitizenCharacter::StartBlock(const FInputActionValue& Value)
 {
-	if (CombatComponent)
+	if (!CombatComponent || !StatComponent)
 	{
-		CombatComponent->TryStartBlock();
+		return;
 	}
+	
+	if (StatComponent->GetCurrentStamina() < 20.0f)
+	{
+		// TODO: SFX 적용
+		return;
+	}
+	
+	CombatComponent->TryStartBlock();
 }
 
 void AVGCitizenCharacter::StopBlock(const FInputActionValue& Value)
@@ -294,10 +307,9 @@ void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
 	}
 }
 
-void AVGCitizenCharacter::HandleGuardStamina(float CurrentStamina, float MaxStamina)
+void AVGCitizenCharacter::CheckGuardBreakOnStaminaChanged(float CurrentStamina, float MaxStamina)
 {
-	if (CurrentStamina <= 0.f && (CharacterTags.HasTag(VigilantCharacter::Guard) || CharacterTags.HasTag(
-		VigilantCharacter::PerfectGuard)))
+	if (CurrentStamina <= 0.f && CharacterTags.HasTag(VigilantCharacter::Guard))
 	{
 		if (IsLocallyControlled())
 		{
@@ -314,4 +326,22 @@ void AVGCitizenCharacter::HandleGuardStamina(float CurrentStamina, float MaxStam
 		}
 	}
 
+}
+
+void AVGCitizenCharacter::ApplyGuardStaminaCost(bool bIsGuarding)
+{
+	if (!HasAuthority() || !StatComponent)
+	{
+		return;
+	}
+	
+	if (bIsGuarding)
+	{
+		StatComponent->StartContinuousConsumeStamina(10.0f);
+		StatComponent->ConsumeStamina(20.f);
+	}
+	else
+	{
+		StatComponent->StopContinuousConsumeStamina();
+	}
 }

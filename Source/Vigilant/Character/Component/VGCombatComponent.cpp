@@ -497,6 +497,7 @@ void UVGCombatComponent::Server_StartBlock_Implementation()
 	{
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
 		Multicast_PlayBlockMontage(Data->BlockMontage);
+		OnGuardStateChanged.Broadcast(true);
 	}
 }
 
@@ -515,6 +516,7 @@ void UVGCombatComponent::Server_StopBlock_Implementation()
 	{
 		OwnerCharacter->StopAnimMontage(Data->BlockMontage);
 		Multicast_StopBlockMontage(Data->BlockMontage);
+		OnGuardStateChanged.Broadcast(false);
 	}
 }
 
