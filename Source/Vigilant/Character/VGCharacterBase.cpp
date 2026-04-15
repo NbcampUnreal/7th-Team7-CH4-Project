@@ -316,7 +316,7 @@ void AVGCharacterBase::OnRep_CharacterTags()
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                    class AController* EventInstigator, AActor* DamageCauser)
 {
-	// 1. 무적 상태 확인
+	// --- 1. 무적 상태 확인 ---
 	if (CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
 		return 0.0f;
@@ -331,7 +331,7 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		PushDirection.Normalize();
 	}
 
-	// 2. 미션 페이즈: 데미지 적용 X, 밀치기 O
+	// --- 2. 미션 페이즈: 데미지 적용 X, 밀치기 O ---
 	if (AGameStateBase* GameState = GetWorld()->GetGameState())
 	{
 		if (IGameplayTagAssetInterface* GameStateTag = Cast<IGameplayTagAssetInterface>(GameState))
@@ -344,27 +344,39 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 			}
 		}
 	}
-
-	// 3. 패리 확인
-	if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
+	
+	// 공격이 정면에서 들어오는지 확인
+	bool bIsFrontAttack = false;
+	if (DamageCauser)
 	{
-		if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+		FVector ToAttacker = -PushDirection; // 공격자를 가리키는 방향
+		float DotResult = FVector::DotProduct(GetActorForwardVector(), ToAttacker);
+		bIsFrontAttack = DotResult > 0.5f;
+	}
+	
+	if (bIsFrontAttack)
+	{
+		// --- 3. 패리 확인 ---
+		if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
 		{
-			FVector ReversePushDirection = -PushDirection;
-			Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+			if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+			{
+				FVector ReversePushDirection = -PushDirection;
+				Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+			}
+			// TODO: SFX, VFX 추가
+			return 0.0f;
 		}
-		// TODO: SFX, VFX 추가
-		return 0.0f;
-	}
 
-	// 4. 일반 가드 확인
-	if (CharacterTags.HasTag(VigilantCharacter::Guard))
-	{
-		// TODO: Shield의 데이터에셋에서 읽어오기
-		DamageAmount *= 0.5f;
+		// --- 4. 일반 가드 확인 ---
+		if (CharacterTags.HasTag(VigilantCharacter::Guard))
+		{
+			// TODO: Shield의 데이터에셋에서 읽어오기
+			DamageAmount *= 0.5f;
+		}
 	}
-
-	// 피해 적용
+	
+	// --- 5. 피해 적용 ---
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (StatComponent && ActualDamage > 0.f)
 	{
