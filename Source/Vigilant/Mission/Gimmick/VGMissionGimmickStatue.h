@@ -17,6 +17,9 @@ public:
 	virtual bool CanInteractWith(AActor* Interactor) const override;
 	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	
+	// 정답 확인용
+	bool IsAtAnswerAngle() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -28,9 +31,6 @@ protected:
 
 private:
 	void RotateToTarget(float DeltaTime);
-
-	// 정답 확인용
-	bool IsAtAnswerAngle() const;
 	
 	UFUNCTION()
 	void OnRep_TargetAngle();
@@ -60,4 +60,7 @@ protected:
 	// 회전 속도
 	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Statue")
 	float RotationSpeed = 180.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
+	bool bIsOnAnswerStop = false;
 };
