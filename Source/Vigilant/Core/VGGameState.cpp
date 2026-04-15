@@ -8,6 +8,7 @@ AVGGameState::AVGGameState()
 	TotalMissionProgress = 0.0f;
 	LastDuelWinnerName = TEXT("");
 	PhaseEndTime = 0.0f;
+	PhaseStartTime = 0.0f;
 	BossNerfRate = 1.0f;
 }
 
@@ -30,6 +31,11 @@ float AVGGameState::GetRemainingPhaseTime() const
 	return FMath::Max(0.0f, TimeLeft);
 }
 
+float AVGGameState::GetElapsedTime() const
+{
+	return FMath::Max(0.0f, GetServerWorldTimeSeconds() - PhaseStartTime);
+}
+
 void AVGGameState::SetCurrentPhaseTag(FGameplayTag NewTag)
 {
 	if (HasAuthority())
@@ -48,6 +54,7 @@ void AVGGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVGGameState, TotalMissionProgress);
 	DOREPLIFETIME(AVGGameState, LastDuelWinnerName);
 	DOREPLIFETIME(AVGGameState, PhaseEndTime);
+	DOREPLIFETIME(AVGGameState, PhaseStartTime);
 	DOREPLIFETIME(AVGGameState, BossNerfRate);
 }
 
