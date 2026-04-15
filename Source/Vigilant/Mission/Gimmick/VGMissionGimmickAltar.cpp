@@ -150,9 +150,14 @@ void AVGMissionGimmickAltar::BeginPlay()
 	{
 		const FVGAltarPlacementSlot& Slot = PlacementSlots[i];
         
-		if (!Slot.RequiredItemHintEffect) continue;
+		if (!Slot.RequiredItemHintEffect)
+		{
+			HintEffectComponents.Add(nullptr); // 인덱스 유지
+			continue;
+		}
         
 		UNiagaraComponent* NiagaraComp = NewObject<UNiagaraComponent>(this);
+		NiagaraComp->SetAutoActivate(false);
 		NiagaraComp->SetAsset(Slot.RequiredItemHintEffect);
 		NiagaraComp->SetupAttachment(RootComponent);
 		NiagaraComp->SetRelativeLocation(Slot.AttachOffset);
@@ -160,13 +165,15 @@ void AVGMissionGimmickAltar::BeginPlay()
         
 		// 메쉬 정보 전달 (Niagara에 User.Mesh 파라미터가 있을 경우)
 		UVGMissionItemDataAsset* ItemDataAsset = Slot.ItemDataAsset.Get();
-		if (!ItemDataAsset)
+		if (ItemDataAsset)
 		{
-			continue;
+			NiagaraComp->SetVariableStaticMesh(FName("User.TargetMesh"), ItemDataAsset->ItemMesh);
+			
+			UE_LOG(LogTemp, Warning, TEXT("TargetMesh = %s"),
+	*GetNameSafe(ItemDataAsset->ItemMesh));
 		}
 		
-		NiagaraComp->SetVariableStaticMesh(FName("User.Mesh"), ItemDataAsset->ItemMesh);
-        
+		NiagaraComp->Activate();
 		HintEffectComponents.Add(NiagaraComp);
 	}
 	

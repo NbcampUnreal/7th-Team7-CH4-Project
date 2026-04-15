@@ -20,7 +20,7 @@ struct FVGAltarPlacementSlot
 
 	// 이 슬롯에 필요한 아이템의 데이터 에셋
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TWeakObjectPtr<UVGMissionItemDataAsset> ItemDataAsset = nullptr;
+	TObjectPtr<UVGMissionItemDataAsset> ItemDataAsset = nullptr;
 
 	// 소켓이 없을 때 사용할 상대 오프셋
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -64,7 +64,7 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Altar")
 	TArray<TObjectPtr<UNiagaraComponent>> HintEffectComponents;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Altar")
 	float HintVisibleRange;
 	
