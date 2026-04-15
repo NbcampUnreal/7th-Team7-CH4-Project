@@ -88,17 +88,16 @@ void UVGFinalCombatPhase::EnterPhase()
                     // 시민 스폰 포인트가 여러 개면 순서대로 배정
                     int32 SafeIndex = CitizenSpawnIndex % CitizenStarts.Num();
                     CitizenLoc = CitizenStarts[SafeIndex]->GetActorLocation();
-                    CitizenRot = CitizenStarts[SafeIndex]->GetActorRotation();
+                	CitizenRot = FRotator(0.0f, CitizenStarts[SafeIndex]->GetActorRotation().Yaw, 0.0f);
                 }
                
-            	if (PlayerController)
-            	{
-            		// 유저 카메라 먼저 전환
-            		PlayerController->SetControlRotation(CitizenRot);
-            		PlayerController->ClientSetRotation(CitizenRot);
-            	}
-            	// 시민 플레이어 텔레포트
             	CurrentPawn->TeleportTo(CitizenLoc, CitizenRot, false, true);
+            	
+            	if (AVGCharacterBase* VGCharacter = Cast<AVGCharacterBase>(CurrentPawn))
+            	{
+            		VGCharacter->Client_ForceRotation(CitizenRot);
+            	}
+            	
                 CitizenSpawnIndex++;
                 
                 UE_LOG(LogTemp, Log, TEXT("[VGFinalCombatPhase] 시민 플레이어, 투기장으로 이동"));
