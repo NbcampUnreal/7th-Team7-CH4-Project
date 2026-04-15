@@ -107,8 +107,20 @@ AActor* AVGGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
+void AVGGameMode::OnMissionTimeUpdated()
+{
+	if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
+	{
+		float RemainingTime = VGGameState->GetRemainingPhaseTime();
+		//구현되면 주석빼기
+		float ElapsedTime = VGGameState->GetElapsedTime();
+		OnMissionTimeRemainingChanged.Broadcast(ElapsedTime, RemainingTime);
+	}
+	
+}
+
 FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options,
-	const FString& Portal)
+                                   const FString& Portal)
 {
 	FString ErrorMessage = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 	
@@ -463,6 +475,9 @@ void AVGGameMode::HandleMissionClear(float ReduceTime)
 		if (PhaseStack.Last()->PhaseTag == VigilantPhaseTags::PhaseMission)
 		{
 			PhaseStack.Last()->OnMissionCleared(ReduceTime);
+			
+			//김형백- 남은시간, 경과시간 전달 함수
+			OnMissionTimeUpdated();
 		}
 	}
 	
