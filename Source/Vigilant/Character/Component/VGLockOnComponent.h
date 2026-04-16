@@ -23,18 +23,24 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	
-	void ToggleLockOn();
+	void CheckTargetLineOfSight(FVector StartLocation, FVector EndLocation, float DeltaTime);
 	
 	
 	
 	//락온 기능
 	UPROPERTY()
 	TArray<AActor*> LockOnTargetList;
-	
+	UPROPERTY()
 	TObjectPtr<UUserWidget> LockOnWidgetInstance;
-	
+	UPROPERTY(EditAnywhere, Category = "LockOn|UI")
+	TSubclassOf<UUserWidget> LockOnWidgetClass;
 
 
+	// 현재 타겟이 가려진 누적 시간
+	float CurrentOcclusionTime = 0.0f;
+	// 가려진 상태에서 락온 최대 유지 시간
+	UPROPERTY(EditAnywhere, Category = "LockOn|Exception")
+	float MaxOcclusionTime = 1.5f;
 	
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	TSubclassOf<APawn> TargetClassFilter;
@@ -53,6 +59,9 @@ protected:
 	float DotWeight = 0.7f;
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float DistWeight = 0.3f;
+	
+
+	
 	UPROPERTY()
 	USpringArmComponent* CachedSpringArm;
 
@@ -65,7 +74,7 @@ private:
 
 public:
 	void LockOnPerform();
-	
+	void ClearLockOn();
 	FOnLockOnTargetChanged OnLockOnTargetChanged;
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,

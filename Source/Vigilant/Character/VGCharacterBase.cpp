@@ -231,7 +231,7 @@ void AVGCharacterBase::Look(const FInputActionValue& Value)
 #pragma region 락온 관련 함수 구현
 void AVGCharacterBase::LockOn(const FInputActionValue& Value)
 {
-	// 💡 1. E키 입력이 캐릭터 본체에 도달했는지 확인
+	
 	UE_LOG(LogTemp, Warning, TEXT("[%s] E키 입력 감지됨!"), *GetName());
 	
 	if (LockOnComponent)
