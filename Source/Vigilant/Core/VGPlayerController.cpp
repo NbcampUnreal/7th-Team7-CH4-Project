@@ -23,7 +23,7 @@ void AVGPlayerController::BeginPlay()
 	{
 		return;
 	}
-
+	
 
 	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 	{
@@ -104,15 +104,12 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 			UIManager->OnChatMessageRequested.AddUniqueDynamic(this, &AVGPlayerController::OnChatMessageReceived);
 			UIManager->OnPlayerReadySignature.AddUniqueDynamic(this, &AVGPlayerController::Server_SetReady);
 			
-			//게이지 업데이트 바인딩
-			if (AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(this))
+			
+			if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 			{
-				if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GameModeBase))
-				{
-					// 게임모드 <-> HUD 연결
-					VGGameMode->OnMissionTimeRemainingChanged.AddUniqueDynamic(
-						UIManager->GetCurrentHUDWidget(), &UVGHUDWidget::UpdateTimeRemainingGauge);
-				}
+				float ElapsedTime=VGGameState->GetElapsedTime();
+				float RemaningPahaseTime = VGGameState->GetRemainingPhaseTime();
+				UIManager->GetCurrentHUDWidget()->UpdateTimeRemainingGauge(ElapsedTime,RemaningPahaseTime);
 			}
 			
 		}

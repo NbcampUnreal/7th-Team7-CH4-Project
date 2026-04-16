@@ -4,8 +4,10 @@
 #include "VGHUDWidget.h"
 
 #include "Components/Button.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
+#include "Components/SizeBox.h"
 
 void UVGHUDWidget::NativeConstruct()
 {
@@ -75,6 +77,24 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 
 void UVGHUDWidget::UpdateTimeRemainingGauge(float ElapsedTime, float RemainingTime)
 {
+	UE_LOG(LogTemp, Warning, TEXT("시간게이지업데이트"));
+	float MissionTimeRatio = -1.f;
+	if (RemainingTime > 0.f)
+	{
+		MissionTimeRatio = ElapsedTime/RemainingTime;
+	}
+	MissionProgress->SetPercent(MissionTimeRatio);
+	
+	UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot);
+
+	if (CanvasSlot)
+	{
+		
+		FMargin CurrentOffsets = CanvasSlot->GetOffsets();
+		//초기 미션 시간과 줄어든 시간의 비율만큼 360에 곱해기
+		CurrentOffsets.Right = 300.0f; // 원하는 Offset Right 값 대입
+		CanvasSlot->SetOffsets(CurrentOffsets);
+	}
 }
 
 void UVGHUDWidget::OnReadyButtonClicked()

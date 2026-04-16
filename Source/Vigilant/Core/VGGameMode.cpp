@@ -112,7 +112,6 @@ void AVGGameMode::OnMissionTimeUpdated()
 	if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
 	{
 		float RemainingTime = VGGameState->GetRemainingPhaseTime();
-		//구현되면 주석빼기
 		float ElapsedTime = VGGameState->GetElapsedTime();
 		OnMissionTimeRemainingChanged.Broadcast(ElapsedTime, RemainingTime);
 	}

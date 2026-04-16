@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "VGHUDWidget.generated.h"
 
+class USizeBox;
 class UOverlay;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReadyDelegate, bool, bReady);
 
@@ -60,6 +61,8 @@ public:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> BloodImage;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<USizeBox> TimerBarSize;
 	
 	//레디를 올려보낼 델리게이
 	FOnReadyDelegate OnReadyDelegate;
