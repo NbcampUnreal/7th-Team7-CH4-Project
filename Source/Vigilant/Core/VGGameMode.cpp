@@ -430,14 +430,6 @@ void AVGGameMode::AssignRolesAndStartGame()
 	}
 }
 
-void AVGGameMode::OnMissionCleared(int32 TimeReducedAmount)
-{
-	if (PhaseStack.Num() > 0)
-	{
-		PhaseStack.Last()->OnMissionCleared(TimeReducedAmount);
-	}
-}
-
 void AVGGameMode::SubmitVote(AVGPlayerState* Voter, int32 TargetIndex)
 {
 	if (PhaseStack.Num() > 0)

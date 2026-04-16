@@ -14,6 +14,7 @@ class UCameraComponent;
 class UVGCombatComponent;
 class USpringArmComponent;
 class UVGStatComponent;
+class UVGHiddenPocketComponent;
 
 struct FInputActionValue;
 
@@ -49,6 +50,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UVGLockOnComponent> LockOnComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Pocket", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UVGHiddenPocketComponent> HiddenPocketComponent;
+	
 	
 	// Camera Settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
@@ -69,7 +73,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed = 900.0f;
-	
 
 #pragma region Interfaces Func
 public:
@@ -81,7 +84,7 @@ public:
 	// Functions
 public:
 	AVGCharacterBase();
-virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
@@ -103,6 +106,9 @@ virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLife
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	TObjectPtr<UInputAction> CameraZoomAction;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputAction> HiddenPocketAction;
+	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Components|Combat")
 	FORCEINLINE UVGCombatComponent* GetCombatComponent() const { return CombatComponent; }
@@ -122,6 +128,7 @@ protected:
 	void CameraZoom(const FInputActionValue& Value);
 	void LightAttack(const FInputActionValue& Value);
 	void HeavyAttack(const FInputActionValue& Value);
+	void HiddenPocketToggle(const FInputActionValue& Value);
 	
 	//캐릭터 회전 설정
 	void SetCharacterRotationState(bool bIsLockedOn);
@@ -172,6 +179,9 @@ protected:
 public:
 	// (이용호 추가) 플레이어간 상호작용 호출했을 때 받을 함수
 	void NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer);
+	
+	UFUNCTION(Client, Reliable)
+	void Client_ForceRotation(FRotator NewRotation);
 	
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;

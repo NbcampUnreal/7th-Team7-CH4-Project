@@ -107,7 +107,6 @@ public:
 	
 	// 이벤트 중개소
 	void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim);
-	void OnMissionCleared(int32 TimeReducedAmount);
 	void SubmitVote(AVGPlayerState* Voter, int32 TargetIndex);
 	UFUNCTION()
 	void HandleMissionClear(float ReduceTime);

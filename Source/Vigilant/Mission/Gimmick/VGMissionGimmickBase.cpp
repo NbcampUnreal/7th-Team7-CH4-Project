@@ -3,14 +3,20 @@
 #include "Common/VGGameplayTags.h"
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Character/VGCharacterBase.h"
+#include "Mission/Item/VGMissionItemBase.h"
+#include "Data/VGMissionItemDataAsset.h"
+#include "Components/SceneComponent.h"
 
 AVGMissionGimmickBase::AVGMissionGimmickBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	
+	RootComp = CreateDefaultSubobject<USceneComponent>("RootComp");
+	SetRootComponent(RootComp);
+	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("StaticMeshComponent");
-	SetRootComponent(MeshComponent);
+	MeshComponent->SetupAttachment(RootComp);
 	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	
 	GimmickStateTag = VigilantMissionTags::GimmickInactive;
@@ -80,10 +86,37 @@ void AVGMissionGimmickBase::SetStateTag(FGameplayTag NewStateTag)
 	OnGimmickStateChanged.Broadcast(this, NewStateTag);
 }
 
+AVGMissionItemBase* AVGMissionGimmickBase::FindMissionItemByTag(UVGEquipmentComponent* EquipComp,
+	FGameplayTag RequiredTag) const
+{
+	if (!EquipComp)
+	{
+		return nullptr;
+	}
+ 
+	for (AVGEquippableActor* HandItem : { EquipComp->LeftHandItem, EquipComp->RightHandItem })
+	{
+		if (!HandItem || !HandItem->EquipmentData)
+		{
+			continue;
+		}
+ 
+		UVGMissionItemDataAsset* ItemData =
+			Cast<UVGMissionItemDataAsset>(HandItem->EquipmentData);
+ 
+		if (ItemData && ItemData->ItemTypeTag == RequiredTag)
+		{
+			return Cast<AVGMissionItemBase>(HandItem);
+		}
+	}
+ 
+	return nullptr;
+}
+
 void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 {
 	// Todo State 변경에 따른 피드백 처리
-	if (!DynamicMaterialInstance)
+	if (!BodyDynMat)
 	{
 		// [Fix] 메시에 머티리얼이 없을 경우 GetMaterial(0)이 nullptr → Create 크래시 방지
 		UMaterialInterface* BaseMaterial = MeshComponent ? MeshComponent->GetMaterial(0) : nullptr;
@@ -91,24 +124,30 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 		{
 			return;
 		}
-		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(BaseMaterial, this);
-		if (!DynamicMaterialInstance)
+		BodyDynMat = UMaterialInstanceDynamic::Create(BaseMaterial, this);
+		if (!BodyDynMat)
 		{
 			return;
 		}
 		
-		MeshComponent->SetMaterial(0, DynamicMaterialInstance);
+		MeshComponent->SetMaterial(0, BodyDynMat);
 	}
 	
-	FLinearColor Color = FLinearColor::White;
+	FLinearColor Color = InactiveColor;
+	FLinearColor EmissiveColor = InactiveEmissiveColor;
 	if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
 	{
-		Color = FLinearColor::Black;
+		Color = CompleteColor;
+		EmissiveColor = CompleteEmissiveColor;
+		
+		MeshComponent->SetOverlayMaterial(nullptr);
 	}
 	else if (GimmickStateTag == VigilantMissionTags::GimmickActive)
 	{
-		Color = FLinearColor(0.f, 1.f, 1.f);
+		Color = ActiveColor;
+		EmissiveColor = ActiveEmissiveColor;
 	}
 	
-	DynamicMaterialInstance->SetVectorParameterValue(TEXT("Color"), Color);
+	BodyDynMat->SetVectorParameterValue(TEXT("Color"), Color);
+	BodyDynMat->SetVectorParameterValue(TEXT("EmissiveColor"), EmissiveColor);
 }

@@ -1,16 +1,18 @@
 #include "Character/VGCharacterBase.h"
-#include "Camera/CameraComponent.h"
-#include "EnhancedInputComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/GameStateBase.h"
-#include "GameFramework/GameModeBase.h"
 #include "DrawDebugHelpers.h"
+#include "EnhancedInputComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Character/Component/VGHiddenPocketComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
 #include "Component/VGLockOnComponent.h"
 #include "Component/VGStatComponent.h"
+#include "Core/Interface/VGGameModeInterface.h"
 #include "Engine/DamageEvents.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
@@ -40,7 +42,8 @@ AVGCharacterBase::AVGCharacterBase()
 	  MoveAction(nullptr),
 	  LookAction(nullptr),
 	  SprintAction(nullptr),
-	  CameraZoomAction(nullptr)
+	  CameraZoomAction(nullptr),
+      HiddenPocketAction(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -68,6 +71,7 @@ AVGCharacterBase::AVGCharacterBase()
 	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
 	
 	LockOnComponent = CreateDefaultSubobject<UVGLockOnComponent>(TEXT("VGLockOnComponent"));
+	HiddenPocketComponent = CreateDefaultSubobject<UVGHiddenPocketComponent>(TEXT("HiddenPocketComponent"));
 }
 
 void AVGCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -170,6 +174,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::HeavyAttack);
 			}
+		}
+		
+		if (HiddenPocketAction)
+		{
+			EnhancedInput->BindAction(HiddenPocketAction, ETriggerEvent::Started, this, &AVGCharacterBase::HiddenPocketToggle);
 		}
 	}
 }
@@ -385,6 +394,14 @@ void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 	}
 }
 
+void AVGCharacterBase::HiddenPocketToggle(const FInputActionValue& Value)
+{
+	if (HiddenPocketComponent)
+	{
+		HiddenPocketComponent->TogglePocket();
+	}
+}
+
 
 
 
@@ -467,6 +484,26 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 	if (CurrentGameMode && CurrentGameMode->Implements<UVGGameModeInterface>())
 	{
 		IVGGameModeInterface::Execute_RequestDuelPhase(CurrentGameMode, this, TargetPlayer);
+	}
+}
+
+void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
+{
+	// z값 제외 전부 무시
+	FRotator SafeRotation = FRotator(0.0f, NewRotation.Yaw, 0.0f);
+
+	// 물리 충돌 무시
+	SetActorRotation(SafeRotation, ETeleportType::TeleportPhysics);
+
+	// 카메라 회전
+	if (AController* PlayerController = GetController())
+	{
+		PlayerController->SetControlRotation(SafeRotation);
+	}
+	// 관성 삭제
+	if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		CharacterMovementComponent->Velocity = FVector::ZeroVector;
 	}
 }
 
