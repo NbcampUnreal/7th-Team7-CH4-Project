@@ -51,9 +51,9 @@ protected:
 	float CameraInterpSpeed = 10.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "LockOn")
-	float MaxLockOnDistance = 2000.0f;
+	float MaxLockOnDistance = 1500.0f;
 	UPROPERTY(EditAnywhere, Category = "LockOn")
-	float TargetLostDistance = 2500.f;
+	float TargetLostDistance = 2000.f;
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float MinimumDotProductThreshold = 0.5;
 
