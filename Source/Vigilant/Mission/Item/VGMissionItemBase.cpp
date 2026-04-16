@@ -110,7 +110,7 @@ void AVGMissionItemBase::OnPickedUp(AActor* NewCarrier)
 	{
 		Carrier = CharacterCarrier;
 		
-		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		// MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
 		SetStateTag(VigilantMissionTags::ItemCarried);
 		// Carrier가 변경되었으므로 OnRep 수동 호출

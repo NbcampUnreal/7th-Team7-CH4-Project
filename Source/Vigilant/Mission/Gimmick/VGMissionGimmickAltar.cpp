@@ -22,7 +22,7 @@ bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 {
 	if (GimmickStateTag != VigilantMissionTags::GimmickInactive)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] Now %s"), *GetName(), *GimmickStateTag.ToString());
+		// UE_LOG(LogTemp, Error, TEXT("[%s] Now %s"), *GetName(), *GimmickStateTag.ToString());
 		return false;
 	}
 	
