@@ -82,6 +82,10 @@ void AVGMissionItemBase::OnInteractWith(AActor* Interactor, const FTransform& In
 		Interactor->FindComponentByClass<UVGEquipmentComponent>())
 	{
 		EquipComp->Server_EquipItem(this);
+		if (HasAuthority())
+		{
+			EquipComp->OnItemDropped.AddDynamic(this, &AVGMissionItemBase::OnDropped);
+		}
 		UE_LOG(LogTemp, Log, TEXT("[%s] Equipped!"),*GetName());
 	}
 }
@@ -118,17 +122,23 @@ void AVGMissionItemBase::OnPickedUp(AActor* NewCarrier)
 	}
 }
 
-void AVGMissionItemBase::OnDropped()
+void AVGMissionItemBase::OnDropped(EVGEquipmentSlot Slot)
 {
 	if (!HasAuthority())
 	{
 		return;
 	}
-
-	Carrier = nullptr;
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    SetStateTag(VigilantMissionTags::ItemInactive);
-	OnRep_Carrier();
+	
+	if (UVGEquipmentComponent* EquipComp =
+			Carrier->FindComponentByClass<UVGEquipmentComponent>())
+	{
+		EquipComp->OnItemDropped.RemoveDynamic(this, &AVGMissionItemBase::OnDropped);
+		
+		Carrier = nullptr;
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		SetStateTag(VigilantMissionTags::ItemInactive);
+		OnRep_Carrier();
+	}
 }
 
 void AVGMissionItemBase::BeginPlay()

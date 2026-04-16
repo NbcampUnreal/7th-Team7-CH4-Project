@@ -8,6 +8,7 @@
 #include "Equipment/VGEquippableActor.h"
 #include "VGMissionItemBase.generated.h"
 
+enum class EVGEquipmentSlot : uint8;
 class AVGMissionBase;
 class AVGCharacterBase;
 class UVGMissionItemDataAsset;
@@ -47,15 +48,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform);
 	
-	// 내려놓기 — EquipComponent에서 호출
-	virtual void OnDropped();
-	
 protected:
 	virtual void BeginPlay() override;
 	
 	// 줍기 — 서버 전용
 	virtual void OnPickedUp(AActor* NewCarrier);
-
+	virtual void OnDropped(EVGEquipmentSlot Slot);
+	
 	UFUNCTION()
 	virtual void OnRep_Carrier();
 	
