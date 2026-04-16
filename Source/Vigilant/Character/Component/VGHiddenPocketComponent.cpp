@@ -37,17 +37,6 @@ void UVGHiddenPocketComponent::TogglePocket()
 		return; 
 	}
 	
-	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
-	if (OwnerCharacter)
-	{
-		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
-		if (AnimInstance && AnimInstance->IsAnyMontagePlaying())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("몽타주 재생 중 주머니 사용 취소"));
-			return;
-		}
-	}
-	
 	// 이미 주머니에 무언가 있다면 -> 버리기 로직
 	if (HiddenItem != nullptr)
 	{
