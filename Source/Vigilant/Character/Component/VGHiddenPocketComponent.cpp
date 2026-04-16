@@ -3,7 +3,7 @@
 
 #include "VGHiddenPocketComponent.h"
 #include "VGEquipmentComponent.h"
-#include "Character/VGCharacterBase.h"
+#include "GameFramework/Character.h"
 #include "Common/VGGameplayTags.h"
 #include "Components/PrimitiveComponent.h"
 #include "Core/VGPlayerState.h"
@@ -37,7 +37,7 @@ void UVGHiddenPocketComponent::TogglePocket()
 		return; 
 	}
 	
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
+	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (OwnerCharacter)
 	{
 		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
