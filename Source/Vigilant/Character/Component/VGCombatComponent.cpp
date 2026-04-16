@@ -3,6 +3,7 @@
 #include "GameplayTagAssetInterface.h"
 #include "Combat/VGAmmoProviderInterface.h"
 #include "Combat/VGAttackExecution.h"
+#include "Combat/VGProjectile.h"
 #include "Common/VGGameplayTags.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
@@ -420,12 +421,54 @@ bool UVGCombatComponent::Server_ProcessHit_Validate(AActor* HitActor)
 void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActor> ProjectileClass,
 	const FVector& SpawnLocation, const FRotator& SpawnRotation)
 {
+	if (!ProjectileClass)
+	{
+		return;
+	}
+	
+	// --- 1. Ammo Validation ---
+	if (UMeshComponent* TraceMesh = GetActiveTraceMesh())
+	{
+		if (IVGAmmoProviderInterface* AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner()))
+		{
+			if (!AmmoProvider->HasAmmo())
+			{
+				Client_CancelAttackPrediction();
+				return;
+			}
+			
+			AmmoProvider->ConsumeAmmo();
+		}
+	}
+	
+	// --- 2. Load Data ---
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	if (!Data)
+	{
+		return;
+	}
+	
+	// --- 3. Spawn Projectile ---
+	if (UWorld* World = GetWorld())
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = Cast<APawn>(GetOwner());
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		
+		AActor* SpawnedActor = World->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+		
+		if (AVGProjectile* Projectile = Cast<AVGProjectile>(SpawnedActor))
+		{
+			Projectile->InitializeProjectile(Data->BaseDamage);
+		}
+	}
 }
 
 bool UVGCombatComponent::Server_SpawnProjectile_Validate(TSubclassOf<AActor> ProjectileClass,
 	const FVector& SpawnLocation, const FRotator& SpawnRotation)
 {
-	return true;
+	return ProjectileClass != nullptr;
 }
 
 // ---------------------------------------------------------
