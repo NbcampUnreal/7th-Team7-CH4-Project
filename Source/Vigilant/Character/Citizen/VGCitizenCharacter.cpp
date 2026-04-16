@@ -16,11 +16,14 @@
 
 AVGCitizenCharacter::AVGCitizenCharacter()
 {
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	
 	//속도 조정
 	NormalSpeed = 600.f;
 	SprintSpeed = 900.f;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-
+	
 	GetCharacterMovement()->BrakingDecelerationWalking = 1024.f;
 	OriginalFriction = GetCharacterMovement()->GroundFriction;
 	ModifyFriction = 0.f;
@@ -171,8 +174,13 @@ void AVGCitizenCharacter::Dodge()
 	{
 		return;
 	}
-
-
+	
+	// 잠겨있다면 회전 잠시 풀기
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		SetCharacterRotationState(false);
+	}
+	
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
 	//방향 계산
 	FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
@@ -246,6 +254,14 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 {
 	CharacterTags.RemoveTag(VigilantCharacter::Dodge);
 	GetCharacterMovement()->GroundFriction = OriginalFriction;
+	
+	// 잠겨있다면 다시 잠궈주기
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("잠금"));
+		SetCharacterRotationState(true);
+	}
+	
 	if (bWasCancelled == true)
 	{
 		//회피가 불명의 이유로 중단되었을때 로직
