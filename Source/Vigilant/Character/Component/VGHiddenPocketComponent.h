@@ -8,6 +8,10 @@
 
 class AVGEquippableActor;
 
+// UI 연동용 델리게이트 선언
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPocketItemStashedSignature, UVGEquipmentDataAsset*, EquipmentData, UMeshComponent*, EquippedMesh);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPocketItemDroppedSignature);
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VIGILANT_API UVGHiddenPocketComponent : public UActorComponent
 {
@@ -34,6 +38,13 @@ public:
 	// 클라이언트 -> 서버 : 숨긴 아이템 버리기 요청
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Pocket|Action")
 	void Server_DropHiddenItem();
+
+	// UI 바인드용 변수
+	UPROPERTY(BlueprintAssignable, Category = "Pocket|Events")
+	FOnPocketItemStashedSignature OnPocketItemStashed;
+
+	UPROPERTY(BlueprintAssignable, Category = "Pocket|Events")
+	FOnPocketItemDroppedSignature OnPocketItemDropped;
 
 protected:
 	UFUNCTION()

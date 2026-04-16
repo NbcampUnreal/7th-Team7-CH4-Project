@@ -5,7 +5,6 @@
 #include "GameplayTagContainer.h"
 #include "VGEquipmentComponent.generated.h"
 
-class AVGCharacterBase;
 class AVGEquippableActor;
 
 // 장착 슬롯 구분 (왼손, 오른손, 양손)
