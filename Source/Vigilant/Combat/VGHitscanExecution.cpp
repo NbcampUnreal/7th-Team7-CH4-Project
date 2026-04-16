@@ -1,5 +1,6 @@
 #include "Combat/VGHitscanExecution.h"
 
+#include "VGAmmoProviderInterface.h"
 #include "Character/Component/VGCombatComponent.h"
 #include "GameFramework/Character.h"
 
@@ -17,7 +18,24 @@ void UVGHitscanExecution::StartAttack()
 	{
 		return;
 	}
+	
+	// 1. 로컬 탄약 확인
+	UMeshComponent* TraceMesh = CombatComponent->GetActiveTraceMesh();
+	if (!TraceMesh)
+	{
+		return;
+	}
+	
+	if (IVGAmmoProviderInterface* AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner()))
+	{
+		if (!AmmoProvider->HasAmmo())
+		{
+			return;
+		}
+		AmmoProvider->ConsumeAmmo();
+	}
 
+	// 2. 카메라로부터 라인 트레이스
 	APlayerController* PlayerController = Cast<APlayerController>(OwnerCharacter->GetController());
 	if (!PlayerController)
 	{
@@ -35,27 +53,17 @@ void UVGHitscanExecution::StartAttack()
 	QueryParams.AddIgnoredActor(OwnerCharacter);
 
 	FHitResult HitResult;
-	UWorld* World = GetWorld();
-
-	if (!World)
+	if (UWorld* World = GetWorld())
 	{
-		return;
-	}
-
-	bool bHit = World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Pawn, QueryParams);
-
-	// --- Debug ---
-	DrawDebugLine(World, TraceStart, TraceEnd, bHit ? FColor::Green : FColor::Red, false, 2.0f, 0, 1.0f);
-	
-	if (bHit)
-	{
-		AActor* HitActor = HitResult.GetActor();
-		if (HitActor)
+		bool bHit = World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Pawn, QueryParams);
+		if (bHit)
 		{
-			CombatComponent->Server_ProcessHit(HitActor);
-			// TODO: 더미 화살 스폰
+			AActor* HitActor = HitResult.GetActor();
+			if (HitActor)
+			{
+				CombatComponent->Server_ProcessHit(HitActor);
+				// TODO: 더미 화살 생성
+			}
 		}
 	}
-	
-	// TODO: 화살 개수 감소 로직
 }
