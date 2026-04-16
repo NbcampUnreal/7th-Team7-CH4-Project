@@ -328,7 +328,7 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 	{
 		if (!IVGGameModeInterface::Execute_CanPlayerTakeDamage(GameMode, DamageCauser, this))
 		{
-			return 0.0f; 
+			return 0.0f;
 		}
 	}
 	

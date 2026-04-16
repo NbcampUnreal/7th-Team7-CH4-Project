@@ -25,7 +25,7 @@ void UVGLobbyPhase::ExecutePhaseResult()
 
 bool UVGLobbyPhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target)
 {
-	return false;
+	return true;
 }
 
 bool UVGLobbyPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target)

@@ -39,6 +39,11 @@ void UVGVotePhase::ExecutePhaseResult()
 	}
 }
 
+bool UVGVotePhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject)
+{
+	return false;
+}
+
 bool UVGVotePhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target)
 {
 	return false;
