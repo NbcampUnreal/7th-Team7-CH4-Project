@@ -69,6 +69,13 @@ void UVGEquipmentComponent::Interact()
 	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
 	if (!OwnerCharacter) return;
 	
+	UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+	if (AnimInstance && AnimInstance->IsAnyMontagePlaying())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("몽타주 재생 중 상호작용 취소"));
+		return;
+	}
+	
 	if (CurrentInteractableTarget)
 	{
 		FTransform HitTransform = FTransform(GetOwner()->GetActorRotation(), CurrentInteractableTarget->GetActorLocation());
@@ -78,6 +85,21 @@ void UVGEquipmentComponent::Interact()
 
 void UVGEquipmentComponent::DropItem()
 {
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn)
+	{
+		AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
+		if (OwnerCharacter)
+		{
+			UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
+			if (AnimInstance && AnimInstance->IsAnyMontagePlaying())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("몽타주 재생 중 아이템 버리기 취소"));
+				return;
+			}
+		}
+	}
+	
 	Server_DropItem(ActiveEquipmentSlot);
 	UE_LOG(LogTemp, Log, TEXT("현재 활성화된 슬롯의 아이템 버리기"));
 }
