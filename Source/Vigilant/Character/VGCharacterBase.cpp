@@ -17,6 +17,7 @@
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
 #include "Core/Interface/VGGameModeInterface.h"
+#include "Data/VGShieldDataAsset.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -187,7 +188,7 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
 	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge) ||
-		CharacterTags.HasTag(VigilantCharacter::Stunned))
+		CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Guard))
 	{
 		return;
 	}
@@ -210,11 +211,6 @@ void AVGCharacterBase::Move(const FInputActionValue& Value)
 
 void AVGCharacterBase::StartJump(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Stunned))
-	{
-		return;
-	}
-	
 	Jump();
 }
 
@@ -286,7 +282,7 @@ void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
 	//게임플레이 태그 검사, 스태미나 검사
-	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
+	if (CharacterTags.HasTag(VigilantCharacter::Sprint) || CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Attacking))
 	{
 		return;
 	}
@@ -415,7 +411,7 @@ void AVGCharacterBase::OnRep_CharacterTags()
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                    class AController* EventInstigator, AActor* DamageCauser)
 {
-	// 1. 무적 상태 확인
+	// --- 1. 무적 상태 확인 ---
 	if (CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
 		return 0.0f;
@@ -430,7 +426,7 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		PushDirection.Normalize();
 	}
 
-	// 2. 미션 페이즈: 데미지 적용 X, 밀치기 O
+	// --- 2. 미션 페이즈: 데미지 적용 X, 밀치기 O ---
 	if (AGameStateBase* GameState = GetWorld()->GetGameState())
 	{
 		if (IGameplayTagAssetInterface* GameStateTag = Cast<IGameplayTagAssetInterface>(GameState))
@@ -443,27 +439,46 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 			}
 		}
 	}
-
-	// 3. 패리 확인
-	if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
+	
+	// 공격이 정면에서 들어오는지 확인
+	bool bIsFrontAttack = false;
+	if (DamageCauser)
 	{
-		if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+		FVector ToAttacker = -PushDirection; // 공격자를 가리키는 방향
+		float DotResult = FVector::DotProduct(GetActorForwardVector(), ToAttacker);
+		bIsFrontAttack = DotResult > 0.5f;
+	}
+	
+	if (bIsFrontAttack)
+	{
+		// --- 3. 패리 확인 ---
+		if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
 		{
-			FVector ReversePushDirection = -PushDirection;
-			Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+			if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+			{
+				FVector ReversePushDirection = -PushDirection;
+				Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+			}
+			// TODO: SFX, VFX 추가
+			return 0.0f;
 		}
-		// TODO: SFX, VFX 추가
-		return 0.0f;
-	}
 
-	// 4. 일반 가드 확인
-	if (CharacterTags.HasTag(VigilantCharacter::Guard))
-	{
-		// TODO: Shield의 데이터에셋에서 읽어오기
-		DamageAmount *= 0.5f;
+		// --- 4. 일반 가드 확인 ---
+		if (CharacterTags.HasTag(VigilantCharacter::Guard))
+		{
+			if (!CombatComponent)
+			{
+				return 0.0f;
+			}
+			
+			if (UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData())
+			{
+				DamageAmount *= ShieldData->DamageMitigation;
+			}
+		}
 	}
-
-	// 피해 적용
+	
+	// --- 5. 피해 적용 ---
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (StatComponent && ActualDamage > 0.f)
 	{
@@ -524,7 +539,7 @@ void AVGCharacterBase::OnInteract_Implementation(AActor* Interactor, const FTran
 
 void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 {
-	if (!HasAuthority())
+	if (!HasAuthority() || CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
 		return;
 	}
@@ -545,8 +560,6 @@ void AVGCharacterBase::Multicast_PlayStaggerVisual_Implementation()
 	{
 		PlayAnimMontage(StaggerMontage);
 	}
-
-	// TODO: Stunned 태그 적용, 이동 및 공격 할 수 없도록
 }
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)

@@ -1,7 +1,9 @@
 #include "Character/Component/VGCombatComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameplayTagAssetInterface.h"
+#include "Combat/VGAmmoProviderInterface.h"
 #include "Combat/VGAttackExecution.h"
+#include "Combat/VGProjectile.h"
 #include "Common/VGGameplayTags.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
@@ -318,6 +320,22 @@ void UVGCombatComponent::OnComboWindowClosed()
 
 void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 ExpectedComboIndex)
 {
+	// --- 1. Ammo Validation ---
+	if (UMeshComponent* TraceMesh = GetActiveTraceMesh())
+	{
+		if (IVGAmmoProviderInterface* AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner()))
+		{
+			if (!AmmoProvider->HasAmmo())
+			{
+				Client_CancelAttackPrediction();
+				return;
+			}
+			
+			AmmoProvider->ConsumeAmmo();
+		}
+	}
+	
+	// --- 2. Attack Execution ---
 	CurrentComboIndex = ExpectedComboIndex;
 	PerformAttack(bIsHeavy);
 
@@ -382,9 +400,7 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 
 	// Validation
 	float Distance = FVector::Distance(Owner->GetActorLocation(), HitActor->GetActorLocation());
-	float MaxAllowedDistance = 300.0f;
-
-	if (Distance <= MaxAllowedDistance)
+	if (Distance <= Data->MaxAttackRange)
 	{
 		UGameplayStatics::ApplyDamage
 		(
@@ -400,6 +416,59 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 bool UVGCombatComponent::Server_ProcessHit_Validate(AActor* HitActor)
 {
 	return true;
+}
+
+void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActor> ProjectileClass,
+	const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+	if (!ProjectileClass)
+	{
+		return;
+	}
+	
+	// --- 1. Ammo Validation ---
+	if (UMeshComponent* TraceMesh = GetActiveTraceMesh())
+	{
+		if (IVGAmmoProviderInterface* AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner()))
+		{
+			if (!AmmoProvider->HasAmmo())
+			{
+				Client_CancelAttackPrediction();
+				return;
+			}
+			
+			AmmoProvider->ConsumeAmmo();
+		}
+	}
+	
+	// --- 2. Load Data ---
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	if (!Data)
+	{
+		return;
+	}
+	
+	// --- 3. Spawn Projectile ---
+	if (UWorld* World = GetWorld())
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = GetOwner();
+		SpawnParams.Instigator = Cast<APawn>(GetOwner());
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		
+		AActor* SpawnedActor = World->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+		
+		if (AVGProjectile* Projectile = Cast<AVGProjectile>(SpawnedActor))
+		{
+			Projectile->InitializeProjectile(Data->BaseDamage);
+		}
+	}
+}
+
+bool UVGCombatComponent::Server_SpawnProjectile_Validate(TSubclassOf<AActor> ProjectileClass,
+	const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+	return ProjectileClass != nullptr;
 }
 
 // ---------------------------------------------------------
@@ -463,8 +532,6 @@ void UVGCombatComponent::TryStartBlock()
 			return;
 		}
 
-		// TODO: 스태미나 검사 추가
-
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
 		if (OwnerCharacter->IsLocallyControlled() && !OwnerCharacter->HasAuthority())
 		{
@@ -497,6 +564,7 @@ void UVGCombatComponent::Server_StartBlock_Implementation()
 	{
 		OwnerCharacter->PlayAnimMontage(Data->BlockMontage);
 		Multicast_PlayBlockMontage(Data->BlockMontage);
+		OnGuardStateChanged.Broadcast(true);
 	}
 }
 
@@ -515,6 +583,7 @@ void UVGCombatComponent::Server_StopBlock_Implementation()
 	{
 		OwnerCharacter->StopAnimMontage(Data->BlockMontage);
 		Multicast_StopBlockMontage(Data->BlockMontage);
+		OnGuardStateChanged.Broadcast(false);
 	}
 }
 
