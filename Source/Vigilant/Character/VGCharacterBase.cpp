@@ -16,7 +16,6 @@
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
-#include "Core/Interface/VGGameModeInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -240,16 +239,9 @@ void AVGCharacterBase::Look(const FInputActionValue& Value)
 #pragma region 락온 관련 함수 구현
 void AVGCharacterBase::LockOn(const FInputActionValue& Value)
 {
-	
-	UE_LOG(LogTemp, Warning, TEXT("[%s] E키 입력 감지됨!"), *GetName());
-	
 	if (LockOnComponent)
 	{
 		LockOnComponent->LockOnPerform();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("클라이언트 인스턴스(%s)의 LockOnComponent가 nullptr입니다!"), *GetName());
 	}
 }
 void AVGCharacterBase::Server_SetLockOnTag_Implementation(bool bIsLockedOn)
@@ -295,12 +287,6 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 		return;
 	}
 	
-	// 잠겨있다면 잠시 풀기
-	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
-	{
-		//SetCharacterRotationState(false);
-	}
-	
 	bWantsToSprint = true;
 
 	PerformStartSprint();
@@ -309,13 +295,6 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 
 void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 {
-	//회전잠금해제
-	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("잠금"));
-		//SetCharacterRotationState(true);
-	}
-	
 	bWantsToSprint = false;
 	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
 	{
@@ -555,11 +534,6 @@ void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 
 void AVGCharacterBase::SetCharacterRotationState(bool bIsLockedOn)
 {
-	// 캐릭터의 bOrientRotationToMovement 등을 상황에 맞게 전환
-	// 누가 언제 이 함수를 호출하는지 추적
-	UE_LOG(LogTemp, Warning, TEXT("[%s] SetCharacterRotationState 호출됨! 변경된 값: %s"), 
-		*GetName(), bIsLockedOn ? TEXT("TRUE") : TEXT("FALSE"));
-	
 	GetCharacterMovement()->bOrientRotationToMovement = !bIsLockedOn;
 	bUseControllerRotationYaw = bIsLockedOn;
 }

@@ -22,7 +22,6 @@ namespace VigilantTags
 
 namespace VigilantCharacter
 {
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(RotateLock);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(LockOn);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attacking);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dodge);

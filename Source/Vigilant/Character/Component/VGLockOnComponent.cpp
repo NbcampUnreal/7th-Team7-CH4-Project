@@ -2,40 +2,23 @@
 
 
 #include "VGLockOnComponent.h"
-#include "Character/CharacterInterface/VGCharacterGameplayTagEditor.h"
-#include "GameplayTagAssetInterface.h"
 #include "Blueprint/UserWidget.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Camera/CameraComponent.h"
-#include "Common/VGGameplayTags.h"
-#include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-// Sets default values for this component's properties
+
 UVGLockOnComponent::UVGLockOnComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 	SetIsReplicatedByDefault(true);
 	TargetClassFilter = APawn::StaticClass();
-	// ...
 }
 
-
-// Called when the game starts
 void UVGLockOnComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// 오너의 SpringArmComponent를 찾아 캐싱
-	if (AActor* Owner = GetOwner())
-	{
-		CachedSpringArm = Owner->FindComponentByClass<USpringArmComponent>();
-	}
-	// ...
 }
-
 
 bool UVGLockOnComponent::IsTargetObscured(const FVector& StartLocation, const FVector& EndLocation, AActor* TargetToIgnore) const
 {
@@ -53,29 +36,27 @@ bool UVGLockOnComponent::IsTargetObscured(const FVector& StartLocation, const FV
 		Params.AddIgnoredActor(TargetToIgnore);
 	}
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
+	return GetWorld()->LineTraceSingleByChannel(
 		HitResult,
 		StartLocation,
 		EndLocation,
-		ECollisionChannel::ECC_Visibility, 
+		ECollisionChannel::ECC_Visibility,
 		Params
 	);
-	return bHit;
 }
 
 void UVGLockOnComponent::CheckTargetLineOfSight(FVector StartLocation, FVector EndLocation, float DeltaTime)
 {
-	AActor* Owner = GetOwner();
-	if (!Owner)
+	if (!GetOwner())
 	{
 		return;
 	}
-	
+
 	bool bHit = IsTargetObscured(StartLocation, EndLocation, CurrentLockOnTarget);
 	if (bHit)
 	{
 		CurrentOcclusionTime += DeltaTime;
-		if (CurrentOcclusionTime>MaxOcclusionTime)
+		if (CurrentOcclusionTime > MaxOcclusionTime)
 		{
 			ClearLockOn();
 		}
@@ -86,13 +67,11 @@ void UVGLockOnComponent::CheckTargetLineOfSight(FVector StartLocation, FVector E
 	}
 }
 
-
 AActor* UVGLockOnComponent::FindBestTarget()
 {
 	AActor* Owner = GetOwner();
 	if (!Owner)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("오너를 못찾앗다"));
 		return nullptr;
 	}
 
@@ -102,164 +81,84 @@ AActor* UVGLockOnComponent::FindBestTarget()
 		return nullptr;
 	}
 
-	//SphereOverLapActors 사용 락온 대상 탐색
-	//4번 매개변수 : 찾을 채널
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
 
-
-	//6번 매개변수 : 무시할 액터 배열
 	TArray<AActor*> IgnoreTargets;
 	IgnoreTargets.Add(Owner);
 
+	TArray<AActor*> OverlappedTargets;
+	bool bResult = UKismetSystemLibrary::SphereOverlapActors(
+		Owner,
+		Owner->GetActorLocation(),
+		MaxLockOnDistance,
+		ObjectTypes,
+		TargetClassFilter,
+		IgnoreTargets,
+		OverlappedTargets);
 
-	UE_LOG(LogTemp, Warning, TEXT("오너 위치: %s, 탐색 반경: %f"),
-	       *Owner->GetActorLocation().ToString(), MaxLockOnDistance);
-
-	bool bResult =
-		UKismetSystemLibrary::SphereOverlapActors(
-			Owner,
-			Owner->GetActorLocation(),
-			MaxLockOnDistance,
-			ObjectTypes,
-			TargetClassFilter,
-			IgnoreTargets,
-			LockOnTargetList);
-
-	if (bResult)
+	if (!bResult)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("오버랩 결과: %s, 찾은 액터 수: %d"),
-		       bResult ? TEXT("성공") : TEXT("실패"), LockOnTargetList.Num());
-
-		AActor* BestTarget = nullptr;
-		float HighestWeight = -1.0f;
-
-		for (AActor* Target : LockOnTargetList)
-		{
-			FVector CameraLocation = FollowCamera->GetComponentLocation();
-			FVector CameraDirection = FollowCamera->GetForwardVector();
-			FVector TargetLocation = Target->GetActorLocation();
-			//벡터 AB는 B-A
-			FVector ToTargetVector = (TargetLocation - CameraLocation).GetSafeNormal();
-			float TargetDistance = FVector::Dist(CameraLocation, TargetLocation);
-			//카메라 시선과 타겟 방향 내적 - 1에 가까울수록 정면임
-			float FacingFactor = FVector::DotProduct(CameraDirection, ToTargetVector);
-
-			if (FacingFactor < MinimumDotProductThreshold)
-			{
-				continue; //각도가 지정한 것보다 크면(코사인 값이 지정한 것보다 작으면) 패스
-			}
-			if (IsTargetObscured(GetOwner()->GetActorLocation(), TargetLocation, Target))
-			{
-				continue; //벽에 가려지면 무시
-			}
-			
-			//거리 정규화 (0~1)
-			float NormalizeDist = 1.f - (TargetDistance / MaxLockOnDistance);
-			//가중치를 곱한 점수 산출
-			float TargetWeight = (FacingFactor * DotWeight) + NormalizeDist * DistWeight;
-
-			if (TargetWeight > HighestWeight) //최고점수 갱신
-			{
-				HighestWeight = TargetWeight;
-				BestTarget = Target;
-			}
-		}
-
-		if (BestTarget)
-		{
-			CurrentLockOnTarget = BestTarget;
-
-			UE_LOG(LogTemp, Warning, TEXT("락온 타겟 설정 : %s"), *BestTarget->GetName());
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("오버랩실패"));
 		return nullptr;
 	}
-	return CurrentLockOnTarget;
+
+	AActor* BestTarget = nullptr;
+	float HighestWeight = -1.0f;
+
+	FVector CameraLocation = FollowCamera->GetComponentLocation();
+	FVector CameraDirection = FollowCamera->GetForwardVector();
+	FVector OwnerLocation = Owner->GetActorLocation();
+
+	for (AActor* Target : OverlappedTargets)
+	{
+		FVector TargetLocation = Target->GetActorLocation();
+		FVector ToTargetVector = (TargetLocation - CameraLocation).GetSafeNormal();
+		float TargetDistance = FVector::Dist(CameraLocation, TargetLocation);
+		float FacingFactor = FVector::DotProduct(CameraDirection, ToTargetVector);
+
+		if (FacingFactor < MinimumDotProductThreshold)
+		{
+			continue;
+		}
+		if (IsTargetObscured(OwnerLocation, TargetLocation, Target))
+		{
+			continue;
+		}
+
+		float NormalizeDist = 1.f - (TargetDistance / MaxLockOnDistance);
+		float TargetWeight = (FacingFactor * DotWeight) + (NormalizeDist * DistWeight);
+
+		if (TargetWeight > HighestWeight)
+		{
+			HighestWeight = TargetWeight;
+			BestTarget = Target;
+		}
+	}
+
+	return BestTarget;
 }
 
 void UVGLockOnComponent::LockOnPerform()
 {
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-#pragma region 디버깅 로그
-	//-------------------------------
-	// 1. 함수 호출 확인
-	UE_LOG(LogTemp, Warning, TEXT("[LockOnPerform] 1. 컴포넌트 함수 진입 성공"));
-
-
-	if (!OwnerPawn)
-	{
-		// 2. 캐스팅 실패 확인
-		UE_LOG(LogTemp, Error, TEXT("[LockOnPerform] 실패: GetOwner()를 APawn으로 캐스팅할 수 없습니다."));
-		return;
-	}
-	if (OwnerPawn->IsLocallyControlled())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("로컬입니다."));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("로컬이 아닙니다"));
-	}
-	if (!Cast<APlayerController>(OwnerPawn->GetController()))
-	{
-		// 3. 컨트롤러(빙의 상태) 확인
-		UE_LOG(LogTemp, Error, TEXT("[LockOnPerform] 실패: [%s] 액터가 GetController() == nullptr 상태입니다. (빙의되지 않음)"),
-		       *OwnerPawn->GetName());
-		return;
-	}
-
-	// CDO가 아닌 실제 인스턴스인지 확인 및 실행 주체 이름 출력
-	if (!OwnerPawn->GetController())
-	{
-		UE_LOG(LogTemp, Error, TEXT("[%s] 컨트롤러 없음 - 해당 액터에서 락온 실행 거부됨"), *OwnerPawn->GetName());
-		return;
-	}
-
-	// 3. 실제 인스턴스가 로직에 정상 진입했는지 확인
-	UE_LOG(LogTemp, Warning, TEXT("[%s] 실제 인스턴스 락온 로직 진입 성공!"), *OwnerPawn->GetName());
-
-
-	UE_LOG(LogTemp, Warning, TEXT("OwnerPawn: %s"),
-	       OwnerPawn ? *OwnerPawn->GetName() : TEXT("nullptr"));
-
-	if (OwnerPawn)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Controller: %s"),
-		       OwnerPawn->GetController() ? *OwnerPawn->GetController()->GetName() : TEXT("nullptr"));
-		UE_LOG(LogTemp, Warning, TEXT("IsLocallyControlled: %s"),
-		       OwnerPawn->IsLocallyControlled() ? TEXT("true") : TEXT("false"));
-		UE_LOG(LogTemp, Warning, TEXT("HasAuthority: %s"),
-		       OwnerPawn->HasAuthority() ? TEXT("true") : TEXT("false"));
-	}
-
-#pragma endregion
 	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
 	{
 		return;
 	}
 
-
-	// 락온 전환 기능은 없습니다.
-	// 이미 락온 중이라면 해제
 	if (CurrentLockOnTarget)
 	{
 		ClearLockOn();
-		UE_LOG(LogTemp, Warning, TEXT("락온 해제"));
 		return;
 	}
 
-	// 새로운 타겟 탐색
 	if (AActor* NewTarget = FindBestTarget())
 	{
 		CurrentLockOnTarget = NewTarget;
-		UE_LOG(LogTemp, Warning, TEXT("락온 온"));
+
 		if (LockOnWidgetClass)
 		{
-			if (!LockOnWidgetInstance) // 없으면 최초 1회 생성
+			if (!LockOnWidgetInstance)
 			{
 				LockOnWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), LockOnWidgetClass);
 			}
@@ -272,79 +171,72 @@ void UVGLockOnComponent::LockOnPerform()
 		}
 		OnLockOnTargetChanged.Broadcast(NewTarget);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("타겟을 찻지 못했습니다."));
-	}
 }
 
 void UVGLockOnComponent::ClearLockOn()
 {
-	//락온 타겟 제거
 	if (CurrentLockOnTarget)
 	{
 		CurrentLockOnTarget = nullptr;
 		OnLockOnTargetChanged.Broadcast(nullptr);
 	}
-	//락온 마커 제거
 	if (LockOnWidgetInstance)
 	{
 		LockOnWidgetInstance->RemoveFromParent();
 	}
-	//가려진거 시간 초기화
 	CurrentOcclusionTime = 0.0f;
 }
 
 
-// Called every frame
 void UVGLockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                        FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//타겟 고정 보정 로직
-	// 1. 타겟이 없으면 회전 로직 실행 안 함
-	if (!CurrentLockOnTarget) return;
+	if (!CurrentLockOnTarget || !IsValid(CurrentLockOnTarget))
+	{
+		if (CurrentLockOnTarget)
+		{
+			ClearLockOn();
+		}
+		return;
+	}
 
 	AActor* Owner = GetOwner();
 	if (!Owner) return;
 
 	APawn* OwnerPawn = Cast<APawn>(Owner);
-	if (!OwnerPawn) return;
+	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled()) return;
 
-	AController* Controller = OwnerPawn->GetController();
-	if (!Controller) return;
-
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
 	if (!PlayerController) return;
 
-	// 2. 위치 데이터 추출
-	FVector StartLocation = OwnerPawn->GetActorLocation(); // 혹은 카메라 위치
+	FVector StartLocation = OwnerPawn->GetActorLocation();
 	FVector TargetLocation = CurrentLockOnTarget->GetActorLocation();
-	TargetLocation.Z += 15.f; //락온 위치 조정. 나중에 필요하다면 소켓으로 위치설정
+	TargetLocation.Z += LockOnTargetZOffset;
 
-	// 3. 목표 회전값 계산
-	FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
-
-	// 4. 현재 회전값에서 목표 회전값으로 부드럽게 보간(Lerp)
-	FRotator CurrentRotation = Controller->GetControlRotation();
-	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, CameraInterpSpeed);
-
-	// 5. 컨트롤러에 새로운 회전값 적용
-	Controller->SetControlRotation(NewRotation);
-
-	//멀어지면 상실
+	// 거리 초과 시 락온 해제
 	if (FVector::Dist(StartLocation, TargetLocation) > TargetLostDistance)
 	{
 		ClearLockOn();
 		return;
 	}
 
-	//장애물에 가로막히면 체크하는 로직
+	// 장애물 차단 체크 (내부에서 ClearLockOn 호출 가능)
 	CheckTargetLineOfSight(StartLocation, TargetLocation, DeltaTime);
-	
-	
-	if (CurrentLockOnTarget && LockOnWidgetInstance && LockOnWidgetInstance->IsInViewport())
+	if (!CurrentLockOnTarget)
+	{
+		return;
+	}
+
+	// 카메라 회전 보간
+	FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
+	FRotator CurrentRotation = PlayerController->GetControlRotation();
+	FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, CameraInterpSpeed);
+	PlayerController->SetControlRotation(NewRotation);
+
+	// 락온 마커 UI 위치 갱신
+	if (LockOnWidgetInstance && LockOnWidgetInstance->IsInViewport())
 	{
 		FVector2D ScreenPosition;
 		if (UGameplayStatics::ProjectWorldToScreen(PlayerController, TargetLocation, ScreenPosition))

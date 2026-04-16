@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "VGLockOnComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockOnTargetChanged, AActor*, NewTarget);
@@ -15,70 +14,63 @@ class VIGILANT_API UVGLockOnComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
 	UVGLockOnComponent();
 	
-	AActor* GetCurrentLockOnTarget() const {return CurrentLockOnTarget;}
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-	//트레이스 함수 재사용할려고 따로 뺌
-	bool IsTargetObscured(const FVector& StartLocation, const FVector& EndLocation, AActor* TargetToIgnore) const;
+	AActor* GetCurrentLockOnTarget() const { return CurrentLockOnTarget; }
 
+	void LockOnPerform();
+	void ClearLockOn();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLockOnTargetChanged OnLockOnTargetChanged;
+
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+	                           FActorComponentTickFunction* ThisTickFunction) override;
+
+protected:
+	virtual void BeginPlay() override;
+
+	bool IsTargetObscured(const FVector& StartLocation, const FVector& EndLocation, AActor* TargetToIgnore) const;
 	void CheckTargetLineOfSight(FVector StartLocation, FVector EndLocation, float DeltaTime);
-	
-	
-	
-	//락온 기능
-	UPROPERTY()
-	TArray<AActor*> LockOnTargetList;
+
 	UPROPERTY()
 	TObjectPtr<UUserWidget> LockOnWidgetInstance;
+
 	UPROPERTY(EditAnywhere, Category = "LockOn|UI")
 	TSubclassOf<UUserWidget> LockOnWidgetClass;
 
-
-	// 현재 타겟이 가려진 누적 시간
-	float CurrentOcclusionTime = 0.0f;
-	// 가려진 상태에서 락온 최대 유지 시간
 	UPROPERTY(EditAnywhere, Category = "LockOn|Exception")
 	float MaxOcclusionTime = 1.5f;
-	
+
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	TSubclassOf<APawn> TargetClassFilter;
-	
+
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float CameraInterpSpeed = 10.0f;
-	
+
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float MaxLockOnDistance = 1500.0f;
+
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float TargetLostDistance = 2000.f;
+
 	UPROPERTY(EditAnywhere, Category = "LockOn")
-	float MinimumDotProductThreshold = 0.5;
+	float MinimumDotProductThreshold = 0.5f;
 
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float DotWeight = 0.7f;
+
 	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float DistWeight = 0.3f;
-	
 
-	
-	UPROPERTY()
-	USpringArmComponent* CachedSpringArm;
+	UPROPERTY(EditAnywhere, Category = "LockOn")
+	float LockOnTargetZOffset = 15.f;
 
 private:
 	AActor* FindBestTarget();
-	
+
 	UPROPERTY()
 	TObjectPtr<AActor> CurrentLockOnTarget;
-	
 
-public:
-	void LockOnPerform();
-	void ClearLockOn();
-	FOnLockOnTargetChanged OnLockOnTargetChanged;
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
+	float CurrentOcclusionTime = 0.0f;
 };

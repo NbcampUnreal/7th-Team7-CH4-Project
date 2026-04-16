@@ -16,7 +16,6 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Stunned, "Character.State.Stunned");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedLeftHand, "Character.State.Occupied.Left");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Occupied.Right");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::LockOn, "Character.State.LockOn");
-UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::RotateLock, "Character.State.RotateLock");
 
 // 보스 태그 정의
 UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::Casting, "Boss.State.Casting");

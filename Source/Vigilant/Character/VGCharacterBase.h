@@ -159,10 +159,6 @@ protected:
 	UFUNCTION()
 	void HandleLockOnTargetChanged(AActor* NewTarget);
 	void LockOn(const FInputActionValue& Value);
-	UPROPERTY(EditAnywhere, Category = "LockOn|Camera")
-	FVector LockOnSocketOffset = FVector(0.f, 50.f, 200.f); 
-	UPROPERTY(EditAnywhere, Category = "LockOn|Camera")
-	FVector DefaultSocketOffset = FVector(0.f, 25.f, 100.f);
 	UFUNCTION(Server, Reliable)
 	void Server_SetLockOnTag(bool bIsLockedOn);
 	
