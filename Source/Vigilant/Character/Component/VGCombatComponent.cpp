@@ -1,6 +1,7 @@
 #include "Character/Component/VGCombatComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameplayTagAssetInterface.h"
+#include "Combat/VGAmmoProviderInterface.h"
 #include "Combat/VGAttackExecution.h"
 #include "Common/VGGameplayTags.h"
 #include "Data/VGShieldDataAsset.h"
@@ -318,6 +319,22 @@ void UVGCombatComponent::OnComboWindowClosed()
 
 void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 ExpectedComboIndex)
 {
+	// --- 1. Ammo Validation ---
+	if (UMeshComponent* TraceMesh = GetActiveTraceMesh())
+	{
+		if (IVGAmmoProviderInterface* AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner()))
+		{
+			if (!AmmoProvider->HasAmmo())
+			{
+				Client_CancelAttackPrediction();
+				return;
+			}
+			
+			AmmoProvider->ConsumeAmmo();
+		}
+	}
+	
+	// --- 2. Attack Execution ---
 	CurrentComboIndex = ExpectedComboIndex;
 	PerformAttack(bIsHeavy);
 
