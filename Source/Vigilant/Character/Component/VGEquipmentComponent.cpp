@@ -2,11 +2,7 @@
 #include "Equipment/VGEquippableActor.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
-#include "Common/VGGameplayTags.h"
-#include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
-#include "InputBehavior.h"
-#include "Character/VGCharacterBase.h"
 #include "Components/CapsuleComponent.h"
 #include "Data/VGEquipmentDataAsset.h"
 #include "Components/MeshComponent.h"
@@ -66,7 +62,7 @@ void UVGEquipmentComponent::Interact()
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled()) return;
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
+	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (!OwnerCharacter) return;
 	
 	if (CurrentInteractableTarget)
@@ -78,6 +74,7 @@ void UVGEquipmentComponent::Interact()
 
 void UVGEquipmentComponent::DropItem()
 {
+	
 	Server_DropItem(ActiveEquipmentSlot);
 	UE_LOG(LogTemp, Log, TEXT("현재 활성화된 슬롯의 아이템 버리기"));
 }
@@ -384,7 +381,7 @@ void UVGEquipmentComponent::UpdateInteractableTarget()
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (!OwnerPawn) return;
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
+	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (!OwnerCharacter) return;
 
 	FVector SearchCenter = OwnerPawn->GetActorLocation();
@@ -412,7 +409,7 @@ void UVGEquipmentComponent::UpdateInteractableTarget()
 			bool bIsValidTarget = false;
 
 			// 상대방이 플레이어(캐릭터)인 경우 
-			if (HitActor->IsA<AVGCharacterBase>()) 
+			if (HitActor->IsA<ACharacter>()) 
 			{
 				// 막고라 아이템을 들고 있는지 검사 (태그나 클래스로 확인)
 				bool bHasMakgoraItem = false;

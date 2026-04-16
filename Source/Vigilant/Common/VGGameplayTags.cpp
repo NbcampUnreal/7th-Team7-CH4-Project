@@ -15,6 +15,8 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Sprint, "Character.State.Sprint");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Stunned, "Character.State.Stunned");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedLeftHand, "Character.State.Occupied.Left");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Occupied.Right");
+UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::LockOn, "Character.State.LockOn");
+UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::RotateLock, "Character.State.RotateLock");
 
 // 보스 태그 정의
 UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::Casting, "Boss.State.Casting");
@@ -41,7 +43,9 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemCarried, "Mission.Item.State.Car
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemPlaced, "Mission.Item.State.Placed");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::ItemUsed, "Mission.Item.State.Used");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::KeyItem, "Mission.Item.Type.Key");
-UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::CarryItem, "Mission.Item.Type.Carry");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::CarryItem1, "Mission.Item.Type.Carry1");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::CarryItem2, "Mission.Item.Type.Carry2");
+UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::CarryItem3, "Mission.Item.Type.Carry3");
 
 // 장비 태그 정의
 UE_DEFINE_GAMEPLAY_TAG(VigilantEquipmentTags::Weapon_OneHand, "Item.Type.Weapon.OneHand");
