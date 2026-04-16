@@ -154,6 +154,9 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_ForceRotation(FRotator NewRotation);
 	
+	// 현재 해당 동작이 가능한 페이즈인지 확인용 함수
+	bool IsCombatActionAllowed() const;
+	bool IsInteractionAllowed(AActor* Target = nullptr) const;
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
 	

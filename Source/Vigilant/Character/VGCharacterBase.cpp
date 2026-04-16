@@ -291,6 +291,9 @@ void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
 
 void AVGCharacterBase::LightAttack(const FInputActionValue& Value)
 {
+	// 페이즈 체크 후 실행
+	if (!IsCombatActionAllowed()) return;
+	
 	if (CombatComponent)
 	{
 		CombatComponent->TryLightAttack();
@@ -299,6 +302,9 @@ void AVGCharacterBase::LightAttack(const FInputActionValue& Value)
 
 void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 {
+	// 페이즈 체크 후 실행
+	if (!IsCombatActionAllowed()) return;
+	
 	if (CombatComponent)
 	{
 		CombatComponent->TryHeavyAttack();
@@ -316,6 +322,16 @@ void AVGCharacterBase::OnRep_CharacterTags()
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                    class AController* EventInstigator, AActor* DamageCauser)
 {
+	// 현재 페이즈가 데미지를 받는게 허용되는 페이즈인지 확인
+	AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
+	if (GameMode && GameMode->Implements<UVGGameModeInterface>())
+	{
+		if (!IVGGameModeInterface::Execute_CanPlayerTakeDamage(GameMode, DamageCauser, this))
+		{
+			return 0.0f; 
+		}
+	}
+	
 	// 1. 무적 상태 확인
 	if (CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
@@ -388,6 +404,32 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 	}
 }
 
+bool AVGCharacterBase::IsCombatActionAllowed() const
+{
+	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+	{
+		if (GameMode->Implements<UVGGameModeInterface>())
+		{
+			return IVGGameModeInterface::Execute_CanPlayerAttack(GameMode, const_cast<AVGCharacterBase*>(this));
+		}
+	}
+	
+	return true;
+}
+
+bool AVGCharacterBase::IsInteractionAllowed(AActor* Target) const
+{
+	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+	{
+		if (GameMode->Implements<UVGGameModeInterface>())
+		{
+			return IVGGameModeInterface::Execute_CanPlayerInteract(GameMode, const_cast<AVGCharacterBase*>(this), Target);
+		}
+	}
+	
+	return true;
+}
+
 void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
 {
 	// z값 제외 전부 무시
@@ -406,6 +448,22 @@ void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
 	{
 		CharacterMovementComponent->Velocity = FVector::ZeroVector;
 	}
+	
+	// 몸통이 무조간 카메라 방향보도록 고정 후 0.1초 후에 풀기
+	bUseControllerRotationYaw = true;
+	FTimerHandle SyncTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		SyncTimerHandle, 
+		FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			if (this)
+			{
+				bUseControllerRotationYaw = false;
+			}
+		}), 
+		0.1f, 
+		false
+	);
 }
 
 bool AVGCharacterBase::CanInteract_Implementation(AActor* Interactor) const
