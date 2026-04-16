@@ -59,6 +59,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ProcessHit(AActor* HitActor);
 	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SpawnProjectile(TSubclassOf<AActor> ProjectileClass, const FVector& SpawnLocation, const FRotator& SpawnRotation);
+	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	UVGShieldDataAsset* GetCurrentShieldData() const;
 	UMeshComponent* GetActiveTraceMesh() const;

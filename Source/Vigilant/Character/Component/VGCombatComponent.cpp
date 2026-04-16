@@ -417,6 +417,17 @@ bool UVGCombatComponent::Server_ProcessHit_Validate(AActor* HitActor)
 	return true;
 }
 
+void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActor> ProjectileClass,
+	const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+}
+
+bool UVGCombatComponent::Server_SpawnProjectile_Validate(TSubclassOf<AActor> ProjectileClass,
+	const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+	return true;
+}
+
 // ---------------------------------------------------------
 // Attack Execution
 // ---------------------------------------------------------
