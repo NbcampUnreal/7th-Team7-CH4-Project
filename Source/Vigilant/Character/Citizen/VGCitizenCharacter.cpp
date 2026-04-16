@@ -109,6 +109,10 @@ void AVGCitizenCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, 
 
 void AVGCitizenCharacter::Interact()
 {
+	if (!IsInteractionAllowed(nullptr))
+	{
+		return; 
+	}
 	// 특정 상황에 (태그보유) 리턴 하는 로직 추가 하는 부분
 	// ^_^
 	if (EquipmentComponent)
