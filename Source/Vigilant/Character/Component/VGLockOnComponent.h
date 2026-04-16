@@ -22,7 +22,9 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	
+	//트레이스 함수 재사용할려고 따로 뺌
+	bool IsTargetObscured(const FVector& StartLocation, const FVector& EndLocation, AActor* TargetToIgnore) const;
+
 	void CheckTargetLineOfSight(FVector StartLocation, FVector EndLocation, float DeltaTime);
 	
 	

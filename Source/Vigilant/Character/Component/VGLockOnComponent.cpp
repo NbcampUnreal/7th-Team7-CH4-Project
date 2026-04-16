@@ -36,6 +36,33 @@ void UVGLockOnComponent::BeginPlay()
 	// ...
 }
 
+
+bool UVGLockOnComponent::IsTargetObscured(const FVector& StartLocation, const FVector& EndLocation, AActor* TargetToIgnore) const
+{
+	AActor* Owner = GetOwner();
+	if (!Owner)
+	{
+		return true;
+	}
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(Owner);
+	if (TargetToIgnore)
+	{
+		Params.AddIgnoredActor(TargetToIgnore);
+	}
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		StartLocation,
+		EndLocation,
+		ECollisionChannel::ECC_Visibility, 
+		Params
+	);
+	return bHit;
+}
+
 void UVGLockOnComponent::CheckTargetLineOfSight(FVector StartLocation, FVector EndLocation, float DeltaTime)
 {
 	AActor* Owner = GetOwner();
@@ -43,18 +70,8 @@ void UVGLockOnComponent::CheckTargetLineOfSight(FVector StartLocation, FVector E
 	{
 		return;
 	}
-	FHitResult HitResult;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(Owner);
-	Params.AddIgnoredActor(CurrentLockOnTarget);
-	bool bHit =
-		GetWorld()->LineTraceSingleByChannel(
-			HitResult,
-			StartLocation,
-			EndLocation,
-			ECollisionChannel::ECC_Visibility,
-			Params
-		);
+	
+	bool bHit = IsTargetObscured(StartLocation, EndLocation, CurrentLockOnTarget);
 	if (bHit)
 	{
 		CurrentOcclusionTime += DeltaTime;
@@ -132,6 +149,11 @@ AActor* UVGLockOnComponent::FindBestTarget()
 			{
 				continue; //각도가 지정한 것보다 크면(코사인 값이 지정한 것보다 작으면) 패스
 			}
+			if (IsTargetObscured(GetOwner()->GetActorLocation(), TargetLocation, Target))
+			{
+				continue; //벽에 가려지면 무시
+			}
+			
 			//거리 정규화 (0~1)
 			float NormalizeDist = 1.f - (TargetDistance / MaxLockOnDistance);
 			//가중치를 곱한 점수 산출
