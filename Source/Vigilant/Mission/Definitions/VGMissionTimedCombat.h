@@ -4,6 +4,8 @@
 #include "VGMissionBase.h"
 #include "VGMissionTimedCombat.generated.h"
 
+class AVGMissionSandbag;
+
 UCLASS()
 class VIGILANT_API AVGMissionTimedCombat : public AVGMissionBase
 {
@@ -17,8 +19,7 @@ protected:
 	
 	UFUNCTION()
 	void OnSandbagHitted();
-		
-	virtual void SpawnRewardItems() override;
+
 private:
 	UFUNCTION()
 	void OnSandbagDefeated(AVGCharacterBase* LastAttacker);
