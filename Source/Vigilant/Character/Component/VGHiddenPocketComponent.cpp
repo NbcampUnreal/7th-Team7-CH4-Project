@@ -2,14 +2,13 @@
 
 
 #include "VGHiddenPocketComponent.h"
-#include "Equipment/VGEquippableActor.h"
-#include "Character/VGCharacterBase.h"
-#include "Components/PrimitiveComponent.h"
-#include "Net/UnrealNetwork.h"
 #include "VGEquipmentComponent.h"
-#include "Core/VGPlayerState.h"
-#include "GameplayTagContainer.h"
+#include "Character/VGCharacterBase.h"
 #include "Common/VGGameplayTags.h"
+#include "Components/PrimitiveComponent.h"
+#include "Core/VGPlayerState.h"
+#include "Equipment/VGEquippableActor.h"
+#include "Net/UnrealNetwork.h"
 
 UVGHiddenPocketComponent::UVGHiddenPocketComponent()
 {
@@ -81,10 +80,19 @@ void UVGHiddenPocketComponent::OnRep_HiddenItem(AVGEquippableActor* OldItem)
 	if (HiddenItem)
 	{
 		HandlePocketState(HiddenItem, true);
+		
+		// 클라이언트용 UI 방송 (아이템 획득)
+		if (HiddenItem->EquipmentData)
+		{
+			OnPocketItemStashed.Broadcast(HiddenItem->EquipmentData, HiddenItem->GetItemMesh());
+		}
 	}
 	else if (OldItem)
 	{
 		HandlePocketState(OldItem, false);
+		
+		// 클라이언트용 UI 방송 (아이템 버림)
+		OnPocketItemDropped.Broadcast();
 	}
 }
 
@@ -150,6 +158,9 @@ void UVGHiddenPocketComponent::Server_DropHiddenItem_Implementation()
 	HiddenItem->SetActorLocation(DropLocation);
 	HandlePocketState(HiddenItem, false);
 	HiddenItem = nullptr;
+	
+	// UI 방송 (아이템 버림)
+	OnPocketItemDropped.Broadcast();
 }
 
 void UVGHiddenPocketComponent::Server_StashItem_Implementation(AVGEquippableActor* ItemToStash)
@@ -165,4 +176,10 @@ void UVGHiddenPocketComponent::Server_StashItem_Implementation(AVGEquippableActo
 
 	HiddenItem = ItemToStash;
 	HandlePocketState(HiddenItem, true);
+	
+	// UI 방송 (아이템 획득)
+	if (HiddenItem && HiddenItem->EquipmentData)
+	{
+		OnPocketItemStashed.Broadcast(HiddenItem->EquipmentData, HiddenItem->GetItemMesh());
+	}
 }
