@@ -106,8 +106,19 @@ void AVGMissionGimmickAltar::OnInteractWith(AActor* Interactor, const FTransform
 
 void AVGMissionGimmickAltar::UpdateHintEffectVisibility()
 {
-	APlayerController* LocalPC = GetWorld()->GetFirstPlayerController();
-	if (!LocalPC || !LocalPC->GetPawn())
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	APlayerController* LocalPC = World->GetFirstPlayerController();
+	if (!IsValid(LocalPC))
+	{
+		return;
+	}
+	
+	APawn* PlayerPawn = LocalPC->GetPawn();
+	if (!IsValid(PlayerPawn))
 	{
 		return;
 	}
