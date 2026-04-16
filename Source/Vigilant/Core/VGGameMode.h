@@ -6,6 +6,8 @@
 #include "Core/Interface/VGGameModeInterface.h"
 #include "VGGameMode.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMissionTimeRemainingChanged, float, ElapsedTime , float, TotalTime);
+
 class AVGCharacterBase;
 class UVGPhaseBase;
 
@@ -70,7 +72,10 @@ public:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
   //형백
 	//virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal = L"") override;
-  
+	//미션 시간변경을 전달하는 델리게이
+	FOnMissionTimeRemainingChanged OnMissionTimeRemainingChanged;
+	void OnMissionTimeUpdated();
+	
 	virtual FString InitNewPlayer(
 		APlayerController* NewPlayerController,
 		const FUniqueNetIdRepl& UniqueId,
@@ -102,7 +107,6 @@ public:
 	
 	// 이벤트 중개소
 	void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim);
-	void OnMissionCleared(int32 TimeReducedAmount);
 	void SubmitVote(AVGPlayerState* Voter, int32 TargetIndex);
 	UFUNCTION()
 	void HandleMissionClear(float ReduceTime);

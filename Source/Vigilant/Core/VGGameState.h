@@ -21,6 +21,9 @@ class VIGILANT_API AVGGameState : public AGameState, public IGameplayTagAssetInt
 public:
 	AVGGameState();
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+	
+	//임시 컴파일용 함수 - 머지할때 지워주세요
+	float GetElapsedTime() {return 1.f;};
 
 	// UI가 바인드할 채널
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
@@ -53,6 +56,9 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Time")
 	float PhaseEndTime;
 	
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Time")
+	float PhaseStartTime;
+	
 	// 미션 페이즈 결과에 따른 보스 스탯 배율
 	UPROPERTY(ReplicatedUsing = OnRep_BossNerfRate, BlueprintReadOnly, Category = "Vigilant|Stats")
 	float BossNerfRate;
@@ -60,6 +66,10 @@ public:
 	// UI에서 사용할 남은 시간 구하는 함수
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Vigilant|Time")
 	float GetRemainingPhaseTime() const;
+	
+	// 현재까지 경과된 시간 계산
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Time")
+	float GetElapsedTime() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Tag")
     void SetCurrentPhaseTag(FGameplayTag NewTag);

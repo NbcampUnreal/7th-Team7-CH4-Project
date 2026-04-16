@@ -8,11 +8,13 @@
 #include "Interaction/VGInteractable.h"
 #include "VGCharacterBase.generated.h"
 
+class UVGLockOnComponent;
 class UInputAction;
 class UCameraComponent;
 class UVGCombatComponent;
 class USpringArmComponent;
 class UVGStatComponent;
+class UVGHiddenPocketComponent;
 
 struct FInputActionValue;
 
@@ -46,6 +48,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UVGStatComponent> StatComponent;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Combat", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UVGLockOnComponent> LockOnComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components|Pocket", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UVGHiddenPocketComponent> HiddenPocketComponent;
+	
 	
 	// Camera Settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
@@ -66,7 +73,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed = 900.0f;
-	
 
 #pragma region Interfaces Func
 public:
@@ -78,7 +84,7 @@ public:
 	// Functions
 public:
 	AVGCharacterBase();
-virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
@@ -92,9 +98,16 @@ virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLife
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	TObjectPtr<UInputAction> SprintAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputAction> LockOnAction;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	TObjectPtr<UInputAction> CameraZoomAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+	TObjectPtr<UInputAction> HiddenPocketAction;
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Components|Combat")
@@ -110,11 +123,15 @@ protected:
 	void StartJump(const FInputActionValue& Value);
 	void StopJump(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-
+	
+	
 	void CameraZoom(const FInputActionValue& Value);
 	void LightAttack(const FInputActionValue& Value);
 	void HeavyAttack(const FInputActionValue& Value);
+	void HiddenPocketToggle(const FInputActionValue& Value);
 	
+	//캐릭터 회전 설정
+	void SetCharacterRotationState(bool bIsLockedOn);
 #pragma region 스프린트 관련
 	//입력 바인딩
 	virtual void StartSprint(const FInputActionValue& Value);
@@ -138,6 +155,18 @@ protected:
 	bool bWantsToSprint = false;
 #pragma endregion
 	
+	
+	UFUNCTION()
+	void HandleLockOnTargetChanged(AActor* NewTarget);
+	void LockOn(const FInputActionValue& Value);
+	UPROPERTY(EditAnywhere, Category = "LockOn|Camera")
+	FVector LockOnSocketOffset = FVector(0.f, 50.f, 200.f); 
+	UPROPERTY(EditAnywhere, Category = "LockOn|Camera")
+	FVector DefaultSocketOffset = FVector(0.f, 25.f, 100.f);
+	UFUNCTION(Server, Reliable)
+	void Server_SetLockOnTag(bool bIsLockedOn);
+	
+	
 	UFUNCTION()
 	virtual void OnRep_CharacterTags(); // 캐릭터태그 변화시 부를 콜백(내용없음)
 	
@@ -151,12 +180,18 @@ public:
 	// (이용호 추가) 플레이어간 상호작용 호출했을 때 받을 함수
 	void NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer);
 	
+	UFUNCTION(Client, Reliable)
+	void Client_ForceRotation(FRotator NewRotation);
+	
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
+	
+
 	
 #pragma region Stagger & Knockback
 	virtual void ApplyStagger(FVector PushDirection, float KnockbackForce);
 	
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayStaggerVisual();
 	

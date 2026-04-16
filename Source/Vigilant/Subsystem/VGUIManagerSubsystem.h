@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChatMessageRequestedSignature, co
 // (이용호 추가) 투표 전달용
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVoteRequestedSignature, int32, TargetIndex);
 
-//플레이어 컨트롤러에 전달할 델리게이트
+//플레이어 컨트롤러에 레디 상태 전달할 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FUIOnPlayerReadySignature, bool, bReady);
 
 class UVGPopupWidget;

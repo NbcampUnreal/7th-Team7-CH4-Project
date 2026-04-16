@@ -109,8 +109,8 @@ void AVGMissionGimmickPressure::OnReleased()
 		return;
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("[Pressure:%s] OnReleased"), *GetName());
-	SetStateTag(VigilantMissionTags::GimmickInactive);
+	// UE_LOG(LogTemp, Warning, TEXT("[Pressure:%s] OnReleased"), *GetName());
+	// SetStateTag(VigilantMissionTags::GimmickInactive);
 }
 
 void AVGMissionGimmickPressure::OnTriggerBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

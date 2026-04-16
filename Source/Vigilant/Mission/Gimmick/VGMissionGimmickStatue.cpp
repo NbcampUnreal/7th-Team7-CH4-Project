@@ -4,6 +4,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Character/VGCharacterBase.h"
+#include "Components/ArrowComponent.h"
 
 AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 {
@@ -12,6 +13,8 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	bReplicates = true;
 	GimmickTypeTag = VigilantMissionTags::StatueGimmick;
+	
+	
 }
 
 bool AVGMissionGimmickStatue::CanInteractWith(AActor* Interactor) const
@@ -47,7 +50,8 @@ void AVGMissionGimmickStatue::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SetActorRotation(FRotator(0,InitialAngle,0));
+	InitialAngle = GetActorRotation().Yaw;
+	// SetActorRotation(FRotator(0,InitialAngle,0));
 }
 
 void AVGMissionGimmickStatue::Tick(float DeltaTime)
@@ -89,15 +93,15 @@ void AVGMissionGimmickStatue::RotateToTarget(float DeltaTime)
 		SetActorRotation(Target);
 		SetActorTickEnabled(false);
 		
+		// 서버에서만 정답 체크
 		if (HasAuthority())
 		{
-			if (IsAtAnswerAngle())
+			if (IsAtAnswerAngle() && !bIsOnAnswerStop)
 			{
 				SetStateTag(VigilantMissionTags::GimmickCompleted);
 			}
 			else
 			{
-				// 서버에서만 정답 체크
 				SetStateTag(VigilantMissionTags::GimmickInactive);
 			}
 		}

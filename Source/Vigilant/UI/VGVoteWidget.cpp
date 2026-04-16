@@ -101,6 +101,11 @@ void UVGVoteWidget::ProcessVoteClick(int32 SlotIndex)
 		// 서브 시스템에 전송
 		UIManager->RequestSubmitVote(SlotIndex);
 		
+		if (PortraitWrapBox)
+		{
+			PortraitWrapBox->SetIsEnabled(false);
+		}
+		
 	}
 }
 

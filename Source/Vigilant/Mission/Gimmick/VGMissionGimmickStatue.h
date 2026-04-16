@@ -17,6 +17,9 @@ public:
 	virtual bool CanInteractWith(AActor* Interactor) const override;
 	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	
+	// 정답 확인용
+	bool IsAtAnswerAngle() const;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -28,25 +31,22 @@ protected:
 
 private:
 	void RotateToTarget(float DeltaTime);
-
-	// 정답 확인용
-	bool IsAtAnswerAngle() const;
 	
 	UFUNCTION()
 	void OnRep_TargetAngle();
 
 public:
 	// 한 번 상호작용 시 회전하는 각도 (에디터 지정, 기본 90도)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Statue")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
 	float RotateStep = 90.f;
 
 	// 허용 오차 범위
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Statue")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
 	float AngleTolerance = 2.f;
 
 protected:
 	// 시작 각도 — 리셋용
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
 	float InitialAngle = 0.f;
 
 	// 정답 각도 — 에디터 지정
@@ -60,4 +60,7 @@ protected:
 	// 회전 속도
 	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Statue")
 	float RotationSpeed = 180.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
+	bool bIsOnAnswerStop = false;
 };

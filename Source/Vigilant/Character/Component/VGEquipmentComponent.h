@@ -5,7 +5,6 @@
 #include "GameplayTagContainer.h"
 #include "VGEquipmentComponent.generated.h"
 
-class AVGCharacterBase;
 class AVGEquippableActor;
 
 // 장착 슬롯 구분 (왼손, 오른손, 양손)
@@ -76,6 +75,10 @@ public:
 	void Interact();
 	void DropItem();
 	void SelectSlot(float SlotNumber);
+	
+	// 다른 컴포넌트에서 현재 하이라이트된 타겟을 가져가기 위한 Getter
+	UFUNCTION(BlueprintCallable, Category = "Equipment")
+	AActor* GetCurrentInteractableTarget() const { return CurrentInteractableTarget; }
 	
 protected:
 	UFUNCTION()

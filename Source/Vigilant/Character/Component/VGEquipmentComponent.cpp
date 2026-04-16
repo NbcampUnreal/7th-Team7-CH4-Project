@@ -2,11 +2,8 @@
 #include "Equipment/VGEquippableActor.h"
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
-#include "Common/VGGameplayTags.h"
-#include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
-#include "InputBehavior.h"
-#include "Character/VGCharacterBase.h"
+#include "Components/CapsuleComponent.h"
 #include "Data/VGEquipmentDataAsset.h"
 #include "Components/MeshComponent.h"
 #include "Engine/OverlapResult.h"
@@ -20,7 +17,7 @@ UVGEquipmentComponent::UVGEquipmentComponent()
 void UVGEquipmentComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+		
 	// 로컬 플레이어인 경우에만 0.1초마다 주변 아이템 스캔
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (OwnerPawn && OwnerPawn->IsLocallyControlled())
@@ -65,7 +62,7 @@ void UVGEquipmentComponent::Interact()
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled()) return;
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
+	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (!OwnerCharacter) return;
 	
 	if (CurrentInteractableTarget)
@@ -77,6 +74,7 @@ void UVGEquipmentComponent::Interact()
 
 void UVGEquipmentComponent::DropItem()
 {
+	
 	Server_DropItem(ActiveEquipmentSlot);
 	UE_LOG(LogTemp, Log, TEXT("현재 활성화된 슬롯의 아이템 버리기"));
 }
@@ -234,14 +232,46 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 	{
 		TargetItem = RightHandItem;
 	}
-
+	
 	if (TargetItem == nullptr)
 	{
 		return;
 	}
 
-	HandleItemAttachment(TargetItem, NAME_None, false);
+	FVector HandLocation = TargetItem->GetActorLocation();
+	FRotator DropRotation = TargetItem->GetActorRotation();
+	FVector SafeDropLocation = HandLocation; 
 
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (OwnerCharacter)
+	{
+		FVector StartLocation = OwnerCharacter->GetActorLocation(); // 플레이어 중심
+		FVector EndLocation = HandLocation;
+
+		FHitResult HitResult;
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(OwnerCharacter);
+		QueryParams.AddIgnoredActor(TargetItem);
+
+		// 무기 크기를 고려한 구(Sphere) 검사
+		FCollisionShape Sphere = FCollisionShape::MakeSphere(40.0f);
+
+		// 플레이어 중심에서 손 방향으로 구를 굴려 중간에 장애물(벽)이 있는지 검사
+		if (GetWorld()->SweepSingleByChannel(HitResult, StartLocation, EndLocation, FQuat::Identity, ECC_Visibility, Sphere, QueryParams))
+		{
+			// 장애물이 있다면 캐릭터 발밑으로 위치 변경
+			float HalfHeight = OwnerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+            
+			// 바닥 뚫림 방지를 위해 위로 살짝 띄움
+			SafeDropLocation = StartLocation - FVector(0.0f, 0.0f, HalfHeight - 10.0f);
+			
+			DropRotation = FRotator(0.0f, OwnerCharacter->GetActorRotation().Yaw, 0.0f);
+		}
+	}
+	
+	HandleItemAttachment(TargetItem, NAME_None, false);
+	TargetItem->SetActorLocationAndRotation(SafeDropLocation, DropRotation, false, nullptr, ETeleportType::TeleportPhysics);
+	
 	if (TargetItem->EquipmentData->EquipRule == EVGEquipRules::BothHands)
 	{
 		LeftHandItem = nullptr;
@@ -351,7 +381,7 @@ void UVGEquipmentComponent::UpdateInteractableTarget()
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (!OwnerPawn) return;
 
-	AVGCharacterBase* OwnerCharacter = Cast<AVGCharacterBase>(OwnerPawn);
+	ACharacter* OwnerCharacter = Cast<ACharacter>(OwnerPawn);
 	if (!OwnerCharacter) return;
 
 	FVector SearchCenter = OwnerPawn->GetActorLocation();
@@ -379,7 +409,7 @@ void UVGEquipmentComponent::UpdateInteractableTarget()
 			bool bIsValidTarget = false;
 
 			// 상대방이 플레이어(캐릭터)인 경우 
-			if (HitActor->IsA<AVGCharacterBase>()) 
+			if (HitActor->IsA<ACharacter>()) 
 			{
 				// 막고라 아이템을 들고 있는지 검사 (태그나 클래스로 확인)
 				bool bHasMakgoraItem = false;

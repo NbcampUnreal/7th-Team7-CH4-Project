@@ -13,7 +13,7 @@ void UVGHUDWidget::NativeConstruct()
 	
 	if (ReadyButton)
 	{
-		ReadyButton->OnClicked.AddDynamic(this, &UVGHUDWidget::OnReadyButtonClicked);
+		ReadyButton->OnClicked.AddUniqueDynamic(this, &UVGHUDWidget::OnReadyButtonClicked);
 		
 	}
 }
@@ -71,6 +71,10 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 			// 미래에 마피아 3번째 슬롯이 생긴다면 여기에 작성	
 		}
 	}
+}
+
+void UVGHUDWidget::UpdateTimeRemainingGauge(float ElapsedTime, float RemainingTime)
+{
 }
 
 void UVGHUDWidget::OnReadyButtonClicked()

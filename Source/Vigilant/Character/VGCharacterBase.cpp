@@ -1,20 +1,24 @@
 #include "Character/VGCharacterBase.h"
-#include "Camera/CameraComponent.h"
-#include "EnhancedInputComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/GameStateBase.h"
-#include "GameFramework/GameModeBase.h"
 #include "DrawDebugHelpers.h"
+#include "EnhancedInputComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Character/Component/VGHiddenPocketComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
+#include "Component/VGLockOnComponent.h"
 #include "Component/VGStatComponent.h"
+#include "Core/Interface/VGGameModeInterface.h"
 #include "Engine/DamageEvents.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
 #include "Core/Interface/VGGameModeInterface.h"
 #include "Data/VGShieldDataAsset.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 #pragma region Interfaces GameplayTag
@@ -39,7 +43,8 @@ AVGCharacterBase::AVGCharacterBase()
 	  MoveAction(nullptr),
 	  LookAction(nullptr),
 	  SprintAction(nullptr),
-	  CameraZoomAction(nullptr)
+	  CameraZoomAction(nullptr),
+      HiddenPocketAction(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -53,7 +58,7 @@ AVGCharacterBase::AVGCharacterBase()
 	CameraBoom->TargetArmLength = DefaultCameraDistance;
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->bEnableCameraLag = false;
-	CameraBoom->bEnableCameraRotationLag = true;
+	CameraBoom->bEnableCameraRotationLag = false;
 
 	// create the orbiting camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -65,6 +70,9 @@ AVGCharacterBase::AVGCharacterBase()
 
 	// create the stat component
 	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
+	
+	LockOnComponent = CreateDefaultSubobject<UVGLockOnComponent>(TEXT("VGLockOnComponent"));
+	HiddenPocketComponent = CreateDefaultSubobject<UVGHiddenPocketComponent>(TEXT("HiddenPocketComponent"));
 }
 
 void AVGCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -76,7 +84,14 @@ void AVGCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 void AVGCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCharacterBase::HandleSprintStamina);
+	if (StatComponent)
+	{
+		StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCharacterBase::HandleSprintStamina);
+	}
+	if (LockOnComponent)
+	{
+		LockOnComponent->OnLockOnTargetChanged.AddUniqueDynamic(this, &AVGCharacterBase::HandleLockOnTargetChanged);
+	}
 }
 
 //빙의 후 클라이언트만 실행하는 생명주기 함수
@@ -140,6 +155,12 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 			EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
 			                          &AVGCharacterBase::StopSprint);
 		}
+		
+		if (LockOnAction)
+		{
+			EnhancedInput->BindAction(LockOnAction, ETriggerEvent::Started, this, 
+				&AVGCharacterBase::LockOn);
+		}
 
 		if (CombatComponent)
 		{
@@ -154,6 +175,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 				EnhancedInput->BindAction(CombatComponent->HeavyAttackAction, ETriggerEvent::Started, this,
 				                          &AVGCharacterBase::HeavyAttack);
 			}
+		}
+		
+		if (HiddenPocketAction)
+		{
+			EnhancedInput->BindAction(HiddenPocketAction, ETriggerEvent::Started, this, &AVGCharacterBase::HiddenPocketToggle);
 		}
 	}
 }
@@ -195,6 +221,10 @@ void AVGCharacterBase::StopJump(const FInputActionValue& Value)
 
 void AVGCharacterBase::Look(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		return;
+	}
 	if (GetController() != nullptr)
 	{
 		const FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -203,6 +233,52 @@ void AVGCharacterBase::Look(const FInputActionValue& Value)
 	}
 }
 
+#pragma region 락온 관련 함수 구현
+void AVGCharacterBase::LockOn(const FInputActionValue& Value)
+{
+	
+	UE_LOG(LogTemp, Warning, TEXT("[%s] E키 입력 감지됨!"), *GetName());
+	
+	if (LockOnComponent)
+	{
+		LockOnComponent->LockOnPerform();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("클라이언트 인스턴스(%s)의 LockOnComponent가 nullptr입니다!"), *GetName());
+	}
+}
+void AVGCharacterBase::Server_SetLockOnTag_Implementation(bool bIsLockedOn)
+{
+	if (bIsLockedOn)
+	{
+		CharacterTags.AddTag(VigilantCharacter::LockOn);
+	}
+	else
+	{
+		CharacterTags.RemoveTag(VigilantCharacter::LockOn);
+	}
+}
+void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
+{
+	if (NewTarget)
+	{
+		// 락온 성공 시
+		CharacterTags.AddTag(VigilantCharacter::LockOn);
+		Server_SetLockOnTag(true);
+		SetCharacterRotationState(true); // 락온용 회전 상태 
+	}
+	else
+	{
+		// 락온 해제 시
+		CharacterTags.RemoveTag(VigilantCharacter::LockOn);
+		Server_SetLockOnTag(false);
+		SetCharacterRotationState(false); // 일반 이동용 회전 상태
+	}
+}
+#pragma endregion
+
+#pragma region 스프린트 관련 함수 구현
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
 	//게임플레이 태그 검사, 스태미나 검사
@@ -214,7 +290,13 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 	{
 		return;
 	}
-
+	
+	// 잠겨있다면 잠시 풀기
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		//SetCharacterRotationState(false);
+	}
+	
 	bWantsToSprint = true;
 
 	PerformStartSprint();
@@ -223,6 +305,13 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 
 void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 {
+	//회전잠금해제
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("잠금"));
+		//SetCharacterRotationState(true);
+	}
+	
 	bWantsToSprint = false;
 	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
 	{
@@ -279,7 +368,7 @@ void AVGCharacterBase::HandleSprintStamina(float CurrentStamina, float Max)
 		Server_StartSprint();
 	}
 }
-
+#pragma endregion
 
 void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
 {
@@ -300,6 +389,16 @@ void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 		CombatComponent->TryHeavyAttack();
 	}
 }
+
+void AVGCharacterBase::HiddenPocketToggle(const FInputActionValue& Value)
+{
+	if (HiddenPocketComponent)
+	{
+		HiddenPocketComponent->TogglePocket();
+	}
+}
+
+
 
 
 void AVGCharacterBase::OnRep_CharacterTags()
@@ -403,6 +502,26 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 	}
 }
 
+void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
+{
+	// z값 제외 전부 무시
+	FRotator SafeRotation = FRotator(0.0f, NewRotation.Yaw, 0.0f);
+
+	// 물리 충돌 무시
+	SetActorRotation(SafeRotation, ETeleportType::TeleportPhysics);
+
+	// 카메라 회전
+	if (AController* PlayerController = GetController())
+	{
+		PlayerController->SetControlRotation(SafeRotation);
+	}
+	// 관성 삭제
+	if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		CharacterMovementComponent->Velocity = FVector::ZeroVector;
+	}
+}
+
 bool AVGCharacterBase::CanInteract_Implementation(AActor* Interactor) const
 {
 	return true;
@@ -445,4 +564,15 @@ void AVGCharacterBase::Multicast_PlayStaggerVisual_Implementation()
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 {
+}
+
+void AVGCharacterBase::SetCharacterRotationState(bool bIsLockedOn)
+{
+	// 캐릭터의 bOrientRotationToMovement 등을 상황에 맞게 전환
+	// 누가 언제 이 함수를 호출하는지 추적
+	UE_LOG(LogTemp, Warning, TEXT("[%s] SetCharacterRotationState 호출됨! 변경된 값: %s"), 
+		*GetName(), bIsLockedOn ? TEXT("TRUE") : TEXT("FALSE"));
+	
+	GetCharacterMovement()->bOrientRotationToMovement = !bIsLockedOn;
+	bUseControllerRotationYaw = bIsLockedOn;
 }

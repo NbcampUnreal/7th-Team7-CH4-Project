@@ -68,6 +68,9 @@ public:
 	void ChangeSelectedEquipSlot(int32 SlotIndex);
 	
 	UFUNCTION()
+	void UpdateTimeRemainingGauge(float ElapsedTime, float RemainingTime);
+	
+	UFUNCTION()
 	void OnReadyButtonClicked();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")

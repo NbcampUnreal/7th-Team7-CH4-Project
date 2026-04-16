@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "TimerManager.h"
+#include "UI/VGHUDWidget.h"
 
 
 AVGPlayerController::AVGPlayerController()
@@ -58,13 +59,10 @@ void AVGPlayerController::BeginPlay()
 
 void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 {
-	// if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
-	// {
-	// 	// 이름 입력안하면 레디 불가능
-	// 	if (VGPlayerState->VGPlayerName.IsEmpty()) return;
-	//
-	// 	VGPlayerState->bIsReady = bReady;
-	// }
+	if (AVGPlayerState* VGPlayerState = GetPlayerState<AVGPlayerState>())
+	{
+		VGPlayerState->bIsReady = bReady;
+	}
 
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{
@@ -105,6 +103,18 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 		{
 			UIManager->OnChatMessageRequested.AddUniqueDynamic(this, &AVGPlayerController::OnChatMessageReceived);
 			UIManager->OnPlayerReadySignature.AddUniqueDynamic(this, &AVGPlayerController::Server_SetReady);
+			
+			//게이지 업데이트 바인딩
+			if (AGameModeBase* GameModeBase = UGameplayStatics::GetGameMode(this))
+			{
+				if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GameModeBase))
+				{
+					// 게임모드 <-> HUD 연결
+					VGGameMode->OnMissionTimeRemainingChanged.AddUniqueDynamic(
+						UIManager->GetCurrentHUDWidget(), &UVGHUDWidget::UpdateTimeRemainingGauge);
+				}
+			}
+			
 		}
 	}
 }
@@ -147,11 +157,13 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 	if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseVote))
 	{
 		VGUIManager->ShowVote();
+		VGUIManager->HideHUD();
 	}
 	// 투표 페이즈 아니면 닫음
 	else
 	{
 		VGUIManager->HideVote();
+		VGUIManager->ShowHUD();
 	}
 }
 
