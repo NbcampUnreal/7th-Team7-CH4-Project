@@ -1,5 +1,4 @@
 ﻿#include "VGMissionGimmickAltar.h"
-
 #include "NiagaraComponentPool.h"
 #include "Common/VGGameplayTags.h"
 #include "Character/VGCharacterBase.h"
@@ -10,6 +9,7 @@
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 AVGMissionGimmickAltar::AVGMissionGimmickAltar()
 {
@@ -82,8 +82,9 @@ void AVGMissionGimmickAltar::OnInteractWith(AActor* Interactor, const FTransform
 	}
 	
 	// 매칭되는 빈 슬롯 찾아서 채우기
-	for (FVGAltarPlacementSlot& Slot : PlacementSlots)
+	for (int32 Index = 0; Index < PlacementSlots.Num(); Index++)
 	{
+		FVGAltarPlacementSlot& Slot = PlacementSlots[Index];
 		if (Slot.IsOccupied())
 		{
 			continue;
@@ -91,6 +92,7 @@ void AVGMissionGimmickAltar::OnInteractWith(AActor* Interactor, const FTransform
 		
 		if (TryPlaceItemToSlot(EquipComp, Slot))
 		{
+			SetSlotBit(Index);
 			OnGimmickInteracted.Broadcast(this, Interactor);
 			break;
 		}
@@ -130,16 +132,16 @@ void AVGMissionGimmickAltar::UpdateHintEffectVisibility()
     
 	bool bShouldShow = DistSq < FMath::Square(HintVisibleRange);
     
-	for (int32 i = 0; i < HintEffectComponents.Num(); i++)
+	for (int32 Index = 0; Index < HintEffectComponents.Num(); Index++)
 	{
-		UNiagaraComponent* Comp = HintEffectComponents[i];
+		UNiagaraComponent* Comp = HintEffectComponents[Index];
 		if (!Comp)
 		{
 			continue;
 		}
 		
 		// 이미 채워진 슬롯은 무조건 비활성
-		bool bSlotEmpty = !PlacementSlots[i].IsOccupied();
+		bool bSlotEmpty = !IsSlotBitSet(Index);
 		bool bActivate = bShouldShow && bSlotEmpty;
         
 		if (bActivate && !Comp->IsActive())
@@ -161,9 +163,14 @@ void AVGMissionGimmickAltar::BeginPlay()
 	{
 		const FVGAltarPlacementSlot& Slot = PlacementSlots[i];
         
-		if (!Slot.RequiredItemHintEffect) continue;
+		if (!Slot.RequiredItemHintEffect)
+		{
+			HintEffectComponents.Add(nullptr); // 인덱스 유지
+			continue;
+		}
         
 		UNiagaraComponent* NiagaraComp = NewObject<UNiagaraComponent>(this);
+		NiagaraComp->SetAutoActivate(false);
 		NiagaraComp->SetAsset(Slot.RequiredItemHintEffect);
 		NiagaraComp->SetupAttachment(RootComponent);
 		NiagaraComp->SetRelativeLocation(Slot.AttachOffset);
@@ -171,13 +178,16 @@ void AVGMissionGimmickAltar::BeginPlay()
         
 		// 메쉬 정보 전달 (Niagara에 User.Mesh 파라미터가 있을 경우)
 		UVGMissionItemDataAsset* ItemDataAsset = Slot.ItemDataAsset.Get();
-		if (!ItemDataAsset)
+		if (ItemDataAsset)
 		{
-			continue;
+			// NiagaraComp->SetVariableStaticMesh(FName("User.TargetMesh"), ItemDataAsset->ItemMesh);
+			NiagaraComp->SetVariableObject(FName("User.TargetObject"), ItemDataAsset->ItemMesh);
+			UE_LOG(LogTemp, Warning, TEXT("TargetMesh = %s"),
+	*GetNameSafe(ItemDataAsset->ItemMesh));
 		}
 		
-		NiagaraComp->SetVariableStaticMesh(FName("User.Mesh"), ItemDataAsset->ItemMesh);
-        
+		NiagaraComp->Activate();
+		NiagaraComp->ReinitializeSystem();
 		HintEffectComponents.Add(NiagaraComp);
 	}
 	
@@ -193,6 +203,28 @@ void AVGMissionGimmickAltar::BeginPlay()
 			true
 		);
 	}
+}
+
+void AVGMissionGimmickAltar::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(ThisClass, PlacedSlotMask);
+}
+
+void AVGMissionGimmickAltar::SetSlotBit(int32 SlotIndex)
+{
+	if (SlotIndex < 0 || SlotIndex >= PlacementSlots.Num())
+	{
+		return;
+	}
+	
+	PlacedSlotMask |= (1 << SlotIndex);
+}
+
+bool AVGMissionGimmickAltar::IsSlotBitSet(int32 SlotIndex) const
+{
+	return PlacedSlotMask & (1 << SlotIndex);
 }
 
 bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot)

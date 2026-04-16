@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,12 +12,9 @@ class UVGEquipmentComponent;
 class UInputAction;
 struct FInputActionValue;
 
-
 UCLASS()
 class VIGILANT_API AVGCitizenCharacter :
 	public AVGCharacterBase
-
-
 
 {
 	GENERATED_BODY()
@@ -34,7 +29,6 @@ public:
 	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
 
 protected:
-	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// 상호작용 입력 액션
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -64,12 +58,12 @@ protected:
 
 	//base의 무브 함수 재정의
 	virtual void Move(const FInputActionValue& Value) override;
-	
+
 	void StartBlock(const FInputActionValue& Value);
 	void StopBlock(const FInputActionValue& Value);
-	
+
 	void Dodge();
-	
+
 	UFUNCTION(Server, Reliable)
 	void Server_Dodge(FVector Direction);
 	UFUNCTION(NetMulticast, Reliable)
@@ -90,10 +84,16 @@ protected:
 
 	UFUNCTION()
 	void OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled = false);
-	
+
 	UFUNCTION()
-	void HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent * EquippedMesh);
-	
+	void HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent* EquippedMesh);
+
 	UFUNCTION()
 	void HandleItemDropped(EVGEquipmentSlot Slot);
+
+	UFUNCTION()
+	void CheckGuardBreakOnStaminaChanged(float CurrentStamina, float MaxStamina);
+	
+	UFUNCTION()
+	void ApplyGuardStaminaCost(bool bIsGuarding);
 };

@@ -10,8 +10,6 @@ class VIGILANT_API AVGShield : public AVGEquippableActor
 	GENERATED_BODY()
 
 public:
-	AVGShield();
-
 	virtual UMeshComponent* GetItemMesh() const override { return ShieldMesh; }
 
 protected:

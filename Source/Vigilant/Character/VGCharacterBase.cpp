@@ -1,19 +1,24 @@
 #include "Character/VGCharacterBase.h"
-#include "Camera/CameraComponent.h"
-#include "EnhancedInputComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "GameFramework/GameStateBase.h"
-#include "GameFramework/GameModeBase.h"
 #include "DrawDebugHelpers.h"
+#include "EnhancedInputComponent.h"
+#include "Camera/CameraComponent.h"
+#include "Character/Component/VGHiddenPocketComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
+#include "Component/VGLockOnComponent.h"
 #include "Component/VGStatComponent.h"
+#include "Core/Interface/VGGameModeInterface.h"
 #include "Engine/DamageEvents.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
 #include "Core/Interface/VGGameModeInterface.h"
+#include "Data/VGShieldDataAsset.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 #pragma region Interfaces GameplayTag
@@ -38,7 +43,8 @@ AVGCharacterBase::AVGCharacterBase()
 	  MoveAction(nullptr),
 	  LookAction(nullptr),
 	  SprintAction(nullptr),
-	  CameraZoomAction(nullptr)
+	  CameraZoomAction(nullptr),
+      HiddenPocketAction(nullptr)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -52,7 +58,7 @@ AVGCharacterBase::AVGCharacterBase()
 	CameraBoom->TargetArmLength = DefaultCameraDistance;
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->bEnableCameraLag = false;
-	CameraBoom->bEnableCameraRotationLag = true;
+	CameraBoom->bEnableCameraRotationLag = false;
 
 	// create the orbiting camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -64,6 +70,9 @@ AVGCharacterBase::AVGCharacterBase()
 
 	// create the stat component
 	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
+	
+	LockOnComponent = CreateDefaultSubobject<UVGLockOnComponent>(TEXT("VGLockOnComponent"));
+	HiddenPocketComponent = CreateDefaultSubobject<UVGHiddenPocketComponent>(TEXT("HiddenPocketComponent"));
 }
 
 void AVGCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
@@ -75,7 +84,14 @@ void AVGCharacterBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 void AVGCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCharacterBase::HandleSprintStamina);
+	if (StatComponent)
+	{
+		StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCharacterBase::HandleSprintStamina);
+	}
+	if (LockOnComponent)
+	{
+		LockOnComponent->OnLockOnTargetChanged.AddUniqueDynamic(this, &AVGCharacterBase::HandleLockOnTargetChanged);
+	}
 }
 
 //빙의 후 클라이언트만 실행하는 생명주기 함수
@@ -139,6 +155,12 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 			EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this,
 			                          &AVGCharacterBase::StopSprint);
 		}
+		
+		if (LockOnAction)
+		{
+			EnhancedInput->BindAction(LockOnAction, ETriggerEvent::Started, this, 
+				&AVGCharacterBase::LockOn);
+		}
 
 		if (CombatComponent)
 		{
@@ -154,6 +176,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 				                          &AVGCharacterBase::HeavyAttack);
 			}
 		}
+		
+		if (HiddenPocketAction)
+		{
+			EnhancedInput->BindAction(HiddenPocketAction, ETriggerEvent::Started, this, &AVGCharacterBase::HiddenPocketToggle);
+		}
 	}
 }
 
@@ -161,7 +188,7 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
 	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge) ||
-		CharacterTags.HasTag(VigilantCharacter::Stunned))
+		CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Guard))
 	{
 		return;
 	}
@@ -184,11 +211,6 @@ void AVGCharacterBase::Move(const FInputActionValue& Value)
 
 void AVGCharacterBase::StartJump(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Stunned))
-	{
-		return;
-	}
-	
 	Jump();
 }
 
@@ -199,6 +221,10 @@ void AVGCharacterBase::StopJump(const FInputActionValue& Value)
 
 void AVGCharacterBase::Look(const FInputActionValue& Value)
 {
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		return;
+	}
 	if (GetController() != nullptr)
 	{
 		const FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -207,10 +233,56 @@ void AVGCharacterBase::Look(const FInputActionValue& Value)
 	}
 }
 
+#pragma region 락온 관련 함수 구현
+void AVGCharacterBase::LockOn(const FInputActionValue& Value)
+{
+	
+	UE_LOG(LogTemp, Warning, TEXT("[%s] E키 입력 감지됨!"), *GetName());
+	
+	if (LockOnComponent)
+	{
+		LockOnComponent->LockOnPerform();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("클라이언트 인스턴스(%s)의 LockOnComponent가 nullptr입니다!"), *GetName());
+	}
+}
+void AVGCharacterBase::Server_SetLockOnTag_Implementation(bool bIsLockedOn)
+{
+	if (bIsLockedOn)
+	{
+		CharacterTags.AddTag(VigilantCharacter::LockOn);
+	}
+	else
+	{
+		CharacterTags.RemoveTag(VigilantCharacter::LockOn);
+	}
+}
+void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
+{
+	if (NewTarget)
+	{
+		// 락온 성공 시
+		CharacterTags.AddTag(VigilantCharacter::LockOn);
+		Server_SetLockOnTag(true);
+		SetCharacterRotationState(true); // 락온용 회전 상태 
+	}
+	else
+	{
+		// 락온 해제 시
+		CharacterTags.RemoveTag(VigilantCharacter::LockOn);
+		Server_SetLockOnTag(false);
+		SetCharacterRotationState(false); // 일반 이동용 회전 상태
+	}
+}
+#pragma endregion
+
+#pragma region 스프린트 관련 함수 구현
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
 	//게임플레이 태그 검사, 스태미나 검사
-	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
+	if (CharacterTags.HasTag(VigilantCharacter::Sprint) || CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Attacking))
 	{
 		return;
 	}
@@ -218,7 +290,13 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 	{
 		return;
 	}
-
+	
+	// 잠겨있다면 잠시 풀기
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		//SetCharacterRotationState(false);
+	}
+	
 	bWantsToSprint = true;
 
 	PerformStartSprint();
@@ -227,6 +305,13 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 
 void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 {
+	//회전잠금해제
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("잠금"));
+		//SetCharacterRotationState(true);
+	}
+	
 	bWantsToSprint = false;
 	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
 	{
@@ -283,7 +368,7 @@ void AVGCharacterBase::HandleSprintStamina(float CurrentStamina, float Max)
 		Server_StartSprint();
 	}
 }
-
+#pragma endregion
 
 void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
 {
@@ -310,6 +395,16 @@ void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 		CombatComponent->TryHeavyAttack();
 	}
 }
+
+void AVGCharacterBase::HiddenPocketToggle(const FInputActionValue& Value)
+{
+	if (HiddenPocketComponent)
+	{
+		HiddenPocketComponent->TogglePocket();
+	}
+}
+
+
 
 
 void AVGCharacterBase::OnRep_CharacterTags()
@@ -347,7 +442,7 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		PushDirection.Normalize();
 	}
 
-	// 2. 미션 페이즈: 데미지 적용 X, 밀치기 O
+	// --- 2. 미션 페이즈: 데미지 적용 X, 밀치기 O ---
 	if (AGameStateBase* GameState = GetWorld()->GetGameState())
 	{
 		if (IGameplayTagAssetInterface* GameStateTag = Cast<IGameplayTagAssetInterface>(GameState))
@@ -360,27 +455,46 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 			}
 		}
 	}
-
-	// 3. 패리 확인
-	if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
+	
+	// 공격이 정면에서 들어오는지 확인
+	bool bIsFrontAttack = false;
+	if (DamageCauser)
 	{
-		if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+		FVector ToAttacker = -PushDirection; // 공격자를 가리키는 방향
+		float DotResult = FVector::DotProduct(GetActorForwardVector(), ToAttacker);
+		bIsFrontAttack = DotResult > 0.5f;
+	}
+	
+	if (bIsFrontAttack)
+	{
+		// --- 3. 패리 확인 ---
+		if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
 		{
-			FVector ReversePushDirection = -PushDirection;
-			Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+			if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+			{
+				FVector ReversePushDirection = -PushDirection;
+				Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+			}
+			// TODO: SFX, VFX 추가
+			return 0.0f;
 		}
-		// TODO: SFX, VFX 추가
-		return 0.0f;
-	}
 
-	// 4. 일반 가드 확인
-	if (CharacterTags.HasTag(VigilantCharacter::Guard))
-	{
-		// TODO: Shield의 데이터에셋에서 읽어오기
-		DamageAmount *= 0.5f;
+		// --- 4. 일반 가드 확인 ---
+		if (CharacterTags.HasTag(VigilantCharacter::Guard))
+		{
+			if (!CombatComponent)
+			{
+				return 0.0f;
+			}
+			
+			if (UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData())
+			{
+				DamageAmount *= ShieldData->DamageMitigation;
+			}
+		}
 	}
-
-	// 피해 적용
+	
+	// --- 5. 피해 적용 ---
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (StatComponent && ActualDamage > 0.f)
 	{
@@ -483,7 +597,7 @@ void AVGCharacterBase::OnInteract_Implementation(AActor* Interactor, const FTran
 
 void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 {
-	if (!HasAuthority())
+	if (!HasAuthority() || CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
 		return;
 	}
@@ -504,10 +618,19 @@ void AVGCharacterBase::Multicast_PlayStaggerVisual_Implementation()
 	{
 		PlayAnimMontage(StaggerMontage);
 	}
-
-	// TODO: Stunned 태그 적용, 이동 및 공격 할 수 없도록
 }
 
 void AVGCharacterBase::ServerRPCSetSprinting_Implementation(bool bIsSprinting)
 {
+}
+
+void AVGCharacterBase::SetCharacterRotationState(bool bIsLockedOn)
+{
+	// 캐릭터의 bOrientRotationToMovement 등을 상황에 맞게 전환
+	// 누가 언제 이 함수를 호출하는지 추적
+	UE_LOG(LogTemp, Warning, TEXT("[%s] SetCharacterRotationState 호출됨! 변경된 값: %s"), 
+		*GetName(), bIsLockedOn ? TEXT("TRUE") : TEXT("FALSE"));
+	
+	GetCharacterMovement()->bOrientRotationToMovement = !bIsLockedOn;
+	bUseControllerRotationYaw = bIsLockedOn;
 }

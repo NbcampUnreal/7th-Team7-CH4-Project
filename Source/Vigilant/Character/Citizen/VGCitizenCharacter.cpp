@@ -16,11 +16,14 @@
 
 AVGCitizenCharacter::AVGCitizenCharacter()
 {
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	
 	//속도 조정
 	NormalSpeed = 600.f;
 	SprintSpeed = 900.f;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
-
+	
 	GetCharacterMovement()->BrakingDecelerationWalking = 1024.f;
 	OriginalFriction = GetCharacterMovement()->GroundFriction;
 	ModifyFriction = 0.f;
@@ -31,13 +34,12 @@ AVGCitizenCharacter::AVGCitizenCharacter()
 void AVGCitizenCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (EquipmentComponent)
 	{
 		EquipmentComponent->OnItemEquipped.AddDynamic(this, &AVGCitizenCharacter::HandleItemEquipped);
 		EquipmentComponent->OnItemDropped.AddDynamic(this, &AVGCitizenCharacter::HandleItemDropped);
-		
-		
+
 		//컨트롤러->로컬플레이어->로컬플레이어서브시스템(UI매니저) -> HUDInstance 로 연결 바인딩
 		if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 		{
@@ -45,11 +47,21 @@ void AVGCitizenCharacter::BeginPlay()
 			{
 				if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
 				{
-					EquipmentComponent->OnEquipmentSlotChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::EquipSlotChanged);
+					EquipmentComponent->OnEquipmentSlotChanged.AddDynamic(
+						UIManager, &UVGUIManagerSubsystem::EquipSlotChanged);
 				}
 			}
 		}
-		
+	}
+	
+	if (CombatComponent)
+	{
+		CombatComponent->OnGuardStateChanged.AddDynamic(this, &AVGCitizenCharacter::ApplyGuardStaminaCost);
+	}
+
+	if (StatComponent)
+	{
+		StatComponent->OnStaminaChanged.AddDynamic(this, &AVGCitizenCharacter::CheckGuardBreakOnStaminaChanged);
 	}
 }
 
@@ -57,7 +69,6 @@ void AVGCitizenCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
-
 
 
 void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -148,10 +159,24 @@ void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 
 void AVGCitizenCharacter::StartBlock(const FInputActionValue& Value)
 {
-	if (CombatComponent)
+	if (!CombatComponent || !StatComponent)
 	{
-		CombatComponent->TryStartBlock();
+		return;
 	}
+	
+	UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData();
+	if (!ShieldData)
+	{
+		return;
+	}
+	
+	if (StatComponent->GetCurrentStamina() < ShieldData->BlockActivationStaminaCost)
+	{
+		// TODO: SFX 적용
+		return;
+	}
+	
+	CombatComponent->TryStartBlock();
 }
 
 void AVGCitizenCharacter::StopBlock(const FInputActionValue& Value)
@@ -175,8 +200,13 @@ void AVGCitizenCharacter::Dodge()
 	{
 		return;
 	}
-
-
+	
+	// 잠겨있다면 회전 잠시 풀기
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		SetCharacterRotationState(false);
+	}
+	
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
 	//방향 계산
 	FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
@@ -250,6 +280,14 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 {
 	CharacterTags.RemoveTag(VigilantCharacter::Dodge);
 	GetCharacterMovement()->GroundFriction = OriginalFriction;
+	
+	// 잠겨있다면 다시 잠궈주기
+	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("잠금"));
+		SetCharacterRotationState(true);
+	}
+	
 	if (bWasCancelled == true)
 	{
 		//회피가 불명의 이유로 중단되었을때 로직
@@ -260,13 +298,14 @@ void AVGCitizenCharacter::OnMontageCompleted(UAnimMontage* Montage, bool bWasCan
 	}
 }
 
-void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent * EquippedMesh)
+void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData,
+                                             UMeshComponent* EquippedMesh)
 {
 	if (!EquipmentData || !CombatComponent)
 	{
 		return;
 	}
-	
+
 	if (UVGWeaponDataAsset* WeaponData = Cast<UVGWeaponDataAsset>(EquipmentData))
 	{
 		CombatComponent->SetActiveCombatData(WeaponData, EquippedMesh);
@@ -283,7 +322,7 @@ void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
 	{
 		return;
 	}
-	
+
 	if (Slot == EVGEquipmentSlot::RightHand || Slot == EVGEquipmentSlot::BothHands)
 	{
 		CombatComponent->SetActiveCombatData(nullptr, nullptr);
@@ -291,5 +330,50 @@ void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
 	if (Slot == EVGEquipmentSlot::LeftHand || Slot == EVGEquipmentSlot::BothHands)
 	{
 		CombatComponent->SetActiveShieldData(nullptr);
+	}
+}
+
+void AVGCitizenCharacter::CheckGuardBreakOnStaminaChanged(float CurrentStamina, float MaxStamina)
+{
+	if (CurrentStamina <= 0.f && CharacterTags.HasTag(VigilantCharacter::Guard))
+	{
+		if (IsLocallyControlled())
+		{
+			if (CombatComponent)
+			{
+				CombatComponent->TryStopBlock();
+			}
+		}
+		
+		if (HasAuthority())
+		{
+			StatComponent->StopContinuousConsumeStamina();
+			ApplyStagger(FVector::ZeroVector, 0.0f);
+		}
+	}
+
+}
+
+void AVGCitizenCharacter::ApplyGuardStaminaCost(bool bIsGuarding)
+{
+	if (!HasAuthority() || !StatComponent || !CombatComponent)
+	{
+		return;
+	}
+	
+	UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData();
+	if (!ShieldData)
+	{
+		return;
+	}
+	
+	if (bIsGuarding)
+	{
+		StatComponent->StartContinuousConsumeStamina(ShieldData->BlockStaminaDrainPerSecond);
+		StatComponent->ConsumeStamina(ShieldData->BlockActivationStaminaCost);
+	}
+	else
+	{
+		StatComponent->StopContinuousConsumeStamina();
 	}
 }

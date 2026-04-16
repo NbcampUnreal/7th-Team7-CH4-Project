@@ -73,6 +73,10 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 	}
 }
 
+void UVGHUDWidget::UpdateTimeRemainingGauge(float ElapsedTime, float RemainingTime)
+{
+}
+
 void UVGHUDWidget::OnReadyButtonClicked()
 {
 	UE_LOG(LogTemp, Warning, TEXT("버튼 누름"));
