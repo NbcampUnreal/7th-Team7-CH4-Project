@@ -33,7 +33,12 @@ AVGProjectile::AVGProjectile()
 void AVGProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	if (GetInstigator())
+	{
+		CollisionComponent->IgnoreActorWhenMoving(GetInstigator(), true);
+	}
+	
 	if (HasAuthority())
 	{
 		CollisionComponent->OnComponentHit.AddDynamic(this, &AVGProjectile::OnProjectileHit);
