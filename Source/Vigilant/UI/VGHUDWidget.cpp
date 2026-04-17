@@ -75,7 +75,7 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 		}
 	}
 }
-void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Init = false)
+void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Init)
 {
 	TargetStartTime = InStartTime;
 	if (Init == true)

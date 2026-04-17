@@ -23,7 +23,7 @@ void UVGUIManagerSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-void UVGUIManagerSubsystem::TransferMissionTimeData(float StartTime, float EndTime, bool Init = false)
+void UVGUIManagerSubsystem::TransferMissionTimeData(float StartTime, float EndTime, bool Init)
 {
 	CurrentHUDWidget->SetPhaseTimeData(StartTime, EndTime, Init);
 }
