@@ -30,7 +30,7 @@ bool UVGLobbyPhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase
 
 bool UVGLobbyPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target)
 {
-	return false;
+	return true;
 }
 
 bool UVGLobbyPhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject)

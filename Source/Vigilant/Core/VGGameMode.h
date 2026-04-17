@@ -112,7 +112,7 @@ public:
 	void AssignRolesAndStartGame();
 	
 	// 이벤트 중개소
-	void OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim);
+	virtual void NotifyPlayerDeath_Implementation(class AVGCharacterBase* Killer, class AVGCharacterBase* Victim) override;
 	void SubmitVote(AVGPlayerState* Voter, int32 TargetIndex);
 	UFUNCTION()
 	void HandleMissionClear(float ReduceTime);

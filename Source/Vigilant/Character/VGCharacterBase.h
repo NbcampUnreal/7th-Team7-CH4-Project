@@ -189,6 +189,11 @@ public:
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
 	
+protected:
+	// (이용호 추가) 스탯컴포넌트의 OnDead 델리게이트와 연결용 함수
+	UFUNCTION()
+	virtual void HandleDeath(AController* Killer);
+	
 
 	
 #pragma region Stagger & Knockback

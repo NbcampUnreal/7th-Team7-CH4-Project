@@ -92,6 +92,11 @@ void AVGCharacterBase::BeginPlay()
 	{
 		LockOnComponent->OnLockOnTargetChanged.AddUniqueDynamic(this, &AVGCharacterBase::HandleLockOnTargetChanged);
 	}
+	
+	if (StatComponent)
+	{
+		StatComponent->OnDead.AddDynamic(this, &AVGCharacterBase::HandleDeath);
+	}
 }
 
 //빙의 후 클라이언트만 실행하는 생명주기 함수
@@ -592,6 +597,25 @@ void AVGCharacterBase::OnInteract_Implementation(AActor* Interactor, const FTran
 	if (AVGCharacterBase* VGChallenger = Cast<AVGCharacterBase>(Interactor))
 	{
 		VGChallenger->NotifyPlayerInteraction(this);
+	}
+}
+
+void AVGCharacterBase::HandleDeath(AController* Killer)
+{
+	if (HasAuthority())
+	{
+		AVGCharacterBase* KillerCharacter = nullptr;
+		if (Killer && Killer->GetPawn())
+		{
+			KillerCharacter = Cast<AVGCharacterBase>(Killer->GetPawn());
+		}
+
+		// 게임모드 인터페이스를 통해 보고
+		AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
+		if (GameMode && GameMode->Implements<UVGGameModeInterface>())
+		{
+			IVGGameModeInterface::Execute_NotifyPlayerDeath(GameMode, KillerCharacter, this);
+		}
 	}
 }
 

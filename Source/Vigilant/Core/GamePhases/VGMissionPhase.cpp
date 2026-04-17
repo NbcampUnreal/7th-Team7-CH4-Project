@@ -85,7 +85,7 @@ bool UVGMissionPhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBa
 
 bool UVGMissionPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target)
 {
-	return false;
+	return true;
 }
 
 void UVGMissionPhase::OnMissionCleared(float TimeReducedAmount)
