@@ -20,6 +20,7 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Oc
 UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::Casting, "Boss.State.Casting");
 UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::SkillCooldown_Q, "Boss.Skill.Cooldown.Q");
 UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::SkillCooldown_E, "Boss.Skill.Cooldown.E");
+UE_DEFINE_GAMEPLAY_TAG(VigilantBoss::Dead, "Boss.Status.Dead");
 
 //UE_DEFINE_GAMEPLAY_TAG(VigilantTags::Sprint, "Character.Action.Movable.Sprint");
 UE_DEFINE_GAMEPLAY_TAG(VigilantMissionTags::MissionInactive, "Mission.State.Inactive");

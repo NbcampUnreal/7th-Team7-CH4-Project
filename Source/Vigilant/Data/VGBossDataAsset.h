@@ -76,6 +76,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|E_Leap")
 	USoundBase* LeapSound; // E 스킬 사운드
 	
-	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Death")
+	UAnimMontage* DeathMontage;
 	// (추후 확장) 페이즈별 강화 수치나 이펙트 등을 여기에 추가
 };

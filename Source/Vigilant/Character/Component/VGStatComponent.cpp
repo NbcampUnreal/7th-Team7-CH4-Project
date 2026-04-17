@@ -270,3 +270,24 @@ void UVGStatComponent::OnRep_CurrentStamina()
 {
 	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
 }
+
+void UVGStatComponent::InitStat(float InMaxHP, float InMaxStamina)
+{
+	// 스탯 초기화는 서버에서만 수행
+	if (GetOwnerRole() != ROLE_Authority)
+	{
+		return;
+	}
+
+	MaxHP = InMaxHP;
+	MaxStamina = InMaxStamina;
+
+	// 최대치 갱신 후 현재 스탯도 꽉 채움
+	CurrentHP = MaxHP;
+	CurrentStamina = MaxStamina;
+	bIsAlive = true;
+
+	// 변경된 스탯을 UI 및 다른 컴포넌트에 알림
+	OnHPChanged.Broadcast(CurrentHP, MaxHP);
+	OnStaminaChanged.Broadcast(CurrentStamina, MaxStamina);
+}

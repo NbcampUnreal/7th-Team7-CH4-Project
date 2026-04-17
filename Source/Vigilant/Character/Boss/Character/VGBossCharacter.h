@@ -18,7 +18,7 @@ class VIGILANT_API AVGBossCharacter : public AVGCharacterBase
 public:
 	AVGBossCharacter();
 	
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	
 	// 보스 스킬 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Vigilant|Component")
@@ -53,13 +53,14 @@ protected:
 	void Input_SkillQ(const FInputActionValue& Value);
 	void Input_SkillE(const FInputActionValue& Value);
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_Die();
+	UFUNCTION()
+	void Die(AController* Killer);
+	
 	// 보스 데이터 에셋 (에디터에서 할당)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data")
 	TObjectPtr<const UVGBossDataAsset> BossData;
-	
-	// 보스의 현재 체력
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "BossStats")
-	float CurrentHealth = 0.f;
 	
 	// 최종 스탯을 전달받아 세팅하는 함수
 	UFUNCTION(BlueprintCallable, Category = "BossStats")
