@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Character/Boss/Component/VGBossSkillComponent.h"
+#include "Character/Component/VGCombatComponent.h"
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Components/CapsuleComponent.h"
@@ -40,8 +41,7 @@ void AVGBossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	if (StatComponent)
-	
-		{
+	{
 		StatComponent->OnDead.AddDynamic(this, &AVGBossCharacter::Die);
 	}
 	
@@ -60,6 +60,11 @@ void AVGBossCharacter::BeginPlay()
 		{
 			StatComponent->InitStat(BossData->BaseHealth, StatComponent->GetMaxStamina());
 		}
+	}
+	
+	if (CombatComponent)
+	{
+		CombatComponent->SetActiveCombatData(CombatComponent->GetCurrentCombatData(), GetMesh());
 	}
 }
 
