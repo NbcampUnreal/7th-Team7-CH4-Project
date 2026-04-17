@@ -10,6 +10,9 @@ class UVGStatComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 FOnSandbagDefeated, AVGCharacterBase*, LastAttacker);
 
+// 샌드백 리셋을 외부에 알리는 델리게이트
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSandbagReseted);
+
 // 피격 시 외부에 알리는 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSandbagHitted);
 
@@ -23,9 +26,6 @@ public:
 	// 데미지를 입힌 플레이어를 추적하기 위해 외부에서 직접 호출
 	UFUNCTION(BlueprintCallable)
 	void RegisterAttacker(AVGCharacterBase* Attacker);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_OnDead();
 	
 	void ResetSandbag();
 	
@@ -49,6 +49,9 @@ public:
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnSandbagHitted OnSandbagHitted;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnSandbagReseted OnSandbagReseted;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sandbag")
 	TObjectPtr<UVGStatComponent> StatComponent;
