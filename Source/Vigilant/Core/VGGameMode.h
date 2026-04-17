@@ -56,6 +56,9 @@ protected:
 	
 	int32 AssignPlayerSlot(class AVGPlayerState* VGPlayerState);
 	
+	
+	//김형백 미션 시간 진행상황 업데이트용 타이머핸들
+	FTimerHandle MissionUpdateTimerHandle;
 public:
 	
 	AVGGameMode();

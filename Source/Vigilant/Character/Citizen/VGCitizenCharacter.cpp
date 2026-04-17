@@ -8,6 +8,7 @@
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -29,6 +30,8 @@ AVGCitizenCharacter::AVGCitizenCharacter()
 	ModifyFriction = 0.f;
 	// 장비 컴포넌트 생성
 	EquipmentComponent = CreateDefaultSubobject<UVGEquipmentComponent>(TEXT("EquipmentComponent"));
+	SceneCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCaptureComponent2D"));
+	SceneCaptureComponent->SetupAttachment(RootComponent);
 }
 
 void AVGCitizenCharacter::BeginPlay()

@@ -22,8 +22,6 @@ public:
 	AVGGameState();
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	
-	//임시 컴파일용 함수 - 머지할때 지워주세요
-	float GetElapsedTime() {return 1.f;};
 
 	// UI가 바인드할 채널
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")

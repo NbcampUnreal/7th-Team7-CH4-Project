@@ -27,7 +27,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UVGEquipmentComponent> EquipmentComponent;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent; 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// 상호작용 입력 액션
