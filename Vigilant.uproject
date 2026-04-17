@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.6",
+	"EngineAssociation": "{32DFE442-47EF-8CAA-5BC6-38A6F79C009D}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -12,9 +12,7 @@
 				"Engine",
 				"CoreUObject"
 			]
-		},
-
+		}
 	],
-	"Plugins": [
-			]
+	"Plugins": []
 }
