@@ -149,10 +149,7 @@ void AVGMissionGimmickPressure::OnTriggerBoxEndOverlap(UPrimitiveComponent* Over
 	{
 		OverlappingActors.Remove(OtherActor);
 	
-		if (OverlappingActors.Num() < RequiredActorCount)
-		{
-			OnReleased();
-		}
+		OnReleased();
 	}
 }
 

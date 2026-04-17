@@ -78,11 +78,6 @@ void AVGMissionSandbag::OnHPChanged(float NewHP, float MaxHP)
 {
 	// HP 비율을 Replicate해서 클라이언트 UI에 표시
 	CurrentHPRatio = (MaxHP > 0.f) ? (NewHP / MaxHP) : 0.f;
-	
-	if (!FMath::IsNearlyEqual(CurrentHPRatio, 1.f))
-	{
-		OnSandbagHitted.Broadcast();
-	}
 }
 
 void AVGMissionSandbag::OnRep_CurrentHPRatio()
@@ -100,6 +95,10 @@ void AVGMissionSandbag::OnRep_CurrentHPRatio()
 	{
 		MeshComponent->SetVisibility(false);
 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else
+	{
+		OnSandbagHitted.Broadcast();
 	}
 }
 

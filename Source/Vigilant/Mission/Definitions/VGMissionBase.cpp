@@ -92,18 +92,27 @@ void AVGMissionBase::BeginPlay()
 		}
 		
 		SetMissionState(VigilantMissionTags::MissionInactive);
+		TArray<int32> Indexes;
+		for (int32 i = 0; i < MissionGimmicks.Num(); i++)
+		{
+			Indexes.Add(i);
+		}
+		
 		// 에디터에서 등록된 기믹들에 바인딩
 		for (int32 i = 0; i < MissionGimmicks.Num(); i++)
 		{
+			int32 Index = FMath::RandRange(0,Indexes.Num()-1);
 			AVGMissionGimmickBase* Gimmick = MissionGimmicks[i];
 			if (Gimmick)
 			{
-				Gimmick->SetGimmickIndex(i); // 자동 인덱스 부여
+				Gimmick->SetGimmickIndex(Indexes[Index]); // 자동 인덱스 부여
+
 				Gimmick->OnGimmickStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnGimmickStateChanged);
 				Gimmick->OnGimmickInteracted.AddDynamic(
 					this, &AVGMissionBase::OnGimmickInteracted);
 			}
+			Indexes.RemoveAt(Index);
 		}
 		
 		// 에디터에서 등록된 Item 바인딩
