@@ -56,7 +56,7 @@ public:
 		FGameplayTag RequiredTag) const;
 	
 protected:
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	virtual void OnRep_GimmickStateTag();
 	
 public:
