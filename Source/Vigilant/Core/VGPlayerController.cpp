@@ -66,13 +66,8 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 레디!"))
-
-		//마우스 게임으로!
-		FInputModeGameOnly InputGameOnly;
-
-		SetInputMode(InputGameOnly);
-		bShowMouseCursor = false;
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 서버: 모든 플레이어 준비 체크 시작"));
+		Client_SetInputToGame();
 
 		VGGameMode->CheckAllPlayersReady();
 	}
@@ -143,6 +138,15 @@ void AVGPlayerController::Server_SubmitVote_Implementation(int32 TargetIndex)
 void AVGPlayerController::ReceiveChatMessage(const FString& Message)
 {
 	Client_ReceiveChatMessage(Message);
+}
+
+void AVGPlayerController::Client_SetInputToGame_Implementation()
+{
+	FInputModeGameOnly InputGameOnly;
+	SetInputMode(InputGameOnly);
+	bShowMouseCursor = false;
+
+	UE_LOG(LogTemp, Warning, TEXT("[VGPlayerController] 클라이언트: 게임 모드로 전환 및 마우스 숨김"));
 }
 
 void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)

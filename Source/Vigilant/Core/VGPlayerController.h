@@ -51,6 +51,9 @@ public:
 	// 게임모드 -> 플레이어 컨트롤러를 위한 인터페이스 구현함수. Wrapping ClientRPC 
 	virtual void ReceiveChatMessage(const FString& Message) override;
 	
+	UFUNCTION(Client, Reliable)
+	void Client_SetInputToGame();
+	
 protected:
 	// 페이즈 변경 시 UI 처리용 위한 함수
 	UFUNCTION()
