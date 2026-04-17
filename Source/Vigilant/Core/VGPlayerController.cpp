@@ -15,6 +15,8 @@ AVGPlayerController::AVGPlayerController()
 {
 }
 
+
+
 void AVGPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -63,10 +65,25 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 	{
 		VGPlayerState->bIsReady = bReady;
 	}
-
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 레디!"))
+
+		//마우스 게임으로!
+		FInputModeGameOnly InputGameOnly;
+
+		SetInputMode(InputGameOnly);
+		bShowMouseCursor = false;
+
+		VGGameMode->CheckAllPlayersReady();
+	}
+}
+
+void AVGPlayerController::Client_SetReady_Implementation(bool bReady)
+{
+	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 클라이언트 레디!"))
 
 		//마우스 게임으로!
 		FInputModeGameOnly InputGameOnly;
