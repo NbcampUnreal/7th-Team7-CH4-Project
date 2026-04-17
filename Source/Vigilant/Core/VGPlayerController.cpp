@@ -15,6 +15,20 @@ AVGPlayerController::AVGPlayerController()
 {
 }
 
+
+void AVGPlayerController::SetReady(bool bReady)
+{
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 클라이언트 레디!"))
+
+		//마우스 게임으로!
+      /* 겹쳐서 주석처리
+		FInputModeGameOnly InputGameOnly;
+
+		SetInputMode(InputGameOnly);
+		bShowMouseCursor = false;
+    */
+}
+
 void AVGPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -63,15 +77,25 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 	{
 		VGPlayerState->bIsReady = bReady;
 	}
-
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 레디!"))
+		
+		//마우스 게임으로!
+		FInputModeGameOnly InputGameOnly;
+
+		SetInputMode(InputGameOnly);
+		bShowMouseCursor = false;
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 서버: 모든 플레이어 준비 체크 시작"));
 		Client_SetInputToGame();
 
 		VGGameMode->CheckAllPlayersReady();
 	}
+	
+	
 }
+
+
 
 void AVGPlayerController::Server_SetName_Implementation(const FString& NewName)
 {
@@ -98,7 +122,7 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 		{
 			UIManager->OnChatMessageRequested.AddUniqueDynamic(this, &AVGPlayerController::OnChatMessageReceived);
 			UIManager->OnPlayerReadySignature.AddUniqueDynamic(this, &AVGPlayerController::Server_SetReady);
-			
+			UIManager->OnPlayerReadySignature.AddUniqueDynamic(this, &AVGPlayerController::SetReady);
 			
 			if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 			{
