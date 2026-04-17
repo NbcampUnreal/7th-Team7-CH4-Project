@@ -23,6 +23,11 @@ void UVGUIManagerSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+void UVGUIManagerSubsystem::TransferMissionTimeData(float StartTime, float EndTime, bool Init = false)
+{
+	CurrentHUDWidget->SetPhaseTimeData(StartTime, EndTime, Init);
+}
+
 void UVGUIManagerSubsystem::OnStaminaUpdate(float NewValue, float MaxValue)
 {
 	if (CurrentHUDWidget)

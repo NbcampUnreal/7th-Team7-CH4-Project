@@ -93,6 +93,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnMissionStateChanged OnMissionStateChanged;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Reward")
+	bool bSpawnRewardAtMission;
+	
 protected:
 	// 에디터에서 이 미션에 사용될 기믹과 아이템을 직접 지정
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Mission|Objects")

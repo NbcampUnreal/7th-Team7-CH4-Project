@@ -13,6 +13,8 @@ AVGMissionBase::AVGMissionBase()
 	bReplicates = true;
 	bAlwaysRelevant = true;
 	
+	bSpawnRewardAtMission = false;
+	
 	// 초기 상태는 비활성
 	CurrentStateTag = VigilantMissionTags::MissionInactive;
 }
@@ -217,10 +219,14 @@ void AVGMissionBase::SpawnRewardItems()
 		return;
 	}
 	
-	FVector SpawnLocation = LastContributor->GetActorLocation()
+	FVector SpawnLocation = GetActorLocation();
+	if (!bSpawnRewardAtMission)
+	{
+		SpawnLocation = LastContributor->GetActorLocation()
 						  + LastContributor->GetActorForwardVector() * 100.f;
-	SpawnLocation.Z += 50.f;
-
+		SpawnLocation.Z += 50.f;
+	}
+	
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride =
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;

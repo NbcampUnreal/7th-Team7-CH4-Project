@@ -41,6 +41,8 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	
+	void TransferMissionTimeData(float StartTime, float EndTime, bool Init = false);
+	
 	//표시 업데이트 실질적으로 여기(HUD전달)
 	UFUNCTION()
 	void OnStaminaUpdate(float NewValue, float MaxValue);
