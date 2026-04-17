@@ -59,7 +59,7 @@ bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 		}
 	}
 
-	UE_LOG(LogTemp, Error, TEXT("[%s] No matching item."), *GetName());
+	// UE_LOG(LogTemp, Error, TEXT("[%s] No matching item."), *GetName());
 	return false;
 }
 
