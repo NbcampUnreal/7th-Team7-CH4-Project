@@ -159,7 +159,7 @@ void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 void AVGGameMode::Logout(AController* Exiting)
 {
 	AVGPlayerState* ExitingPlayerState = Exiting->GetPlayerState<AVGPlayerState>();
-	if (ExitingPlayerState && bGameHasStarted)
+	if (ExitingPlayerState)
 	{
 		// 해당되는 슬롯 비우기
 		int32 ReleasedIndex = ExitingPlayerState->EntryIndex - 1;
@@ -167,27 +167,36 @@ void AVGGameMode::Logout(AController* Exiting)
 		{
 			bSlotOccupied[ReleasedIndex] = false;
 		}
-		
-		//  나간 사람의 직업 확인
+	}
+	
+	if (bGameHasStarted)
+	{
 		if (ExitingPlayerState->IsRole(VigilantRoleTags::Mafia))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("마피아 탈주! 시민 승리."));
-			// 게임 종료 로직 추가 예정
+			UE_LOG(LogTemp, Warning, TEXT("마피아 탈주!"));
+			CheckWinCondition();
 		}
 		else if (ExitingPlayerState->IsRole(VigilantRoleTags::Citizen))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("시민 %s 탈주!"), *ExitingPlayerState->VGPlayerName);
-			// 전체 공지해야함
+			CheckWinCondition();
 		}
 	}
 	
 	ConnectedPlayerCount = FMath::Max(0, ConnectedPlayerCount - 1);
-
+	
 	// 레디 중인 사람이 나갔을 때를 위한 체크 
 	if (!bGameHasStarted)
 	{
 		// 다시 전인원 레디 여부 판정
 		CheckAllPlayersReady();
+	}
+	
+	// 서버에서 모두 나갔으면
+	if (ConnectedPlayerCount == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[VGGameMode] 모든 플레이어가 퇴장했습니다. 방을 초기화합니다."));
+		GetWorld()->ServerTravel(TEXT("?Restart"), false); 
 	}
 	
 	Super::Logout(Exiting);
