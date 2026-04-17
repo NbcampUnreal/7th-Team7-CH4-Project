@@ -7,6 +7,7 @@
 #include "Character/Boss/Component/VGBossSkillComponent.h"
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
+#include "Components/CapsuleComponent.h"
 #include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -38,17 +39,26 @@ void AVGBossCharacter::AddBossMappingContext(AController* InController)
 void AVGBossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (StatComponent)
+	
+		{
+		StatComponent->OnDead.AddDynamic(this, &AVGBossCharacter::Die);
+	}
 	
 	// 게임이 시작될 때, 데이터 에셋이 연결되어 있다면 변수에 값 세팅
 	if (BossData != nullptr)
 	{
-		CurrentHealth = BossData->BaseHealth;
 		NormalSpeed = BossData->BossNormalSpeed;
 		SprintSpeed = BossData->BossSprintSpeed;
 		
 		if (GetCharacterMovement())
 		{
 			GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+		}
+		
+		if (StatComponent && HasAuthority())
+		{
+			StatComponent->InitStat(BossData->BaseHealth, StatComponent->GetMaxStamina());
 		}
 	}
 }
@@ -149,11 +159,77 @@ void AVGBossCharacter::Input_SkillE(const FInputActionValue& Value)
 	}
 }
 
-void AVGBossCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+float AVGBossCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(AVGBossCharacter, CurrentHealth);
+	if (CharacterTags.HasTag(VigilantBoss::Dead))
+	{
+		return 0.0f;
+	}
+	
+	float ActualDamage = 0.0f;
+	if (HasAuthority()) 
+	{
+		// 방어력 계산 로직
+		if (BossData)
+		{
+			float Defense = BossData->BaseDefense;
+           
+			// 데미지 * (100 / (100 + 방어력))
+			ActualDamage = DamageAmount * (100.0f / (100.0f + Defense));
+		}
+		else
+		{
+			ActualDamage = DamageAmount;
+		}
+        
+		// 스탯 컴포넌트에 최종 데미지 전달
+		if (StatComponent && ActualDamage > 0.f)
+		{
+			StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
+		}
+	}
+	return ActualDamage;
+}
+
+void AVGBossCharacter::Die(AController* Killer)
+{
+	CharacterTags.AddTag(VigilantBoss::Dead);
+	
+	// 캐릭터 이동 컴포넌트 비활성화
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->DisableMovement();
+	}
+	// 입력 차단
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		DisableInput(PlayerController);
+	}
+	Multicast_Die();
+}
+
+void AVGBossCharacter::Multicast_Die_Implementation()
+{
+	// 캡슐 콜리전 제거
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	// 스켈레탈 메쉬 콜리전 끄기
+	if (GetMesh())
+	{
+		GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
+	}
+	// 사망 몽타주 재생
+	if (BossData && BossData->DeathMontage)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			AnimInstance->Montage_Play(BossData->DeathMontage); 
+		}
+	}
 }
 
 void AVGBossCharacter::InitializeBossStats(float InCalculatedHealth, float InCalculatedDamage)
@@ -161,8 +237,10 @@ void AVGBossCharacter::InitializeBossStats(float InCalculatedHealth, float InCal
 	// 스탯 적용은 서버에서만 권한을 가짐
 	if (HasAuthority())
 	{
-		CurrentHealth = InCalculatedHealth;
-		
-		UE_LOG(LogTemp, Log, TEXT("보스 스탯 - 체력: %f, 공격력: %f"), CurrentHealth, InCalculatedDamage);
+		if (StatComponent)
+		{
+			StatComponent->InitStat(InCalculatedHealth, StatComponent->GetMaxStamina());
+		}
+		UE_LOG(LogTemp, Log, TEXT("보스 스탯 초기화 완료 - 체력: %f, 공격력: %f"), InCalculatedHealth, InCalculatedDamage);
 	}
 }

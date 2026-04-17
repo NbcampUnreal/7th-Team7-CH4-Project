@@ -66,6 +66,11 @@ public: // [3] 이벤트 델리게이트 (HUD 및 애니메이션 바인딩용)
     
     UPROPERTY(BlueprintAssignable, Category = "VG|Stat|Event")
     FOnDead OnDead;
+    
+public:
+    // 보스 캐릭터 동적 스탯 초기화 함수 추가 [하상빈] 
+    UFUNCTION(BlueprintCallable, Category = "VG|Stat")
+    void InitStat(float InMaxHP, float InMaxStamina);
 
 protected: // [4] 내부 동작 함수
     virtual void BeginPlay() override;

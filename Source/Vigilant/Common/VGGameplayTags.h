@@ -43,6 +43,9 @@ namespace VigilantBoss
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Casting);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_Q);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SkillCooldown_E);
+	
+	// 보스 사망 상태
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Dead);
 }
 
 namespace VigilantMissionTags
