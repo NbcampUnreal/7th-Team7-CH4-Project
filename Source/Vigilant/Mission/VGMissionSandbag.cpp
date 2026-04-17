@@ -7,8 +7,12 @@ AVGMissionSandbag::AVGMissionSandbag()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
-
+	
+	RootComp = CreateDefaultSubobject<USceneComponent>("RootComp");
+	SetRootComponent(RootComp);
+	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	MeshComponent->SetupAttachment(RootComp);
 	MeshComponent->SetCollisionProfileName(TEXT("Pawn"));
 	
 	StatComponent = CreateDefaultSubobject<UVGStatComponent>(TEXT("StatComponent"));
