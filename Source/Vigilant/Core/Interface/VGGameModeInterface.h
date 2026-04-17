@@ -19,4 +19,16 @@ public:
 	// 막고라 요청을 받기만할 함수
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Vigilant|GameRule")
 	void RequestDuelPhase(class AVGCharacterBase* Challenger, class AVGCharacterBase* Target);
+	
+	// 공격 가능한지 확인용
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Vigilant|GameRule")
+	bool CanPlayerAttack(class AVGCharacterBase* Attacker);
+
+	// 상호작용 가능한지 확인용
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Vigilant|GameRule")
+	bool CanPlayerInteract(class AVGCharacterBase* Interactor, AActor* Target);
+
+	// 데미지 받을 수 있는지 확인용
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Vigilant|GameRule")
+	bool CanPlayerTakeDamage(AActor* DamageCauser, class AVGCharacterBase* Target);
 };

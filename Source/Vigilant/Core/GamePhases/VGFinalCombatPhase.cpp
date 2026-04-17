@@ -119,6 +119,16 @@ void UVGFinalCombatPhase::ExecutePhaseResult()
 	}
 }
 
+bool UVGFinalCombatPhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject)
+{
+	return false;
+}
+
+bool UVGFinalCombatPhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target)
+{
+	return true;
+}
+
 bool UVGFinalCombatPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target)
 {
 	AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser);

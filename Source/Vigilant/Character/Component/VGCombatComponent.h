@@ -10,6 +10,8 @@ class UVGShieldDataAsset;
 class UVGWeaponDataAsset;
 class UInputAction;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGuardStateChanged, bool, bIsGuarding);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VIGILANT_API UVGCombatComponent : public UActorComponent
 {
@@ -49,10 +51,16 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input|Combat")
 	TObjectPtr<UInputAction> HeavyAttackAction;
+
+	UPROPERTY(BlueprintAssignable, Category = "Combat|Events")
+	FOnGuardStateChanged OnGuardStateChanged;
 	
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ProcessHit(AActor* HitActor);
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SpawnProjectile(TSubclassOf<AActor> ProjectileClass, const FVector& SpawnLocation, const FRotator& SpawnRotation);
 	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	UVGShieldDataAsset* GetCurrentShieldData() const;

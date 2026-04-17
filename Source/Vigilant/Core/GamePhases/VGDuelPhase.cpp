@@ -157,6 +157,11 @@ bool UVGDuelPhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* Interacta
 	return true;
 }
 
+bool UVGDuelPhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target)
+{
+	return true;
+}
+
 bool UVGDuelPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target)
 {
 	if (!Target) return false;

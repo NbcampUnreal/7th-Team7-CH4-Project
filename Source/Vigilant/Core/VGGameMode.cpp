@@ -371,6 +371,33 @@ void AVGGameMode::NotifyPhaseCompleted(class UVGPhaseBase* CompletedPhase)
 	}
 }
 
+bool AVGGameMode::CanPlayerAttack_Implementation(class AVGCharacterBase* Attacker)
+{
+	if (PhaseStack.Num() > 0)
+	{
+		return PhaseStack.Last()->CanPlayerAttack(Attacker, nullptr);
+	}
+	return true;
+}
+
+bool AVGGameMode::CanPlayerInteract_Implementation(class AVGCharacterBase* Interactor, AActor* Target)
+{
+	if (PhaseStack.Num() > 0 && PhaseStack.Last())
+	{
+		return PhaseStack.Last()->CanPlayerInteract(Interactor, Target);
+	}
+	return false;
+}
+
+bool AVGGameMode::CanPlayerTakeDamage_Implementation(AActor* DamageCauser, class AVGCharacterBase* Target)
+{
+	if (PhaseStack.Num() > 0 && PhaseStack.Last())
+	{
+		return PhaseStack.Last()->CanPlayerTakeDamage(DamageCauser, Target);
+	}
+	return false;
+}
+
 
 void AVGGameMode::HandleMatchFinished()
 {

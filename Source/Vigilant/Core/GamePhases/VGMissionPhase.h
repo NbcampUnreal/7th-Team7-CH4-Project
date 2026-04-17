@@ -21,6 +21,8 @@ public:
 	virtual void ResumePhase() override;
 	
 	virtual bool CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject) override;
+	virtual bool CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target);
+	virtual bool CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target);
 	virtual void OnMissionCleared(float TimeReducedAmount) override;
 	
 	void OnMissionTimeUp();
