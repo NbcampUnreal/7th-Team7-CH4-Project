@@ -432,22 +432,51 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		}
 	}
 	
-	// 1. 무적 상태 확인
+	// --- 1. 무적 상태 확인 ---
 	if (CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
 		return 0.0f;
 	}
 
-	// 공격자->방어자 방향 계산
+	// 벡터 계산
 	FVector PushDirection = FVector::ZeroVector;
+	bool bIsFrontAttack = false;
+		
 	if (DamageCauser)
 	{
 		PushDirection = GetActorLocation() - DamageCauser->GetActorLocation();
 		PushDirection.Z = 0.0f;
 		PushDirection.Normalize();
+		
+		FVector ToAttacker = -PushDirection; // 공격자를 가리키는 방향
+		float DotResult = FVector::DotProduct(GetActorForwardVector(), ToAttacker);
+        bIsFrontAttack = DotResult > 0.5f;
+	}
+	
+	// --- 2. 패링 확인 ---
+	if (bIsFrontAttack && CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
+	{
+		if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+		{
+			FVector ReversePushDirection = -PushDirection;
+			Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+		}
+		// TODO: SFX, VFX 추가
+		return 0.0f;
+	}
+	
+	// --- 3. 가드 확인 ---
+	bool bSuccessfullyBlocked = false;
+	if (bIsFrontAttack && CharacterTags.HasTag(VigilantCharacter::Guard))
+	{
+		bSuccessfullyBlocked = true;
+		if (CombatComponent && CombatComponent->GetCurrentShieldData())
+		{
+			DamageAmount *= CombatComponent->GetCurrentShieldData()->DamageMitigation;
+		}
 	}
 
-	// --- 2. 미션 페이즈: 데미지 적용 X, 밀치기 O ---
+	// --- 4. 게임 페이즈 규칙 확인: 미션 페이즈 = 데미지 적용 X, 밀치기 O ---
 	if (AGameStateBase* GameState = GetWorld()->GetGameState())
 	{
 		if (IGameplayTagAssetInterface* GameStateTag = Cast<IGameplayTagAssetInterface>(GameState))
@@ -455,51 +484,17 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 			if (GameStateTag->HasMatchingGameplayTag(VigilantPhaseTags::PhaseMission) || GameStateTag->
 				HasMatchingGameplayTag(VigilantPhaseTags::PhaseLobby))
 			{
-				ApplyStagger(PushDirection, 800.0f);
+				if (!bSuccessfullyBlocked)
+				{
+					ApplyStagger(PushDirection, 800.0f);
+				}
+				
 				return 0.0f;
 			}
 		}
 	}
 	
-	// 공격이 정면에서 들어오는지 확인
-	bool bIsFrontAttack = false;
-	if (DamageCauser)
-	{
-		FVector ToAttacker = -PushDirection; // 공격자를 가리키는 방향
-		float DotResult = FVector::DotProduct(GetActorForwardVector(), ToAttacker);
-		bIsFrontAttack = DotResult > 0.5f;
-	}
-	
-	if (bIsFrontAttack)
-	{
-		// --- 3. 패리 확인 ---
-		if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
-		{
-			if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
-			{
-				FVector ReversePushDirection = -PushDirection;
-				Attacker->ApplyStagger(ReversePushDirection, 600.0f);
-			}
-			// TODO: SFX, VFX 추가
-			return 0.0f;
-		}
-
-		// --- 4. 일반 가드 확인 ---
-		if (CharacterTags.HasTag(VigilantCharacter::Guard))
-		{
-			if (!CombatComponent)
-			{
-				return 0.0f;
-			}
-			
-			if (UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData())
-			{
-				DamageAmount *= ShieldData->DamageMitigation;
-			}
-		}
-	}
-	
-	// --- 5. 피해 적용 ---
+	// --- 5. 최종 피해 적용 ---
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (StatComponent && ActualDamage > 0.f)
 	{
