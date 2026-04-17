@@ -83,9 +83,7 @@ void AVGMissionSandbag::OnHPChanged(float NewHP, float MaxHP)
 
 void AVGMissionSandbag::OnRep_CurrentHPRatio()
 {
-	// TODO: 위젯 업데이트 로직 or 제거
-	UE_LOG(LogTemp, Display, TEXT("CurrentHPRatio is %f"), CurrentHPRatio);
-	
+	// TODO: 위젯 업데이트 로직 연결 필요
 	if (FMath::IsNearlyEqual(CurrentHPRatio, 1.f))
 	{
 		MeshComponent->SetVisibility(true);
@@ -105,5 +103,4 @@ void AVGMissionSandbag::OnDead(AController* LastInstigator)
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	// 막타 플레이어와 함께 미션에 보고
 	OnSandbagDefeated.Broadcast(LastAttacker);
-	UE_LOG(LogTemp, Display, TEXT("[%s] is dead."), *GetName());
 }

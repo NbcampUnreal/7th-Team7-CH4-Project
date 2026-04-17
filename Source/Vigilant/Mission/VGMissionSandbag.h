@@ -23,6 +23,10 @@ class VIGILANT_API AVGMissionSandbag : public AActor
 
 public:
 	AVGMissionSandbag();
+	
+	virtual void GetLifetimeReplicatedProps(
+		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	// 데미지를 입힌 플레이어를 추적하기 위해 외부에서 직접 호출
 	UFUNCTION(BlueprintCallable)
 	void RegisterAttacker(AVGCharacterBase* Attacker);

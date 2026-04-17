@@ -56,10 +56,13 @@ bool AVGMissionTimedCombat::AreAllSandbagsDefeated() const
 {
 	for (AVGMissionSandbag* Sandbag : MissionSandbags)
 	{
-		if (!Sandbag) continue;
-
-		UVGStatComponent* StatComp =
-			Sandbag->FindComponentByClass<UVGStatComponent>();
+		if (!Sandbag)
+		{
+			continue;
+		}
+		
+		// Sandbag이 StatComponent를 멤버로 보유하고 있으므로 직접 접근
+		UVGStatComponent* StatComp = Sandbag->StatComponent;
 		if (StatComp && StatComp->GetIsAlive())
 		{
 			return false;
@@ -81,10 +84,19 @@ void AVGMissionTimedCombat::StartTimer()
 
 void AVGMissionTimedCombat::OnTimerExpired()
 {
+	// 이미 완료된 미션이면 리셋하지 않음 (race condition 방지)
+	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
+	{
+		return;
+	}
+	
 	SetMissionState(VigilantMissionTags::MissionInactive);
 	for (AVGMissionSandbag* Sandbag : MissionSandbags)
 	{
-		if (!Sandbag) continue;
+		if (!Sandbag)
+		{
+			continue;
+		}
 		Sandbag->ResetSandbag();
 	}
 	
