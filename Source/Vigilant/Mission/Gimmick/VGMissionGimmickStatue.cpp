@@ -4,7 +4,6 @@
 #include "Net/UnrealNetwork.h"
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Character/VGCharacterBase.h"
-#include "Components/ArrowComponent.h"
 
 AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 {
@@ -13,8 +12,6 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	bReplicates = true;
 	GimmickTypeTag = VigilantMissionTags::StatueGimmick;
-	
-	
 }
 
 bool AVGMissionGimmickStatue::CanInteractWith(AActor* Interactor) const
@@ -50,8 +47,9 @@ void AVGMissionGimmickStatue::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// 레벨에 배치된 액터의 회전을 시작 각도로 사용
 	InitialAngle = GetActorRotation().Yaw;
-	// SetActorRotation(FRotator(0,InitialAngle,0));
+	TargetAngle = InitialAngle;
 }
 
 void AVGMissionGimmickStatue::Tick(float DeltaTime)
@@ -96,7 +94,9 @@ void AVGMissionGimmickStatue::RotateToTarget(float DeltaTime)
 		// 서버에서만 정답 체크
 		if (HasAuthority())
 		{
-			if (IsAtAnswerAngle() && !bIsOnAnswerStop)
+			// bStopAtAnswerAngle=false (기본): 개별 석상은 정답 도달 시 Completed로 잠금
+			// bStopAtAnswerAngle=true        : 상위 미션(RotatingStatue)에서 전체 정렬을 확인하도록 개별 석상은 Inactive 유지
+			if (IsAtAnswerAngle() && !bStopAtAnswerAngle)
 			{
 				SetStateTag(VigilantMissionTags::GimmickCompleted);
 			}
@@ -111,8 +111,8 @@ void AVGMissionGimmickStatue::RotateToTarget(float DeltaTime)
 bool AVGMissionGimmickStatue::IsAtAnswerAngle() const
 {
 	// FRotator::NormalizeAxis : 각도 값을 -180~180 범위로 정규화해줍니다.
-	float Diff = FMath::Abs(FRotator::NormalizeAxis(TargetAngle - AnswerAngle));
-	return Diff   < AngleTolerance;
+	const float Diff = FMath::Abs(FRotator::NormalizeAxis(TargetAngle - AnswerAngle));
+	return Diff < AngleTolerance;
 }
 
 void AVGMissionGimmickStatue::OnRep_TargetAngle()

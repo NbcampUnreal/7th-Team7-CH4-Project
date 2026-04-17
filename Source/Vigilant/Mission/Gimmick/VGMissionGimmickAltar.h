@@ -20,7 +20,7 @@ struct FVGAltarPlacementSlot
 
 	// 이 슬롯에 필요한 아이템의 데이터 에셋
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TWeakObjectPtr<UVGMissionItemDataAsset> ItemDataAsset = nullptr;
+	TObjectPtr<UVGMissionItemDataAsset> ItemDataAsset = nullptr;
 
 	// 소켓이 없을 때 사용할 상대 오프셋
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -49,24 +49,26 @@ public:
 	virtual void OnInteractWith(AActor* Interactor, const FTransform& InteractTransform) override;
 	
 protected:
-	void UpdateHintEffectVisibility();
 	virtual void BeginPlay() override;
+	void UpdateHintEffectVisibility();
 	
 private:
 	// 슬롯에 아이템 배치 시도
 	bool TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot);
 
 	bool AreAllSlotsFilled() const;
+
 protected:
 	// Altar 슬롯 정보
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Altar")
 	TArray<FVGAltarPlacementSlot> PlacementSlots;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Altar")
+	// 런타임에 BeginPlay에서 동적 생성되며 PlacementSlots와 인덱스가 1:1 대응됨 (힌트 이펙트가 없는 슬롯은 nullptr로 채움)
+	UPROPERTY(Transient)
 	TArray<TObjectPtr<UNiagaraComponent>> HintEffectComponents;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Altar")
-	float HintVisibleRange;
+	float HintVisibleRange = 800.f;
 	
 	FTimerHandle HintVisibilityTimerHandle;
 };

@@ -61,6 +61,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Statue")
 	float RotationSpeed = 180.f;
 	
+	// true면 개별 석상이 정답 각도에 도달해도 Completed로 잠기지 않음 (상위 미션에서 전체 정렬을 확인할 때 사용)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
-	bool bIsOnAnswerStop = false;
+	bool bStopAtAnswerAngle = false;
 };
