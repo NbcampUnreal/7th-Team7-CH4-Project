@@ -457,6 +457,14 @@ void AVGGameMode::AssignRolesAndStartGame()
 	}
 }
 
+void AVGGameMode::NotifyPlayerDeath_Implementation(class AVGCharacterBase* Killer, class AVGCharacterBase* Victim)
+{
+	if (PhaseStack.Num() > 0 && PhaseStack.Last())
+	{
+		PhaseStack.Last()->OnPlayerDeath(Killer, Victim);
+	}
+}
+
 void AVGGameMode::SubmitVote(AVGPlayerState* Voter, int32 TargetIndex)
 {
 	if (PhaseStack.Num() > 0)
@@ -542,13 +550,6 @@ void AVGGameMode::RequestDuelPhase_Implementation(AVGCharacterBase* Challenger, 
 	}
 }
 
-void AVGGameMode::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim)
-{
-	if (PhaseStack.Num() > 0)
-	{
-		PhaseStack.Last()->OnPlayerDeath(Killer,Victim);
-	}
-}
 
 
 

@@ -31,4 +31,8 @@ public:
 	// 데미지 받을 수 있는지 확인용
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Vigilant|GameRule")
 	bool CanPlayerTakeDamage(AActor* DamageCauser, class AVGCharacterBase* Target);
+	
+	// 플레이어가 죽었을 때 해당 페이즈 규칙 실행용
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Vigilant|GameRule")
+	void NotifyPlayerDeath(class AVGCharacterBase* Killer, class AVGCharacterBase* Victim);
 };
