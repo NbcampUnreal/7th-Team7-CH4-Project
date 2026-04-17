@@ -53,6 +53,8 @@ protected:
 	
 	// 줍기 — 서버 전용
 	virtual void OnPickedUp(AActor* NewCarrier);
+	
+	UFUNCTION()
 	virtual void OnDropped(EVGEquipmentSlot Slot);
 	
 	UFUNCTION()

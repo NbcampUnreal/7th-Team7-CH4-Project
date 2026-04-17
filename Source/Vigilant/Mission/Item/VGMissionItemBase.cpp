@@ -82,10 +82,8 @@ void AVGMissionItemBase::OnInteractWith(AActor* Interactor, const FTransform& In
 		Interactor->FindComponentByClass<UVGEquipmentComponent>())
 	{
 		EquipComp->Server_EquipItem(this);
-		if (HasAuthority())
-		{
-			EquipComp->OnItemDropped.AddDynamic(this, &AVGMissionItemBase::OnDropped);
-		}
+		
+		EquipComp->OnItemDropped.AddDynamic(this, &AVGMissionItemBase::OnDropped);
 		UE_LOG(LogTemp, Log, TEXT("[%s] Equipped!"),*GetName());
 	}
 }
