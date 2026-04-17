@@ -120,8 +120,12 @@ void AVGCitizenCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, 
 
 void AVGCitizenCharacter::Interact()
 {
-	// 특정 상황에 (태그보유) 리턴 하는 로직 추가 하는 부분
-	// ^_^
+	AActor* Target = EquipmentComponent->GetCurrentInteractableTarget();
+	if (!IsInteractionAllowed(Target))
+	{
+		return; 
+	}
+
 	if (EquipmentComponent)
 	{
 		EquipmentComponent->Interact();

@@ -106,4 +106,7 @@ private:
 
 	void UpdateInteractableTarget();
 	void SetHighlight(AActor* TargetActor, bool bHighlight);
+	
+public:
+	AActor* GetCurrentInteractableTarget() const { return CurrentInteractableTarget; }
 };

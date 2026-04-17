@@ -70,8 +70,7 @@ public:
 	
 	
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-  //형백
-	//virtual FString InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal = L"") override;
+  
 	//미션 시간변경을 전달하는 델리게이
 	FOnMissionTimeRemainingChanged OnMissionTimeRemainingChanged;
 	void OnMissionTimeUpdated();
@@ -101,6 +100,10 @@ public:
 	void CheckAllPlayersReady();
 	// 페이즈가 종료될 때 호출될 함수
 	void NotifyPhaseCompleted(class UVGPhaseBase* CompletedPhase);
+	// 플레이어 행동 가능 여부 확인용 함수
+	virtual bool CanPlayerAttack_Implementation(class AVGCharacterBase* Attacker) override;
+	virtual bool CanPlayerInteract_Implementation(class AVGCharacterBase* Interactor, AActor* Target) override;
+	virtual bool CanPlayerTakeDamage_Implementation(AActor* DamageCauser, class AVGCharacterBase* Target) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
 	void AssignRolesAndStartGame();

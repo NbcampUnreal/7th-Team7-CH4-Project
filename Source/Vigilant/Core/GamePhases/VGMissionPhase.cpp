@@ -75,20 +75,17 @@ bool UVGMissionPhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* Intera
 		return false;
 	}
 	
-	// 상호작용한 대상이 다른 플레이어인지 검사
-	if (AVGCharacterBase* TargetPlayer = Cast<AVGCharacterBase>(InteractableObject))
-	{
-		if (GameModeRef)
-		{
-			// 다른 플레이어면 막고라 시작
-			GameModeRef->StartDuelPhase(Player,TargetPlayer);
-		}
-		// 막고라페이즈만 시작하고 끝
-		return false;
-	}
-	
-	// 상호작용 가능한 물건이면 true 반환
 	return true;
+}
+
+bool UVGMissionPhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target)
+{
+	return true;
+}
+
+bool UVGMissionPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* Target)
+{
+	return false;
 }
 
 void UVGMissionPhase::OnMissionCleared(float TimeReducedAmount)
