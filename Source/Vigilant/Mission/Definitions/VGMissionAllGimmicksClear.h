@@ -20,7 +20,6 @@ protected:
 	virtual void OnGimmickStateChanged(
 		AVGMissionGimmickBase* Gimmick, FGameplayTag Tag) override;
 	
-	virtual void SpawnRewardItems() override;
 private:
 	bool AreAllGimmickCompleted() const;
 };
