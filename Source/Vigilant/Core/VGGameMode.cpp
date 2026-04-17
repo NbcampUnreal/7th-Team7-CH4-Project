@@ -467,8 +467,8 @@ void AVGGameMode::HandleMissionClear(float ReduceTime)
 		{
 			PhaseStack.Last()->OnMissionCleared(ReduceTime);
 			
-			//김형백- 남은시간, 경과시간 전달 함수
-			OnMissionTimeUpdated();
+			
+			
 		}
 	}
 	

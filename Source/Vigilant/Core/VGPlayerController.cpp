@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "TimerManager.h"
-#include "UI/VGHUDWidget.h"
+//#include "UI/VGHUDWidget.h"
 
 
 AVGPlayerController::AVGPlayerController()
@@ -107,9 +107,9 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 			
 			if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 			{
-				float ElapsedTime=VGGameState->GetElapsedTime();
-				float RemaningPahaseTime = VGGameState->GetRemainingPhaseTime();
-				UIManager->GetCurrentHUDWidget()->UpdateTimeRemainingGauge(ElapsedTime,RemaningPahaseTime);
+				float StartTime=VGGameState->PhaseStartTime;
+				float EndTime = VGGameState->PhaseEndTime;
+				UIManager->TransferMissionTimeData(StartTime, EndTime);
 			}
 			
 		}
@@ -150,6 +150,16 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 	UVGUIManagerSubsystem* VGUIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>();
 	if (!VGUIManager) return;
 
+	if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseMission))
+	{
+		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
+		{
+			float StartTime = VGGameState->PhaseStartTime;
+			float EndTime = VGGameState->PhaseEndTime;
+			VGUIManager->TransferMissionTimeData(StartTime, EndTime, true);
+		}
+	}
+	
 	// 투표 페이즈 태그가 있으면 UI 띄움
 	if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseVote))
 	{

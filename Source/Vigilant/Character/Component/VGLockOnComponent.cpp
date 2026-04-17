@@ -280,6 +280,7 @@ void UVGLockOnComponent::LockOnPerform()
 
 void UVGLockOnComponent::ClearLockOn()
 {
+	//추후 Dead 에 델리게이트로 바인딩 해서 호출
 	//락온 타겟 제거
 	if (CurrentLockOnTarget)
 	{

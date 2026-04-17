@@ -8,6 +8,7 @@
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/SizeBox.h"
+#include "GameFramework/GameStateBase.h"
 
 void UVGHUDWidget::NativeConstruct()
 {
@@ -74,26 +75,70 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 		}
 	}
 }
-
-void UVGHUDWidget::UpdateTimeRemainingGauge(float ElapsedTime, float RemainingTime)
+void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Init = false)
 {
-	UE_LOG(LogTemp, Warning, TEXT("시간게이지업데이트"));
-	float MissionTimeRatio = -1.f;
-	if (RemainingTime > 0.f)
+	TargetStartTime = InStartTime;
+	if (Init == true)
 	{
-		MissionTimeRatio = ElapsedTime/RemainingTime;
+		TargetOldEndTime = TargetNewEndTime;
 	}
-	MissionProgress->SetPercent(MissionTimeRatio);
+	if (!FMath::IsNearlyEqual(TargetNewEndTime, InEndTime))
+	{
+		TargetOldEndTime = TargetNewEndTime;
+	}
+	TargetNewEndTime = InEndTime;
 	
-	UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot);
-
-	if (CanvasSlot)
+	
+	if (GetWorld() && TargetNewEndTime > TargetStartTime)
 	{
 		
-		FMargin CurrentOffsets = CanvasSlot->GetOffsets();
-		//초기 미션 시간과 줄어든 시간의 비율만큼 360에 곱해기
-		CurrentOffsets.Right = 300.0f; // 원하는 Offset Right 값 대입
-		CanvasSlot->SetOffsets(CurrentOffsets);
+		GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
+		
+		
+		GetWorld()->GetTimerManager().SetTimer(
+			PhaseTimerHandle, 
+			this, 
+			&UVGHUDWidget::UpdateTimePerSecond, 
+			0.5f, 
+			true
+		);
+		
+		// 타이머 시작과 동시에 0초 차 지연 없이 UI를 즉시 1회 반영
+		UpdateTimePerSecond();
+	}
+}
+
+
+void UVGHUDWidget::UpdateTimePerSecond()
+{
+	if (!GetWorld()) return;
+
+	AGameStateBase* BaseGameState = GetWorld()->GetGameState();
+	float CurrentTime = BaseGameState ? BaseGameState->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds();
+
+	float TotalTime = TargetNewEndTime - TargetStartTime;
+	float ElapsedTime = CurrentTime - TargetStartTime;
+
+	if (TotalTime > 0.f)
+	{
+		float MissionTimeRatio = FMath::Clamp(ElapsedTime / TotalTime, 0.0f, 1.0f);
+		
+		// 프로그레스 바 업데이트
+		MissionProgress->SetPercent(MissionTimeRatio);
+
+		float OffsetSizeRaito = TotalTime/TargetOldEndTime;
+		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
+		{
+			FMargin CurrentOffsets = CanvasSlot->GetOffsets();
+			CurrentOffsets.Right = 360.0f * OffsetSizeRaito;
+			CanvasSlot->SetOffsets(CurrentOffsets);
+		}
+
+		
+		if (CurrentTime >= TargetNewEndTime)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
+		}
 	}
 }
 

@@ -70,8 +70,17 @@ public:
 	UFUNCTION()
 	void ChangeSelectedEquipSlot(int32 SlotIndex);
 	
+	UFUNCTION(BlueprintCallable, Category = "UI|Time")
+	void SetPhaseTimeData(float InStartTime, float InEndTime, bool Init = false);
+
+
+	
 	UFUNCTION()
-	void UpdateTimeRemainingGauge(float ElapsedTime, float RemainingTime);
+	void UpdateTimePerSecond();
+	FTimerHandle PhaseTimerHandle;
+	float TargetStartTime = -1.f;
+	float TargetNewEndTime = -1.f;
+	float TargetOldEndTime = -1.f;
 	
 	UFUNCTION()
 	void OnReadyButtonClicked();
