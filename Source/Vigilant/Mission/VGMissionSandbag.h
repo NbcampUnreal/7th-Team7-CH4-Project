@@ -56,6 +56,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sandbag")
 	TObjectPtr<UVGStatComponent> StatComponent;
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission")
+	TObjectPtr<USceneComponent> RootComp;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	
