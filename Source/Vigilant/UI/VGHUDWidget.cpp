@@ -80,6 +80,7 @@ void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Ini
 	TargetStartTime = InStartTime;
 	if (Init == true)
 	{
+		TargetNewEndTime = InEndTime;
 		TargetOldEndTime = TargetNewEndTime;
 	}
 	if (!FMath::IsNearlyEqual(TargetNewEndTime, InEndTime))
