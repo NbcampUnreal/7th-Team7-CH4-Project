@@ -27,9 +27,9 @@ void AVGMissionSandbag::GetLifetimeReplicatedProps(
 
 void AVGMissionSandbag::ResetSandbag()
 {
+    CurrentHPRatio = 0.f; // 강제로 다른 값으로 만들어 리플리케이션 트리거 보장
 	StatComponent->ResetStats();
-	MeshComponent->SetVisibility(true);
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	OnRep_CurrentHPRatio();
 }
 
 void AVGMissionSandbag::BeginPlay()
@@ -78,6 +78,7 @@ void AVGMissionSandbag::OnHPChanged(float NewHP, float MaxHP)
 {
 	// HP 비율을 Replicate해서 클라이언트 UI에 표시
 	CurrentHPRatio = (MaxHP > 0.f) ? (NewHP / MaxHP) : 0.f;
+	OnRep_CurrentHPRatio();
 }
 
 void AVGMissionSandbag::OnRep_CurrentHPRatio()

@@ -88,5 +88,6 @@ void AVGMissionTimedCombat::OnTimerExpired()
 		Sandbag->ResetSandbag();
 	}
 	
+	UE_LOG(LogTemp, Error, TEXT("[%s] Timed Up!"), *GetName());
 	ClearContributers();
 }
