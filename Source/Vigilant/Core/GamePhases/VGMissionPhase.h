@@ -26,4 +26,8 @@ public:
 	virtual void OnMissionCleared(float TimeReducedAmount) override;
 	
 	void OnMissionTimeUp();
+	
+protected:
+	// 막고라 페이즈 넘어갔을 때 페이즈 시간 재계산용
+	float PauseBeginServerTime = 0.0f;
 };
