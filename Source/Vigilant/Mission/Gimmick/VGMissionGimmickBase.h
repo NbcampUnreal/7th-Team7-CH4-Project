@@ -107,5 +107,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
 	FLinearColor CompleteEmissiveColor;
 	
+	UPROPERTY(Transient)
 	UMaterialInstanceDynamic* BodyDynMat;
 };

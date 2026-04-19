@@ -74,13 +74,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Altar")
 	TArray<FVGAltarPlacementSlot> PlacementSlots;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Altar")
+	// 런타임에 BeginPlay에서 동적 생성되며 PlacementSlots와 인덱스가 1:1 대응됨 (힌트 이펙트가 없는 슬롯은 nullptr로 채움)
+	UPROPERTY(Transient)
 	TArray<TObjectPtr<UNiagaraComponent>> HintEffectComponents;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Altar")
-	float HintVisibleRange;
+	float HintVisibleRange = 650.f;
 	
-	// 슬롯 점유 비트마스크 — 1바이트로 최대 8슬롯의 점유 여부를 압축 전송
+	// 슬롯 점유 비트마스크 — 1바이트로 최대 8슬롯의 점유 여부를 압축해 클라이언트로 전송
 	UPROPERTY(Replicated)
 	uint8 PlacedSlotMask = 0;
 	
