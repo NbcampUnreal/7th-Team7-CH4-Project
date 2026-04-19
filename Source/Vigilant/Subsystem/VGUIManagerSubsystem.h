@@ -83,6 +83,10 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	// (이용호 추가)  PlayerController가 구독할 변수 추가
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
 	FOnVoteRequestedSignature OnVoteRequested;
+	// (이용호 추가) 서버 트래블시 현재 있던 UI 전부 파괴
+	void ClearAllWidgets();
+	// (이용호 추가) 월드 초기화 감지용
+	void OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IValues);
 	
 	// 마지막 단계 
 	void LoggingChatMessage(const FString& Message);

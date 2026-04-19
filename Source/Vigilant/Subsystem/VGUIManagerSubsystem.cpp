@@ -16,10 +16,14 @@
 void UVGUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	
+	FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UVGUIManagerSubsystem::OnWorldInitialized);
 }
 
 void UVGUIManagerSubsystem::Deinitialize()
 {
+	FWorldDelegates::OnPostWorldInitialization.RemoveAll(this);
+	
 	Super::Deinitialize();
 }
 
@@ -226,6 +230,34 @@ void UVGUIManagerSubsystem::HidePopup()
 void UVGUIManagerSubsystem::RequsetSendChatMessage(const FString& Message)
 {
 	OnChatMessageRequested.Broadcast(Message);
+}
+
+void UVGUIManagerSubsystem::ClearAllWidgets()
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->RemoveFromParent();
+		CurrentHUDWidget = nullptr;
+	}
+	
+	if (CurrentVoteWidget)
+	{
+		CurrentVoteWidget->RemoveFromParent();
+		CurrentVoteWidget = nullptr;
+	}
+	
+	if (CurrentPopupWidget)
+	{
+		CurrentPopupWidget->RemoveFromParent();
+		CurrentPopupWidget = nullptr;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("[VGUIManagerSubsystem] UI 전부 파괴"));
+}
+
+void UVGUIManagerSubsystem::OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IValues)
+{
+	ClearAllWidgets();
 }
 
 void UVGUIManagerSubsystem::LoggingChatMessage(const FString& Message)
