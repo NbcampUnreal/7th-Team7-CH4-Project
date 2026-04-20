@@ -28,9 +28,7 @@ void AVGMissionSandbag::GetLifetimeReplicatedProps(
 
 void AVGMissionSandbag::ResetSandbag()
 {
-    CurrentHPRatio = 0.f; // 강제로 다른 값으로 만들어 리플리케이션 트리거 보장
-	StatComponent->ResetStats();
-	OnRep_CurrentHPRatio();
+    StatComponent->ResetStats(); // OnHPChanged → CurrentHPRatio = 1.f 자동 설정
 }
 
 void AVGMissionSandbag::BeginPlay()

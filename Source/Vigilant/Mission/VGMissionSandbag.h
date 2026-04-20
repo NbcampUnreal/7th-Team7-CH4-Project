@@ -69,13 +69,6 @@ protected:
 	UPROPERTY()
 	TObjectPtr<AVGCharacterBase> LastAttacker;
 	
-	// 마지막 피격 위치
-	UPROPERTY(Transient,Replicated)
-	FVector LastHitLocation;
-	// 마지막 피격 노말
-	UPROPERTY(Transient,Replicated)
-	FVector LastHitNormal;
-	
 	// HP 바 표시용 — Replicated
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHPRatio, Category = "Mission|Samdbag")
 	float CurrentHPRatio = 1.f;

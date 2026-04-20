@@ -94,6 +94,8 @@ void AVGMissionGimmickStatue::RotateToTarget(float DeltaTime)
 		// 서버에서만 정답 체크
 		if (HasAuthority())
 		{
+			// bStopAtAnswerAngle == false 일 경우,
+			// VGMissionRotatingStatue에서 Completed로 전환시킵니다.
 			if (IsAtAnswerAngle() && bStopAtAnswerAngle)
 			{
 				SetStateTag(VigilantMissionTags::GimmickCompleted);

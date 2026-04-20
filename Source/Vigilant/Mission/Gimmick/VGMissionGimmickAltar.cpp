@@ -36,9 +36,10 @@ bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 	}
 	
 	// 비어있는 슬롯 중 인터랙터 보유 아이템과 매칭되는 것이 있는지 확인
-	for (const FVGAltarPlacementSlot& Slot : PlacementSlots)
+	for (int32 Index = 0; Index < PlacementSlots.Num(); Index++)
 	{
-		if (Slot.IsOccupied())
+		const FVGAltarPlacementSlot& Slot = PlacementSlots[Index];
+		if (IsSlotBitSet(Index))
 		{
 			continue;
 		}
@@ -79,12 +80,12 @@ void AVGMissionGimmickAltar::OnInteractWith(AActor* Interactor, const FTransform
 	for (int32 Index = 0; Index < PlacementSlots.Num(); Index++)
 	{
 		FVGAltarPlacementSlot& Slot = PlacementSlots[Index];
-		if (Slot.IsOccupied())
+		if (IsSlotBitSet(Index))
 		{
 			continue;
 		}
 		
-		if (TryPlaceItemToSlot(EquipComp, Slot))
+		if (TryPlaceItemToSlot(EquipComp, Slot, Index))
 		{
 			SetSlotBit(Index);
 			OnGimmickInteracted.Broadcast(this, Interactor);
@@ -161,6 +162,7 @@ void AVGMissionGimmickAltar::BeginPlay()
 		*GetName(), PlacementSlots.Num());
 	// PlacementSlots와 1:1 인덱스 매칭 유지 (힌트가 없는 슬롯도 nullptr로 채움)
 	HintEffectComponents.Reserve(PlacementSlots.Num());
+	PlacedItems.Init(nullptr, PlacementSlots.Num());
 	
 	for (int32 i = 0; i < PlacementSlots.Num(); i++)
 	{
@@ -225,7 +227,7 @@ bool AVGMissionGimmickAltar::IsSlotBitSet(int32 SlotIndex) const
 	return PlacedSlotMask & (1 << SlotIndex);
 }
 
-bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot)
+bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot, int32 SlotIndex)
 {
 	// 헬퍼로 일치하는 아이템을 찾은 뒤 CarryItem으로 캐스팅
 	if (!Slot.ItemDataAsset)
@@ -249,7 +251,7 @@ bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp
  
 	EquipComp->Server_DropItem(HandSlot);
 	CarryItem->PlaceOnTarget(this, Slot.AttachOffset);
-	Slot.PlacedItem = CarryItem;
+	PlacedItems[SlotIndex] = CarryItem;
  
 	UE_LOG(LogTemp, Warning, TEXT("[%s] Attach %s at %s"),
 		*GetName(), *CarryItem->GetName(), *Slot.AttachOffset.ToString());

@@ -22,8 +22,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	void GetLifetimeReplicatedProps(
-	TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	virtual void GetLifetimeReplicatedProps(
+		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	virtual void OnRep_GimmickStateTag() override;
 	

@@ -52,24 +52,6 @@ void AVGMissionTimedCombat::OnSandbagHitted()
 	}
 }
 
-bool AVGMissionTimedCombat::AreAllSandbagsDefeated() const
-{
-	for (AVGMissionSandbag* Sandbag : MissionSandbags)
-	{
-		if (!Sandbag)
-		{
-			continue;
-		}
-		
-		UVGStatComponent* StatComp = Sandbag->StatComponent;
-		if (StatComp && StatComp->GetIsAlive())
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
 void AVGMissionTimedCombat::StartTimer()
 {
 	GetWorldTimerManager().SetTimer(
