@@ -555,8 +555,9 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 	if (StatComponent && ActualDamage > 0.f)
 	{
 		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
+		ApplyStagger(PushDirection, 0.0f);
 	}
-
+	
 	return ActualDamage;
 }
 
@@ -672,7 +673,7 @@ void AVGCharacterBase::HandleDeath(AController* Killer)
 
 void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 {
-	if (!HasAuthority() || CharacterTags.HasTag(VigilantCharacter::Invincible))
+	if (!HasAuthority() || CharacterTags.HasTag(VigilantCharacter::Invincible) || CharacterTags.HasTag(VigilantCharacter::StaggerImmune))
 	{
 		return;
 	}
