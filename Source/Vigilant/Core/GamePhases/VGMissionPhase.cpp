@@ -1,6 +1,7 @@
 #include "VGMissionPhase.h"
 #include "Core/VGGameMode.h"
 #include "TimerManager.h"
+#include "Core/VGGameState.h"
 #include "Character/VGCharacterBase.h"
 
 void UVGMissionPhase::EnterPhase()
@@ -53,6 +54,12 @@ void UVGMissionPhase::PausePhase()
 	{
 		GameModeRef->GetWorldTimerManager().PauseTimer(PhaseTimerHandle);
 		UE_LOG(LogTemp, Warning, TEXT("[VGMissionPhase] 미션 페이즈 타이머 일시정지"));
+		
+		if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
+		{
+			PauseBeginServerTime = VGGameState->GetServerWorldTimeSeconds();
+		}
+		UE_LOG(LogTemp, Warning, TEXT("[VGMissionPhase] 미션 페이즈 타이머 일시정지"));
 	}
 }
 
@@ -62,6 +69,18 @@ void UVGMissionPhase::ResumePhase()
 	
 	if (GameModeRef)
 	{
+		// 막고라 갔다온 시간 계산 후 미션 페이즈에 적용
+		if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
+		{
+			float CurrentServerTime = VGGameState->GetServerWorldTimeSeconds();
+			float PausedDuration = CurrentServerTime - PauseBeginServerTime;
+
+			// 흐른 시간만큼 미션 페이즈 시간에 재적용
+			VGGameState->PhaseStartTime += PausedDuration;
+			VGGameState->PhaseEndTime += PausedDuration;
+			
+			UE_LOG(LogTemp, Warning, TEXT("미션 페이즈 재개, 막고라 페이즈 진행 시간인 %f만큼 늘림"), PausedDuration);
+		}
 		GameModeRef->GetWorldTimerManager().UnPauseTimer(PhaseTimerHandle);
 		UE_LOG(LogTemp, Warning, TEXT("[VGMissionPhase] 미션 페이즈 타이머 재개"));
 	}	
