@@ -45,8 +45,8 @@ protected:
 	void Multicast_ExecuteSkill_E();
 	
 	// AnimNotify에서 호출될 광역 공격 함수
-	UFUNCTION(BlueprintCallable, Category = "Vigilant|Skill|Roar")
-	void ExecuteRoarAoE();
+	UFUNCTION(BlueprintCallable, Category = "Boss|Skill|Roar")
+	void ExecuteRoarSlow();
 	
 	// 착지 시 애니메이션 블루프린트에서 호출할 함수
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Skill|Leap")

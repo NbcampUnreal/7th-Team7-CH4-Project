@@ -109,15 +109,24 @@ void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Ini
 	}
 }
 
+void UVGHUDWidget::StopPhaseTimeData()
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
+	}
+}
+
 
 void UVGHUDWidget::UpdateTimePerSecond()
 {
-	if (!GetWorld()) return;
+	if (!GetWorld() || !MissionProgress || !TimerBarSize) return;
 
 	AGameStateBase* BaseGameState = GetWorld()->GetGameState();
 	float CurrentTime = BaseGameState ? BaseGameState->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds();
 
 	float TotalTime = TargetNewEndTime - TargetStartTime;
+	float OldTotalTime = TargetOldEndTime - TargetStartTime;
 	float ElapsedTime = CurrentTime - TargetStartTime;
 
 	if (TotalTime > 0.f)
@@ -127,7 +136,7 @@ void UVGHUDWidget::UpdateTimePerSecond()
 		// 프로그레스 바 업데이트
 		MissionProgress->SetPercent(MissionTimeRatio);
 
-		float OffsetSizeRaito = TotalTime/TargetOldEndTime;
+		float OffsetSizeRaito = OldTotalTime/TotalTime;
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 		{
 			FMargin CurrentOffsets = CanvasSlot->GetOffsets();
@@ -141,6 +150,20 @@ void UVGHUDWidget::UpdateTimePerSecond()
 			GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
 		}
 	}
+}
+
+void UVGHUDWidget::PauseUpdateTimer()
+{
+	GetWorld()->GetTimerManager().PauseTimer(PhaseTimerHandle);
+	UE_LOG(LogTemp, Warning, TEXT("[HUD] 미션 페이즈 타이머 일시정지"));
+
+	
+}
+
+void UVGHUDWidget::ResumeUpdateTimer()
+{
+	GetWorld()->GetTimerManager().UnPauseTimer(PhaseTimerHandle);
+	UE_LOG(LogTemp, Warning, TEXT("[HUD] 미션 페이즈 타이머 재개"));
 }
 
 void UVGHUDWidget::OnReadyButtonClicked()

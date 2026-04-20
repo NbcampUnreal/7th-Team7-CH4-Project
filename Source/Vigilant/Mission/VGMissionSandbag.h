@@ -65,7 +65,14 @@ protected:
 	// 마지막으로 데미지를 준 플레이어 — 서버 전용
 	UPROPERTY()
 	TObjectPtr<AVGCharacterBase> LastAttacker;
-
+	
+	// 마지막 피격 위치
+	UPROPERTY(Transient,Replicated)
+	FVector LastHitLocation;
+	// 마지막 피격 노말
+	UPROPERTY(Transient,Replicated)
+	FVector LastHitNormal;
+	
 	// HP 바 표시용 — Replicated
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentHPRatio)
 	float CurrentHPRatio = 1.f;

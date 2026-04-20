@@ -29,14 +29,14 @@ public:
 	
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Vigilant|Lobby")
 	void Server_SetReady(bool bReady);
-	UFUNCTION()
-	void SetReady(bool bReady);
+	
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Vigilant|Lobby")
 	void Server_SetName(const FString& NewName);
 	
 	virtual void BeginPlay() override;
 	virtual void AcknowledgePossession(class APawn* P) override; //LifeCycle함수 - 빙의 후 (클라이언트전용) 
 	virtual void OnPossess(class APawn* P) override;
+	
 	UFUNCTION()
 	void OnChatMessageReceived(const FString& Message);
 	
@@ -59,6 +59,8 @@ protected:
 	// 페이즈 변경 시 UI 처리용 위한 함수
 	UFUNCTION()
 	void HandleUIByPhase(FGameplayTag NewPhaseTag);
+	UFUNCTION()
+	void HandleTimeReduced(float NewEndTime);
 	
 	// GameState 대기용
 	FTimerHandle BindTimerHandle;
