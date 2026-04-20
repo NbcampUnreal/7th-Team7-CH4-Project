@@ -92,18 +92,27 @@ void AVGMissionBase::BeginPlay()
 		}
 		
 		SetMissionState(VigilantMissionTags::MissionInactive);
+		TArray<int32> Indexes;
+		for (int32 i = 0; i < MissionGimmicks.Num(); i++)
+		{
+			Indexes.Add(i);
+		}
+		
 		// 에디터에서 등록된 기믹들에 바인딩
 		for (int32 i = 0; i < MissionGimmicks.Num(); i++)
 		{
+			int32 Index = FMath::RandRange(0,Indexes.Num()-1);
 			AVGMissionGimmickBase* Gimmick = MissionGimmicks[i];
 			if (Gimmick)
 			{
-				Gimmick->SetGimmickIndex(i); // 자동 인덱스 부여
+				Gimmick->SetGimmickIndex(Indexes[Index]); // 자동 인덱스 부여
+
 				Gimmick->OnGimmickStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnGimmickStateChanged);
 				Gimmick->OnGimmickInteracted.AddDynamic(
 					this, &AVGMissionBase::OnGimmickInteracted);
 			}
+			Indexes.RemoveAt(Index);
 		}
 		
 		// 에디터에서 등록된 Item 바인딩
@@ -173,17 +182,7 @@ FGameplayTag AVGMissionBase::GetMissionTypeTag() const
 
 void AVGMissionBase::OnRep_CurrentStateTag()
 {
-	// Todo State 변경에 따른 피드백 처리
-	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[%s] Mission Clear!"), *GetName());
-		OnMissionStateChanged.Broadcast(GetMissionID(), CurrentStateTag);
-	}
-	else
-	{
-		// 클라이언트에서도 델리게이트 브로드캐스트
-		OnMissionStateChanged.Broadcast(GetMissionID(), CurrentStateTag);
-	}
+	OnMissionStateChanged.Broadcast(GetMissionID(), CurrentStateTag);
 }
 
 void AVGMissionBase::OnGimmickStateChanged(AVGMissionGimmickBase* Gimmick, FGameplayTag Tag)
@@ -213,18 +212,25 @@ void AVGMissionBase::SpawnRewardItems()
 	
 	// 기본 구현: LastContributor 주변에 아이템 스폰
 	// 자식 클래스에서 override하여 커스텀
-	if (!LastContributor.IsValid() || GetRewardItemClass() == nullptr)
+	if (GetRewardItemClass() == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("LastContributor or RewardItemClass is Missing."));
+		UE_LOG(LogTemp, Warning, TEXT("[%s] RewardItemClass is missing."), *GetName());
 		return;
 	}
 	
 	FVector SpawnLocation = GetActorLocation();
 	if (!bSpawnRewardAtMission)
 	{
-		SpawnLocation = LastContributor->GetActorLocation()
-						  + LastContributor->GetActorForwardVector() * 100.f;
-		SpawnLocation.Z += 50.f;
+		if (!LastContributor.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[%s] LastContributor is missing; falling back to mission location."), *GetName());
+		}
+		else
+		{
+			SpawnLocation = LastContributor->GetActorLocation()
+							  + LastContributor->GetActorForwardVector() * 100.f;
+			SpawnLocation.Z += 50.f;
+		}
 	}
 	
 	FActorSpawnParameters Params;

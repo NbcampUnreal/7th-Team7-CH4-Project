@@ -150,4 +150,7 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 	
 	BodyDynMat->SetVectorParameterValue(TEXT("Color"), Color);
 	BodyDynMat->SetVectorParameterValue(TEXT("EmissiveColor"), EmissiveColor);
+	
+	// BP 상에서의 로직 실행
+	BP_OnGimmickStateTagChanged(GetStateTag());
 }
