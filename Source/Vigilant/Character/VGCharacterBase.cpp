@@ -17,8 +17,10 @@
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
 #include "Core/Interface/VGGameModeInterface.h"
+#include "Core/Interface/VGPlayerInfoInterface.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "GameFramework/PlayerState.h"
 
 
 #pragma region Interfaces GameplayTag
@@ -130,6 +132,18 @@ void AVGCharacterBase::PawnClientRestart()
 		}
 	}
 }
+//빙의 후 서버만 실행하는 생명주기 함수
+void AVGCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	ApplyPlayerMesh();
+}
+
+void AVGCharacterBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	ApplyPlayerMesh();
+}
 
 void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -189,6 +203,31 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
+
+void AVGCharacterBase::ApplyPlayerMesh()
+{
+	// 데이터 에셋이 안 비어있는지 확인
+	if (!CharacterDataAsset)
+	{
+		return;
+	}
+
+	// 내 캐릭터의 PlayerState를 가져와서 번호표(EntryIndex) 확인
+	if (IVGPlayerInfoInterface* VGPlayerInfo = Cast<IVGPlayerInfoInterface>(GetPlayerState()))
+	{
+		int32 PlayerMeshIndex= VGPlayerInfo->GetRandomMeshNumber();
+		// 배열은 0번부터 시작하므로 (EntryIndex - 1) 처리
+		
+
+		// 해당 인덱스가 배열 범위 내에 안전하게 존재하는지 검사
+		if (CharacterDataAsset->PlayerMeshes.IsValidIndex(PlayerMeshIndex))
+		{
+			// 메쉬 강제 교체
+			USkeletalMesh* SelectedMesh = CharacterDataAsset->PlayerMeshes[PlayerMeshIndex];
+			GetMesh()->SetSkeletalMesh(SelectedMesh);
+		}
+	}
+}
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {

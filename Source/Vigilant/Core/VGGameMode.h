@@ -57,6 +57,8 @@ protected:
 	int32 AssignPlayerSlot(class AVGPlayerState* VGPlayerState);
 	
 	
+	//김형백 캐릭터 랜덤 매시용 난수
+	TArray<int32> RandomMeshNumber;
 	//김형백 미션 시간 진행상황 업데이트용 타이머핸들
 	FTimerHandle MissionUpdateTimerHandle;
 public:

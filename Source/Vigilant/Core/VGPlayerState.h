@@ -3,11 +3,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "GameplayTagContainer.h"
+#include "Interface/VGPlayerInfoInterface.h"
 #include "VGPlayerState.generated.h"
 
 
 UCLASS()
-class VIGILANT_API AVGPlayerState : public APlayerState
+class VIGILANT_API AVGPlayerState : 
+public APlayerState,
+public IVGPlayerInfoInterface
 {
 	GENERATED_BODY()
 	
@@ -43,6 +46,15 @@ public:
 	// 플레이어 입장 순서
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")
 	int32 EntryIndex;
+	
+	//김형백-  플레이어 매시 랜덤 숫자
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerMesh")
+	int32 AssignedMeshIndex = -1;
+	//플레이어 인덱스 반환 인터페이스 구현 함수 
+	UFUNCTION()
+	virtual int32 GetPlayerIndex() const override;
+	UFUNCTION()
+	virtual int32 GetRandomMeshNumber() const override;
 	
 	UPROPERTY(Replicated,BlueprintReadOnly,Category = "Vigilant|Lobby")
 	bool bIsReady = false;

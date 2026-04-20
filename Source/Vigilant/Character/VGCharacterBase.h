@@ -6,7 +6,10 @@
 #include "CharacterInterface/VGCharacterGameplayTagEditor.h"
 #include "GameFramework/Character.h"
 #include "Interaction/VGInteractable.h"
+#include "Data/VGCharacterDataAsset.h"
+
 #include "VGCharacterBase.generated.h"
+
 
 class UVGLockOnComponent;
 class UInputAction;
@@ -32,6 +35,9 @@ protected:
 	/**
 	 * 
 	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Data")
+	TObjectPtr<UVGCharacterDataAsset> CharacterDataAsset;
+	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GameplayTags", meta = (AllowPrivateAccess = "true"), 
 		ReplicatedUsing=OnRep_CharacterTags, meta = (AllowPrivateAccess = "true"))
 	FGameplayTagContainer CharacterTags;
@@ -118,6 +124,11 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PawnClientRestart() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+	
+	//매쉬 결정
+	void ApplyPlayerMesh();
 	
 	// Input Handlers
 	virtual void Move(const FInputActionValue& Value);
