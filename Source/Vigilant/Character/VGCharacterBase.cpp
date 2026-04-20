@@ -285,6 +285,8 @@ void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
 #pragma region 스프린트 관련 함수 구현
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
+	bWantsToSprint = true;
+	
 	if (!CanSprint())
 	{
 		return;
@@ -296,8 +298,6 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 		//SetCharacterRotationState(false);
 	}
 	
-	bWantsToSprint = true;
-	
 	if (GetVelocity().SizeSquared2D() >= 1.f)
 	{
 		PerformStartSprint();
@@ -307,14 +307,14 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 
 void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 {
+	bWantsToSprint = false;
+	
 	//회전잠금해제
 	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("잠금"));
 		//SetCharacterRotationState(true);
 	}
-	
-	bWantsToSprint = false;
 	
 	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
 	{
@@ -418,7 +418,8 @@ bool AVGCharacterBase::CanSprint() const
 	return !CharacterTags.HasTag(VigilantCharacter::Attacking) &&
 		!CharacterTags.HasTag(VigilantCharacter::Dodge) &&
 		!CharacterTags.HasTag(VigilantCharacter::Stunned) &&
-		!CharacterTags.HasTag(VigilantCharacter::Guard);
+		!CharacterTags.HasTag(VigilantCharacter::Guard) &&
+		!(StatComponent->GetCurrentStamina() < MinStaminaToSprint);
 }
 
 #pragma endregion
