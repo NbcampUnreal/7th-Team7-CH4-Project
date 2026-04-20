@@ -54,6 +54,11 @@ void AVGMissionItemCarry::OnRep_PlaceInfo()
 		RootComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	
+	if (PlaceInfo.AttachmentTargetActor == nullptr)
+	{
+		return;
+	}
+	
 	AttachToActor(PlaceInfo.AttachmentTargetActor,
 		FAttachmentTransformRules::KeepWorldTransform);
     	

@@ -19,9 +19,6 @@ void AVGMissionTimedCombat::BeginPlay()
 		{
 			if (Sandbag)
 			{
-				Sandbag->OnSandbagDefeated.AddDynamic(
-					this, &AVGMissionTimedCombat::OnSandbagDefeated);
-				
 				Sandbag->OnSandbagHitted.AddDynamic(this, 
 					&AVGMissionTimedCombat::OnSandbagHitted);
 			}
