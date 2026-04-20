@@ -17,10 +17,12 @@
 #include "Subsystem/VGUIManagerSubsystem.h"
 #include "UI/VGHUDWidget.h"
 #include "Core/Interface/VGGameModeInterface.h"
+#include "Core/Interface/VGPlayerInfoInterface.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "TimerManager.h"
 #include "Boss/DamageType/VGDamageType_Slow.h"
+#include "GameFramework/PlayerState.h"
 
 #pragma region Interfaces GameplayTag
 void AVGCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -47,7 +49,7 @@ AVGCharacterBase::AVGCharacterBase()
 	  CameraZoomAction(nullptr),
       HiddenPocketAction(nullptr)
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	// Configure Character Movement
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
@@ -131,6 +133,18 @@ void AVGCharacterBase::PawnClientRestart()
 		}
 	}
 }
+//빙의 후 서버만 실행하는 생명주기 함수
+void AVGCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	ApplyPlayerMesh();
+}
+
+void AVGCharacterBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+	ApplyPlayerMesh();
+}
 
 void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -191,14 +205,38 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 }
 
 
-void AVGCharacterBase::Move(const FInputActionValue& Value)
+void AVGCharacterBase::ApplyPlayerMesh()
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge) ||
-		CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Guard))
+	// 데이터 에셋이 안 비어있는지 확인
+	if (!CharacterDataAsset)
 	{
 		return;
 	}
 
+	// 내 캐릭터의 PlayerState를 가져와서 번호표(EntryIndex) 확인
+	if (IVGPlayerInfoInterface* VGPlayerInfo = Cast<IVGPlayerInfoInterface>(GetPlayerState()))
+	{
+		int32 PlayerMeshIndex= VGPlayerInfo->GetRandomMeshNumber();
+		// 배열은 0번부터 시작하므로 (EntryIndex - 1) 처리
+		
+
+		// 해당 인덱스가 배열 범위 내에 안전하게 존재하는지 검사
+		if (CharacterDataAsset->PlayerMeshes.IsValidIndex(PlayerMeshIndex))
+		{
+			// 메쉬 강제 교체
+			USkeletalMesh* SelectedMesh = CharacterDataAsset->PlayerMeshes[PlayerMeshIndex];
+			GetMesh()->SetSkeletalMesh(SelectedMesh);
+		}
+	}
+}
+
+void AVGCharacterBase::Move(const FInputActionValue& Value)
+{
+	if (!CanMove())
+	{
+		return;
+	}
+	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -292,12 +330,9 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 		return;
 	}
 	
-	//게임플레이 태그 검사, 스태미나 검사
-	if (CharacterTags.HasTag(VigilantCharacter::Sprint) || CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Attacking))
-	{
-		return;
-	}
-	if (StatComponent->GetCurrentStamina() < MinStaminaToSprint)
+	bWantsToSprint = true;
+	
+	if (!CanSprint())
 	{
 		return;
 	}
@@ -308,14 +343,17 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 		//SetCharacterRotationState(false);
 	}
 	
-	bWantsToSprint = true;
-
-	PerformStartSprint();
-	Server_StartSprint();
+	if (GetVelocity().SizeSquared2D() >= 1.f)
+	{
+		PerformStartSprint();
+		Server_StartSprint();
+	}
 }
 
 void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 {
+	bWantsToSprint = false;
+	
 	//회전잠금해제
 	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
 	{
@@ -323,7 +361,6 @@ void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 		//SetCharacterRotationState(true);
 	}
 	
-	bWantsToSprint = false;
 	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
 	{
 		PerformStopSprint();
@@ -359,7 +396,6 @@ void AVGCharacterBase::Server_StopSprint_Implementation()
 	{
 		StatComponent->StopContinuousConsumeStamina();
 	}
-
 	PerformStopSprint();
 }
 
@@ -373,12 +409,64 @@ void AVGCharacterBase::HandleSprintStamina(float CurrentStamina, float Max)
 			Server_StopSprint();
 		}
 	}
-	if (bWantsToSprint && CurrentStamina > MinStaminaToSprint && !CharacterTags.HasTag(VigilantCharacter::Sprint))
+}
+
+
+void AVGCharacterBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if (IsLocallyControlled() && StatComponent)
 	{
-		PerformStartSprint();
-		Server_StartSprint();
+		bool bIsMoving = GetVelocity().SizeSquared2D() >= 1.f;
+		bool bIsSprinting = CharacterTags.HasTag(VigilantCharacter::Sprint);
+		
+		if (bIsSprinting && !bIsMoving)
+		{
+			PerformStopSprint();
+			Server_StopSprint();
+		}
+		else if (!bIsSprinting && bWantsToSprint && bIsMoving)
+		{
+			if (StatComponent->GetCurrentStamina() >= MinStaminaToSprint)
+			{
+				PerformStartSprint();
+				Server_StartSprint();
+			}
+		}
 	}
 }
+
+#pragma endregion
+
+#pragma region State check
+
+bool AVGCharacterBase::CanMove() const
+{
+	// 공격, 기절, 회피, 가드 중에는 움직일 수 없음
+	return !CharacterTags.HasTag(VigilantCharacter::Attacking) &&
+		!CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Stunned) &&
+		!CharacterTags.HasTag(VigilantCharacter::Guard);
+}
+
+bool AVGCharacterBase::CanAttack() const
+{
+	// 기절, 회피 중에는 공격할 수 없음
+	return !CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Stunned);
+}
+
+bool AVGCharacterBase::CanSprint() const
+{
+	// 공격, 기절, 회피, 가드 중에는 움직일 수 없음
+	return !CharacterTags.HasTag(VigilantCharacter::Attacking) &&
+		!CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Stunned) &&
+		!CharacterTags.HasTag(VigilantCharacter::Guard) &&
+		!(StatComponent->GetCurrentStamina() < MinStaminaToSprint);
+}
+
 #pragma endregion
 
 void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
@@ -387,6 +475,11 @@ void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
 
 void AVGCharacterBase::LightAttack(const FInputActionValue& Value)
 {
+	if (!CanAttack())
+	{
+		return;
+	}
+	
 	// 페이즈 체크 후 실행
 	if (!IsCombatActionAllowed()) return;
 	
@@ -398,6 +491,11 @@ void AVGCharacterBase::LightAttack(const FInputActionValue& Value)
 
 void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 {
+	if (!CanAttack())
+	{
+		return;
+	}
+	
 	// 페이즈 체크 후 실행
 	if (!IsCombatActionAllowed()) return;
 	
@@ -415,15 +513,11 @@ void AVGCharacterBase::HiddenPocketToggle(const FInputActionValue& Value)
 	}
 }
 
-
-
-
 void AVGCharacterBase::OnRep_CharacterTags()
 {
 	//UE_LOG(LogTemp, Log, TEXT("클라이언트: 캐릭터 태그가 서버로부터 갱신되었습니다!"));
 	//아직은 쓸데가 없음..
 }
-
 
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                    class AController* EventInstigator, AActor* DamageCauser)
@@ -447,22 +541,51 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		}
 	}
 	
-	// 1. 무적 상태 확인
+	// --- 1. 무적 상태 확인 ---
 	if (CharacterTags.HasTag(VigilantCharacter::Invincible))
 	{
 		return 0.0f;
 	}
 
-	// 공격자->방어자 방향 계산
+	// 벡터 계산
 	FVector PushDirection = FVector::ZeroVector;
+	bool bIsFrontAttack = false;
+		
 	if (DamageCauser)
 	{
 		PushDirection = GetActorLocation() - DamageCauser->GetActorLocation();
 		PushDirection.Z = 0.0f;
 		PushDirection.Normalize();
+		
+		FVector ToAttacker = -PushDirection; // 공격자를 가리키는 방향
+		float DotResult = FVector::DotProduct(GetActorForwardVector(), ToAttacker);
+        bIsFrontAttack = DotResult > 0.5f;
+	}
+	
+	// --- 2. 패링 확인 ---
+	if (bIsFrontAttack && CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
+	{
+		if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
+		{
+			FVector ReversePushDirection = -PushDirection;
+			Attacker->ApplyStagger(ReversePushDirection, 600.0f);
+		}
+		// TODO: SFX, VFX 추가
+		return 0.0f;
+	}
+	
+	// --- 3. 가드 확인 ---
+	bool bSuccessfullyBlocked = false;
+	if (bIsFrontAttack && CharacterTags.HasTag(VigilantCharacter::Guard))
+	{
+		bSuccessfullyBlocked = true;
+		if (CombatComponent && CombatComponent->GetCurrentShieldData())
+		{
+			DamageAmount *= CombatComponent->GetCurrentShieldData()->DamageMitigation;
+		}
 	}
 
-	// --- 2. 미션 페이즈: 데미지 적용 X, 밀치기 O ---
+	// --- 4. 게임 페이즈 규칙 확인: 미션 페이즈 = 데미지 적용 X, 밀치기 O ---
 	if (AGameStateBase* GameState = GetWorld()->GetGameState())
 	{
 		if (IGameplayTagAssetInterface* GameStateTag = Cast<IGameplayTagAssetInterface>(GameState))
@@ -470,57 +593,24 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 			if (GameStateTag->HasMatchingGameplayTag(VigilantPhaseTags::PhaseMission) || GameStateTag->
 				HasMatchingGameplayTag(VigilantPhaseTags::PhaseLobby))
 			{
-				ApplyStagger(PushDirection, 800.0f);
+				if (!bSuccessfullyBlocked)
+				{
+					ApplyStagger(PushDirection, 800.0f);
+				}
+				
 				return 0.0f;
 			}
 		}
 	}
 	
-	// 공격이 정면에서 들어오는지 확인
-	bool bIsFrontAttack = false;
-	if (DamageCauser)
-	{
-		FVector ToAttacker = -PushDirection; // 공격자를 가리키는 방향
-		float DotResult = FVector::DotProduct(GetActorForwardVector(), ToAttacker);
-		bIsFrontAttack = DotResult > 0.5f;
-	}
-	
-	if (bIsFrontAttack)
-	{
-		// --- 3. 패리 확인 ---
-		if (CharacterTags.HasTag(VigilantCharacter::PerfectGuard))
-		{
-			if (AVGCharacterBase* Attacker = Cast<AVGCharacterBase>(DamageCauser))
-			{
-				FVector ReversePushDirection = -PushDirection;
-				Attacker->ApplyStagger(ReversePushDirection, 600.0f);
-			}
-			// TODO: SFX, VFX 추가
-			return 0.0f;
-		}
-
-		// --- 4. 일반 가드 확인 ---
-		if (CharacterTags.HasTag(VigilantCharacter::Guard))
-		{
-			if (!CombatComponent)
-			{
-				return 0.0f;
-			}
-			
-			if (UVGShieldDataAsset* ShieldData = CombatComponent->GetCurrentShieldData())
-			{
-				DamageAmount *= ShieldData->DamageMitigation;
-			}
-		}
-	}
-	
-	// --- 5. 피해 적용 ---
+	// --- 5. 최종 피해 적용 ---
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	if (StatComponent && ActualDamage > 0.f)
 	{
 		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
+		ApplyStagger(PushDirection, 0.0f);
 	}
-
+	
 	return ActualDamage;
 }
 
@@ -636,7 +726,7 @@ void AVGCharacterBase::HandleDeath(AController* Killer)
 
 void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 {
-	if (!HasAuthority() || CharacterTags.HasTag(VigilantCharacter::Invincible))
+	if (!HasAuthority() || CharacterTags.HasTag(VigilantCharacter::Invincible) || CharacterTags.HasTag(VigilantCharacter::StaggerImmune))
 	{
 		return;
 	}

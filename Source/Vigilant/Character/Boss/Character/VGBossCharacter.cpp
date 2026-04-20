@@ -48,6 +48,8 @@ void AVGBossCharacter::BeginPlay()
 	{
 		CombatComponent->SetActiveCombatData(CombatComponent->GetCurrentCombatData(), GetMesh());
 	}
+  
+  CharacterTags.AddTag(VigilantCharacter::StaggerImmune);
 }
 
 void AVGBossCharacter::AddBossMappingContext(AController* InController)

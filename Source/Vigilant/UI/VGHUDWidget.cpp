@@ -127,7 +127,7 @@ void UVGHUDWidget::UpdateTimePerSecond()
 		// 프로그레스 바 업데이트
 		MissionProgress->SetPercent(MissionTimeRatio);
 
-		float OffsetSizeRaito = TotalTime/TargetOldEndTime;
+		float OffsetSizeRaito = TargetOldEndTime/TotalTime;
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 		{
 			FMargin CurrentOffsets = CanvasSlot->GetOffsets();
@@ -141,6 +141,20 @@ void UVGHUDWidget::UpdateTimePerSecond()
 			GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
 		}
 	}
+}
+
+void UVGHUDWidget::PauseUpdateTimer()
+{
+	GetWorld()->GetTimerManager().PauseTimer(PhaseTimerHandle);
+	UE_LOG(LogTemp, Warning, TEXT("[HUD] 미션 페이즈 타이머 일시정지"));
+
+	
+}
+
+void UVGHUDWidget::ResumeUpdateTimer()
+{
+	GetWorld()->GetTimerManager().UnPauseTimer(PhaseTimerHandle);
+	UE_LOG(LogTemp, Warning, TEXT("[HUD] 미션 페이즈 타이머 재개"));
 }
 
 void UVGHUDWidget::OnReadyButtonClicked()

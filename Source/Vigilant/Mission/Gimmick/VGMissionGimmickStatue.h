@@ -62,5 +62,5 @@ protected:
 	float RotationSpeed = 180.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Statue")
-	bool bIsOnAnswerStop = false;
+	bool bStopAtAnswerAngle = false;
 };

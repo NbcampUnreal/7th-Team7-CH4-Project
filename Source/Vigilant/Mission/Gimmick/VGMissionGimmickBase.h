@@ -59,6 +59,8 @@ protected:
 	UFUNCTION()
 	virtual void OnRep_GimmickStateTag();
 	
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_OnGimmickStateTagChanged(FGameplayTag NewTag);
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnGimmickStateChanged OnGimmickStateChanged;
@@ -105,5 +107,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Mission|Effect")
 	FLinearColor CompleteEmissiveColor;
 	
+	UPROPERTY(Transient)
 	UMaterialInstanceDynamic* BodyDynMat;
 };
