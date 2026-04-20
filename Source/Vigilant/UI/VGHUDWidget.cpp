@@ -109,6 +109,14 @@ void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Ini
 	}
 }
 
+void UVGHUDWidget::StopPhaseTimeData()
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
+	}
+}
+
 
 void UVGHUDWidget::UpdateTimePerSecond()
 {

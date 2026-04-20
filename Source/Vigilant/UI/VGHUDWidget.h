@@ -72,8 +72,10 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "UI|Time")
 	void SetPhaseTimeData(float InStartTime, float InEndTime, bool Init = false);
-
-
+	
+	// (이용호 추가) 막고라 페이즈 들어갈 때 프로그레스바 멈추기 용
+	UFUNCTION(BlueprintCallable, Category = "UI|Time")
+	void StopPhaseTimeData();
 	
 	UFUNCTION()
 	void UpdateTimePerSecond();

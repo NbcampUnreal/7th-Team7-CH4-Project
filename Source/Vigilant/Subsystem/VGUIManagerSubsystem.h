@@ -43,12 +43,15 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	
 	void TransferMissionTimeData(float StartTime, float EndTime, bool Init = false);
 	
+	// (이용호 추가) HUD의 정지 함수를 호출할 함수
+	void StopMissionTimeData();
+	
 	//표시 업데이트 실질적으로 여기(HUD전달)
 	UFUNCTION()
 	void OnStaminaUpdate(float NewValue, float MaxValue);
 	UFUNCTION()
 	void OnHealthUpdate(float NewValue, float MaxValue);
-	// (이용호 작업) 투표 전달용 함수
+	// (이용호 추가) 투표 전달용 함수
 	UFUNCTION()
 	void RequestSubmitVote(int32 TargetIndex);
 	

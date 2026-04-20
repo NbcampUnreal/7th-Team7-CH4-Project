@@ -35,6 +35,14 @@ void UVGUIManagerSubsystem::TransferMissionTimeData(float StartTime, float EndTi
 	}
 }
 
+void UVGUIManagerSubsystem::StopMissionTimeData()
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->StopPhaseTimeData();
+	}
+}
+
 void UVGUIManagerSubsystem::OnStaminaUpdate(float NewValue, float MaxValue)
 {
 	if (CurrentHUDWidget)
