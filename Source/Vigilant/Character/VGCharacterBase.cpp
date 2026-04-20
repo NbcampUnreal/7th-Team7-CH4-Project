@@ -287,11 +287,7 @@ void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
 	//게임플레이 태그 검사, 스태미나 검사
-	if (CharacterTags.HasTag(VigilantCharacter::Sprint) || CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Attacking))
-	{
-		return;
-	}
-	if (StatComponent->GetCurrentStamina() < MinStaminaToSprint)
+	if (CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Attacking))
 	{
 		return;
 	}
@@ -303,9 +299,12 @@ void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 	}
 	
 	bWantsToSprint = true;
-
-	PerformStartSprint();
-	Server_StartSprint();
+	
+	if (GetVelocity().SizeSquared2D() >= 1.f)
+	{
+		PerformStartSprint();
+		Server_StartSprint();
+	}
 }
 
 void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
@@ -318,6 +317,7 @@ void AVGCharacterBase::StopSprint(const FInputActionValue& Value)
 	}
 	
 	bWantsToSprint = false;
+	
 	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
 	{
 		PerformStopSprint();
@@ -367,12 +367,34 @@ void AVGCharacterBase::HandleSprintStamina(float CurrentStamina, float Max)
 			Server_StopSprint();
 		}
 	}
-	if (bWantsToSprint && CurrentStamina > MinStaminaToSprint && !CharacterTags.HasTag(VigilantCharacter::Sprint))
+}
+
+
+void AVGCharacterBase::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if (IsLocallyControlled() && StatComponent)
 	{
-		PerformStartSprint();
-		Server_StartSprint();
+		bool bIsMoving = GetVelocity().SizeSquared2D() >= 1.f;
+		bool bIsSprinting = CharacterTags.HasTag(VigilantCharacter::Sprint);
+		
+		if (bIsSprinting && !bIsMoving)
+		{
+			PerformStopSprint();
+			Server_StopSprint();
+		}
+		else if (!bIsSprinting && bWantsToSprint && bIsMoving)
+		{
+			if (StatComponent->GetCurrentStamina() >= MinStaminaToSprint)
+			{
+				PerformStartSprint();
+				Server_StartSprint();
+			}
+		}
 	}
 }
+
 #pragma endregion
 
 void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
