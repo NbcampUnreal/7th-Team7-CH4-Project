@@ -11,30 +11,11 @@
 #include "Components/CapsuleComponent.h"
 #include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Net/UnrealNetwork.h"
-
 
 AVGBossCharacter::AVGBossCharacter()
 {
 	// 스킬 컴포넌트 생성 및 부착
 	SkillComponent = CreateDefaultSubobject<UVGBossSkillComponent>(TEXT("BossSkillComponent"));
-}
-
-void AVGBossCharacter::AddBossMappingContext(AController* InController)
-{
-	APlayerController* PlayerController = Cast<APlayerController>(InController);
-	if (!PlayerController || !BossMappingContext) 
-	{
-		return;
-	}
-
-	if (ULocalPlayer* LP = PlayerController->GetLocalPlayer())
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-		{
-			Subsystem->AddMappingContext(BossMappingContext, 100);
-		}
-	}
 }
 
 void AVGBossCharacter::BeginPlay()
@@ -69,6 +50,23 @@ void AVGBossCharacter::BeginPlay()
 	}
 }
 
+void AVGBossCharacter::AddBossMappingContext(AController* InController)
+{
+	APlayerController* PlayerController = Cast<APlayerController>(InController);
+	if (!PlayerController || !BossMappingContext) 
+	{
+		return;
+	}
+
+	if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			Subsystem->AddMappingContext(BossMappingContext, 100);
+		}
+	}
+}
+
 void AVGBossCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -93,14 +91,12 @@ void AVGBossCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 void AVGBossCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	
 	AddBossMappingContext(NewController);
 }
 
 void AVGBossCharacter::PawnClientRestart()
 {
 	Super::PawnClientRestart();
-	
 	AddBossMappingContext(GetController());
 }
 
@@ -200,6 +196,8 @@ float AVGBossCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const
 
 void AVGBossCharacter::Die(AController* Killer)
 {
+	if (!HasAuthority()) return;
+	
 	CharacterTags.AddTag(VigilantBoss::Dead);
 	
 	// 캐릭터 이동 컴포넌트 비활성화
@@ -217,24 +215,21 @@ void AVGBossCharacter::Die(AController* Killer)
 
 void AVGBossCharacter::Multicast_Die_Implementation()
 {
+	// 이동 및 물리 정지
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->DisableMovement();
+	}
+	
 	// 캡슐 콜리전 제거
 	if (GetCapsuleComponent())
 	{
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	}
-	// 스켈레탈 메쉬 콜리전 끄기
-	if (GetMesh())
-	{
-		GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
-	}
-	// 사망 몽타주 재생
+	
 	if (BossData && BossData->DeathMontage)
 	{
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (AnimInstance)
-		{
-			AnimInstance->Montage_Play(BossData->DeathMontage); 
-		}
+		PlayAnimMontage(BossData->DeathMontage);
 	}
 }
 
