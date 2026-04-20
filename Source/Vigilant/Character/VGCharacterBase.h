@@ -125,11 +125,15 @@ protected:
 	void StopJump(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	
-	
 	void CameraZoom(const FInputActionValue& Value);
 	void LightAttack(const FInputActionValue& Value);
 	void HeavyAttack(const FInputActionValue& Value);
 	void HiddenPocketToggle(const FInputActionValue& Value);
+	
+	// State Check
+	bool CanMove() const;
+	bool CanAttack() const;
+	bool CanSprint() const;
 	
 	//캐릭터 회전 설정
 	void SetCharacterRotationState(bool bIsLockedOn);
@@ -189,11 +193,7 @@ public:
 	bool IsInteractionAllowed(AActor* Target = nullptr) const;
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
-	
-	// State Check
-	bool CanMove() const;
-	bool CanAttack() const;
-	bool CanSprint() const;
+
 	
 protected:
 	// (이용호 추가) 스탯컴포넌트의 OnDead 델리게이트와 연결용 함수
