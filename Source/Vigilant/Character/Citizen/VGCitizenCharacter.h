@@ -65,6 +65,11 @@ protected:
 	void StopBlock(const FInputActionValue& Value);
 
 	void Dodge();
+	
+	// State Check
+	bool CanDodge() const;
+	bool CanInteract() const;
+	bool CanBlock() const;
 
 	UFUNCTION(Server, Reliable)
 	void Server_Dodge(FVector Direction);

@@ -192,12 +192,11 @@ void AVGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AVGCharacterBase::Move(const FInputActionValue& Value)
 {
-	if (CharacterTags.HasTag(VigilantCharacter::Attacking) || CharacterTags.HasTag(VigilantCharacter::Dodge) ||
-		CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Guard))
+	if (!CanMove())
 	{
 		return;
 	}
-
+	
 	if (GetController() != nullptr)
 	{
 		const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -397,12 +396,46 @@ void AVGCharacterBase::Tick(float DeltaSeconds)
 
 #pragma endregion
 
+#pragma region State check
+
+bool AVGCharacterBase::CanMove() const
+{
+	// 공격, 기절, 회피, 가드 중에는 움직일 수 없음
+	return !CharacterTags.HasTag(VigilantCharacter::Attacking) &&
+		!CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Stunned) &&
+		!CharacterTags.HasTag(VigilantCharacter::Guard);
+}
+
+bool AVGCharacterBase::CanAttack() const
+{
+	// 기절, 회피 중에는 공격할 수 없음
+	return !CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Stunned);
+}
+
+bool AVGCharacterBase::CanSprint() const
+{
+	// 공격, 기절, 회피, 가드 중에는 움직일 수 없음
+	return !CharacterTags.HasTag(VigilantCharacter::Attacking) &&
+		!CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Stunned) &&
+		!CharacterTags.HasTag(VigilantCharacter::Guard);
+}
+
+#pragma endregion
+
 void AVGCharacterBase::CameraZoom(const FInputActionValue& Value)
 {
 }
 
 void AVGCharacterBase::LightAttack(const FInputActionValue& Value)
 {
+	if (!CanAttack())
+	{
+		return;
+	}
+	
 	// 페이즈 체크 후 실행
 	if (!IsCombatActionAllowed()) return;
 	
@@ -414,6 +447,11 @@ void AVGCharacterBase::LightAttack(const FInputActionValue& Value)
 
 void AVGCharacterBase::HeavyAttack(const FInputActionValue& Value)
 {
+	if (!CanAttack())
+	{
+		return;
+	}
+	
 	// 페이즈 체크 후 실행
 	if (!IsCombatActionAllowed()) return;
 	
@@ -431,15 +469,11 @@ void AVGCharacterBase::HiddenPocketToggle(const FInputActionValue& Value)
 	}
 }
 
-
-
-
 void AVGCharacterBase::OnRep_CharacterTags()
 {
 	//UE_LOG(LogTemp, Log, TEXT("클라이언트: 캐릭터 태그가 서버로부터 갱신되었습니다!"));
 	//아직은 쓸데가 없음..
 }
-
 
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                    class AController* EventInstigator, AActor* DamageCauser)
