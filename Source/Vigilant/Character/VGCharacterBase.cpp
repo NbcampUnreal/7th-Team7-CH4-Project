@@ -19,7 +19,8 @@
 #include "Core/Interface/VGGameModeInterface.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Kismet/KismetSystemLibrary.h"
-
+#include "TimerManager.h"
+#include "Boss/DamageType/VGDamageType_Slow.h"
 
 #pragma region Interfaces GameplayTag
 void AVGCharacterBase::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -286,6 +287,11 @@ void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
 #pragma region 스프린트 관련 함수 구현
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
+	if (CurrentSpeedMultiplier < 1.0f)
+	{
+		return;
+	}
+	
 	//게임플레이 태그 검사, 스태미나 검사
 	if (CharacterTags.HasTag(VigilantCharacter::Sprint) || CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Attacking))
 	{
@@ -329,13 +335,13 @@ void AVGCharacterBase::PerformStartSprint()
 {
 	CharacterTags.AddTag(VigilantCharacter::Sprint);
 
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed * CurrentSpeedMultiplier;
 }
 
 void AVGCharacterBase::PerformStopSprint()
 {
 	CharacterTags.RemoveTag(VigilantCharacter::Sprint);
-	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed * CurrentSpeedMultiplier;
 }
 
 void AVGCharacterBase::Server_StartSprint_Implementation()
@@ -422,6 +428,15 @@ void AVGCharacterBase::OnRep_CharacterTags()
 float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
                                    class AController* EventInstigator, AActor* DamageCauser)
 {
+	if (DamageEvent.DamageTypeClass && DamageEvent.DamageTypeClass->IsChildOf(UVGDamageType_Slow::StaticClass()))
+	{
+		if (UVGDamageType_Slow* SlowDamageType = Cast<UVGDamageType_Slow>(DamageEvent.DamageTypeClass->GetDefaultObject()))
+		{
+			ApplySlow(SlowDamageType->SlowMultiplier, SlowDamageType->SlowDuration);
+		}
+		return 0.0f;
+	}
+	
 	// 현재 페이즈가 데미지를 받는게 허용되는 페이즈인지 확인
 	AGameModeBase* GameMode = GetWorld()->GetAuthGameMode();
 	if (GameMode && GameMode->Implements<UVGGameModeInterface>())
@@ -657,4 +672,59 @@ void AVGCharacterBase::SetCharacterRotationState(bool bIsLockedOn)
 	
 	GetCharacterMovement()->bOrientRotationToMovement = !bIsLockedOn;
 	bUseControllerRotationYaw = bIsLockedOn;
+}
+
+void AVGCharacterBase::ApplySlow(float SlowMultiplier, float Duration)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	Multicast_SetSpeedMultiplier(SlowMultiplier);
+
+	GetWorldTimerManager().ClearTimer(SlowTimerHandle);
+	GetWorldTimerManager().SetTimer(SlowTimerHandle, this, &AVGCharacterBase::ClearSlow, Duration, false);
+}
+
+void AVGCharacterBase::ClearSlow()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	Multicast_SetSpeedMultiplier(1.0f);
+}
+
+void AVGCharacterBase::Multicast_SetSpeedMultiplier_Implementation(float NewMultiplier)
+{
+	// 배율 저장
+	CurrentSpeedMultiplier = NewMultiplier;
+	
+	if (CurrentSpeedMultiplier < 1.0f && CharacterTags.HasTag(VigilantCharacter::Sprint))
+	{
+		bWantsToSprint = false;
+		PerformStopSprint();
+        
+		// 내가 조종하는 캐릭터라면 서버에도 달리기 중지 요청
+		if (IsLocallyControlled())
+		{
+			Server_StopSprint();
+		}
+	}
+	
+	// 현재 상태에 맞춰 속도 재설정
+	if (CharacterTags.HasTag(VigilantCharacter::Sprint))
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed * CurrentSpeedMultiplier;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed * CurrentSpeedMultiplier;
+	}
+	
+	// 애니메이션 재생 속도도 배율에 맞춤
+	if (GetMesh())
+	{
+		GetMesh()->GlobalAnimRateScale = CurrentSpeedMultiplier;
+	}
 }

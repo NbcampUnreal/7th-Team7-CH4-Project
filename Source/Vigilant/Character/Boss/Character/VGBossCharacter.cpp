@@ -17,7 +17,7 @@
 AVGBossCharacter::AVGBossCharacter()
 {
 	// 스킬 컴포넌트 생성 및 부착
-	SkillComponent = CreateDefaultSubobject<UVGBossSkillComponent>(TEXT("SkillComponent"));
+	SkillComponent = CreateDefaultSubobject<UVGBossSkillComponent>(TEXT("BossSkillComponent"));
 }
 
 void AVGBossCharacter::AddBossMappingContext(AController* InController)
@@ -32,7 +32,7 @@ void AVGBossCharacter::AddBossMappingContext(AController* InController)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 		{
-			Subsystem->AddMappingContext(BossMappingContext, 1);
+			Subsystem->AddMappingContext(BossMappingContext, 100);
 		}
 	}
 }
@@ -40,6 +40,7 @@ void AVGBossCharacter::AddBossMappingContext(AController* InController)
 void AVGBossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	if (StatComponent)
 	{
 		StatComponent->OnDead.AddDynamic(this, &AVGBossCharacter::Die);
@@ -78,13 +79,13 @@ void AVGBossCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 		// Q 버튼을 누르면 Input_SkillQ 실행
 		if (SkillAction_Q)
 		{
-			EnhancedInputComponent->BindAction(SkillAction_Q, ETriggerEvent::Triggered, this, &AVGBossCharacter::Input_SkillQ);
+			EnhancedInputComponent->BindAction(SkillAction_Q, ETriggerEvent::Started, this, &AVGBossCharacter::Input_SkillQ);
 		}
         
 		// E 버튼을 누르면 Input_SkillE 실행
 		if (SkillAction_E)
 		{
-			EnhancedInputComponent->BindAction(SkillAction_E, ETriggerEvent::Triggered, this, &AVGBossCharacter::Input_SkillE);
+			EnhancedInputComponent->BindAction(SkillAction_E, ETriggerEvent::Started, this, &AVGBossCharacter::Input_SkillE);
 		}
 	}
 }
