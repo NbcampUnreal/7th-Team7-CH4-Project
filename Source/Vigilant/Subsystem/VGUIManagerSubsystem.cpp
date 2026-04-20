@@ -43,6 +43,19 @@ void UVGUIManagerSubsystem::StopMissionTimeData()
 	}
 }
 
+void UVGUIManagerSubsystem::PauseUpdateTimerToHUD()
+{
+	if (CurrentHUDWidget)
+	CurrentHUDWidget->PauseUpdateTimer();
+}
+
+void UVGUIManagerSubsystem::ResumeUpdateTimerToHUD()
+{
+	if (CurrentHUDWidget)
+	CurrentHUDWidget->ResumeUpdateTimer();
+}
+
+
 void UVGUIManagerSubsystem::OnStaminaUpdate(float NewValue, float MaxValue)
 {
 	if (CurrentHUDWidget)

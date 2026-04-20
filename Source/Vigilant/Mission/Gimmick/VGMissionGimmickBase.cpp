@@ -115,7 +115,10 @@ AVGMissionItemBase* AVGMissionGimmickBase::FindMissionItemByTag(UVGEquipmentComp
 
 void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 {
-	// Todo State 변경에 따른 피드백 처리
+	// BP 상에서의 로직 실행
+	BP_OnGimmickStateTagChanged(GetStateTag());
+	
+	// State에 따른 색변경 처리
 	if (!BodyDynMat)
 	{
 		// [Fix] 메시에 머티리얼이 없을 경우 GetMaterial(0)이 nullptr → Create 크래시 방지

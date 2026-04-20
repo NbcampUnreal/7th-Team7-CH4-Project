@@ -13,6 +13,7 @@ void AVGPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>&
 	DOREPLIFETIME(AVGPlayerState, PlayerStatusTags);
 	DOREPLIFETIME(AVGPlayerState, VGPlayerName);
 	DOREPLIFETIME(AVGPlayerState, EntryIndex);
+	DOREPLIFETIME(AVGPlayerState, AssignedMeshIndex);
 }
 
 void AVGPlayerState::CopyProperties(APlayerState* PlayerState)
@@ -71,6 +72,16 @@ bool AVGPlayerState::IsRole(const FGameplayTag& RoleTagToCheck) const
 void AVGPlayerState::SetVGPlayerName(const FString& NewName)
 {
 	VGPlayerName = NewName;
+}
+
+int32 AVGPlayerState::GetPlayerIndex() const
+{
+	return EntryIndex;
+}
+
+int32 AVGPlayerState::GetRandomMeshNumber() const
+{
+	return AssignedMeshIndex;
 }
 
 

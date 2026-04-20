@@ -85,6 +85,10 @@ public:
 	float TargetOldEndTime = -1.f;
 	
 	UFUNCTION()
+	void PauseUpdateTimer();
+	void ResumeUpdateTimer();
+
+	UFUNCTION()
 	void OnReadyButtonClicked();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")

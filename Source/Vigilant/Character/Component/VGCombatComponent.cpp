@@ -4,7 +4,6 @@
 #include "Combat/VGAmmoProviderInterface.h"
 #include "Combat/VGAttackExecution.h"
 #include "Combat/VGProjectile.h"
-#include "Common/VGGameplayTags.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "Engine/Engine.h"
@@ -129,19 +128,6 @@ UMeshComponent* UVGCombatComponent::GetActiveTraceMesh() const
 
 void UVGCombatComponent::TryLightAttack()
 {
-	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
-	{
-		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) || TagInterface->HasMatchingGameplayTag(
-			VigilantCharacter::Stunned))
-		{
-			return;
-		}
-		if (!bCanChainCombo && TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking))
-		{
-			return;
-		}
-	}
-
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
@@ -178,19 +164,6 @@ void UVGCombatComponent::TryLightAttack()
 
 void UVGCombatComponent::TryHeavyAttack()
 {
-	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
-	{
-		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) || TagInterface->HasMatchingGameplayTag(
-			VigilantCharacter::Stunned))
-		{
-			return;
-		}
-		if (!bCanChainCombo && TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking))
-		{
-			return;
-		}
-	}
-
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (!OwnerCharacter)
 	{
@@ -506,16 +479,6 @@ void UVGCombatComponent::StopAttackExecution()
 
 void UVGCombatComponent::TryStartBlock()
 {
-	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(GetOwner()))
-	{
-		if (TagInterface->HasMatchingGameplayTag(VigilantCharacter::Attacking) ||
-			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Dodge) ||
-			TagInterface->HasMatchingGameplayTag(VigilantCharacter::Stunned))
-		{
-			return;
-		}
-	}
-
 	UVGShieldDataAsset* Data = GetCurrentShieldData();
 
 	if (!Data || !Data->BlockMontage)
