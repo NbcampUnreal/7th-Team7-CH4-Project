@@ -27,9 +27,11 @@ void AVGMissionSandbag::GetLifetimeReplicatedProps(
 
 void AVGMissionSandbag::ResetSandbag()
 {
-    CurrentHPRatio = 0.f; // 강제로 다른 값으로 만들어 리플리케이션 트리거 보장
+	// 임시로 0으로 낮춰 리플리케이션/피드백 경로를 강제로 태우기 위한 우회.
+	// StatComponent->ResetStats()가 OnHPChanged → OnRep_CurrentHPRatio를 타므로
+	// 서버에서의 OnSandbagReseted 중복 브로드캐스트를 막기 위해 여기서는 직접 호출하지 않음.
+	CurrentHPRatio = 0.f;
 	StatComponent->ResetStats();
-	OnRep_CurrentHPRatio();
 }
 
 void AVGMissionSandbag::BeginPlay()

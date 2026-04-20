@@ -110,7 +110,7 @@ bool AVGMissionGimmickStatue::IsAtAnswerAngle() const
 {
 	// FRotator::NormalizeAxis : 각도 값을 -180~180 범위로 정규화해줍니다.
 	const float Diff = FMath::Abs(FRotator::NormalizeAxis(TargetAngle - AnswerAngle));
-	return Diff   < AngleTolerance;
+	return Diff < AngleTolerance;
 }
 
 void AVGMissionGimmickStatue::OnRep_TargetAngle()

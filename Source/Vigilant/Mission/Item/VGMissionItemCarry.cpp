@@ -47,6 +47,12 @@ void AVGMissionItemCarry::PlaceOnTarget(AVGMissionGimmickBase* TargetGimmick, FV
 
 void AVGMissionItemCarry::OnRep_PlaceInfo()
 {
+	// 타깃이 유효하지 않으면 attach가 크래시를 유발할 수 있으므로 방어
+	if (!PlaceInfo.AttachmentTargetActor)
+	{
+		return;
+	}
+	
 	if (UPrimitiveComponent* RootComp =
 		Cast<UPrimitiveComponent>(GetRootComponent()))
 	{
@@ -59,10 +65,6 @@ void AVGMissionItemCarry::OnRep_PlaceInfo()
     	
 	SetActorRelativeLocation(PlaceInfo.RelativeLocation);
 	SetActorRelativeRotation(FRotator::ZeroRotator);
-	
-	UE_LOG(LogTemp, Warning, TEXT("[%s] Attachment placed! At %s %s"),*GetName(),
-	 *PlaceInfo.AttachmentTargetActor.GetName(),
-	  *PlaceInfo.RelativeLocation.ToString());
 	
 	BP_OnRep_PlaceInfo();
 }
