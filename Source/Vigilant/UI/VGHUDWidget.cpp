@@ -143,6 +143,20 @@ void UVGHUDWidget::UpdateTimePerSecond()
 	}
 }
 
+void UVGHUDWidget::PauseUpdateTimer()
+{
+	GetWorld()->GetTimerManager().PauseTimer(PhaseTimerHandle);
+	UE_LOG(LogTemp, Warning, TEXT("[HUD] 미션 페이즈 타이머 일시정지"));
+
+	
+}
+
+void UVGHUDWidget::ResumeUpdateTimer()
+{
+	GetWorld()->GetTimerManager().UnPauseTimer(PhaseTimerHandle);
+	UE_LOG(LogTemp, Warning, TEXT("[HUD] 미션 페이즈 타이머 재개"));
+}
+
 void UVGHUDWidget::OnReadyButtonClicked()
 {
 	UE_LOG(LogTemp, Warning, TEXT("버튼 누름"));
