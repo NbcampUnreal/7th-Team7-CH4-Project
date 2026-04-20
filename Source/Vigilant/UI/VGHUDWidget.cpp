@@ -127,7 +127,7 @@ void UVGHUDWidget::UpdateTimePerSecond()
 		// 프로그레스 바 업데이트
 		MissionProgress->SetPercent(MissionTimeRatio);
 
-		float OffsetSizeRaito = TotalTime/TargetOldEndTime;
+		float OffsetSizeRaito = TargetOldEndTime/TotalTime;
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 		{
 			FMargin CurrentOffsets = CanvasSlot->GetOffsets();
