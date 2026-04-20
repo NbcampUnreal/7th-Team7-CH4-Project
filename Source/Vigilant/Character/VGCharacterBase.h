@@ -74,10 +74,10 @@ protected:
 	float CameraZoomSpeed = 50.0f;
 
 	// Walk & Sprint Speed
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float NormalSpeed = 600.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed = 900.0f;
 
 #pragma region Interfaces Func
@@ -211,7 +211,21 @@ protected:
 	UFUNCTION()
 	virtual void HandleDeath(AController* Killer);
 	
+public:
+	// --- 디버프(슬로우) 관련 함수 --- (하상빈 추가)
+	void ApplySlow(float SlowMultiplier, float Duration);
 
+protected:
+	// 슬로우 해제 함수
+	void ClearSlow();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetSpeedMultiplier(float NewMultiplier);
+
+	FTimerHandle SlowTimerHandle;
+    
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	float CurrentSpeedMultiplier = 1.0f;
 	
 #pragma region Stagger & Knockback
 	virtual void ApplyStagger(FVector PushDirection, float KnockbackForce);

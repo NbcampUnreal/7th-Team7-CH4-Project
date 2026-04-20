@@ -7,8 +7,7 @@
 #include "VGBossCharacter.generated.h"
 
 class UVGBossDataAsset;
-class UAnimMontage;
-class UVGCombatComponent;
+class UVGBossSkillComponent;
 
 UCLASS()
 class VIGILANT_API AVGBossCharacter : public AVGCharacterBase
@@ -34,10 +33,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vigilant|Input")
 	class UInputAction* SkillAction_E;
-	
-private:
-	void AddBossMappingContext(AController* InController);
-	
+
 protected:
 	virtual void BeginPlay() override;
 	
@@ -59,10 +55,13 @@ protected:
 	void Die(AController* Killer);
 	
 	// 보스 데이터 에셋 (에디터에서 할당)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Vigilant|Data")
 	TObjectPtr<const UVGBossDataAsset> BossData;
 	
 	// 최종 스탯을 전달받아 세팅하는 함수
 	UFUNCTION(BlueprintCallable, Category = "BossStats")
 	void InitializeBossStats(float InCalculatedHealth, float InCalculatedDamage);
+		
+private:
+	void AddBossMappingContext(AController* InController);
 };
