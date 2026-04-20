@@ -112,7 +112,7 @@ void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Ini
 
 void UVGHUDWidget::UpdateTimePerSecond()
 {
-	if (!GetWorld()) return;
+	if (!GetWorld() || !MissionProgress || !TimerBarSize) return;
 
 	AGameStateBase* BaseGameState = GetWorld()->GetGameState();
 	float CurrentTime = BaseGameState ? BaseGameState->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds();
