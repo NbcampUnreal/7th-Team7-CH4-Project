@@ -46,7 +46,7 @@ AVGCharacterBase::AVGCharacterBase()
 	  CameraZoomAction(nullptr),
       HiddenPocketAction(nullptr)
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	// Configure Character Movement
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
@@ -285,8 +285,7 @@ void AVGCharacterBase::HandleLockOnTargetChanged(AActor* NewTarget)
 #pragma region 스프린트 관련 함수 구현
 void AVGCharacterBase::StartSprint(const FInputActionValue& Value)
 {
-	//게임플레이 태그 검사, 스태미나 검사
-	if (CharacterTags.HasTag(VigilantCharacter::Stunned) || CharacterTags.HasTag(VigilantCharacter::Attacking))
+	if (!CanSprint())
 	{
 		return;
 	}
@@ -352,7 +351,6 @@ void AVGCharacterBase::Server_StopSprint_Implementation()
 	{
 		StatComponent->StopContinuousConsumeStamina();
 	}
-
 	PerformStopSprint();
 }
 
