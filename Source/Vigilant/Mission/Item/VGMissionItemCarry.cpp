@@ -63,6 +63,4 @@ void AVGMissionItemCarry::OnRep_PlaceInfo()
 	UE_LOG(LogTemp, Warning, TEXT("[%s] Attachment placed! At %s %s"),*GetName(),
 	 *PlaceInfo.AttachmentTargetActor.GetName(),
 	  *PlaceInfo.RelativeLocation.ToString());
-	
-	BP_OnRep_PlaceInfo();
 }

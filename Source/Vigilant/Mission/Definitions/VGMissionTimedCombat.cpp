@@ -56,12 +56,10 @@ bool AVGMissionTimedCombat::AreAllSandbagsDefeated() const
 {
 	for (AVGMissionSandbag* Sandbag : MissionSandbags)
 	{
-		if (!Sandbag)
-		{
-			continue;
-		}
-		
-		UVGStatComponent* StatComp = Sandbag->StatComponent;
+		if (!Sandbag) continue;
+
+		UVGStatComponent* StatComp =
+			Sandbag->FindComponentByClass<UVGStatComponent>();
 		if (StatComp && StatComp->GetIsAlive())
 		{
 			return false;
@@ -83,22 +81,12 @@ void AVGMissionTimedCombat::StartTimer()
 
 void AVGMissionTimedCombat::OnTimerExpired()
 {
-	if (CurrentStateTag == VigilantMissionTags::MissionCompleted)
-	{
-		return;
-	}
-	
 	SetMissionState(VigilantMissionTags::MissionInactive);
 	for (AVGMissionSandbag* Sandbag : MissionSandbags)
 	{
-		if (!Sandbag)
-		{
-			continue;
-		}
-		
+		if (!Sandbag) continue;
 		Sandbag->ResetSandbag();
 	}
 	
-	UE_LOG(LogTemp, Error, TEXT("[%s] Timed Up!"), *GetName());
 	ClearContributers();
 }

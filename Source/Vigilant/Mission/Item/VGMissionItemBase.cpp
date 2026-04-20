@@ -84,6 +84,7 @@ void AVGMissionItemBase::OnInteractWith(AActor* Interactor, const FTransform& In
 		EquipComp->Server_EquipItem(this);
 		
 		EquipComp->OnItemDropped.AddDynamic(this, &AVGMissionItemBase::OnDropped);
+		UE_LOG(LogTemp, Log, TEXT("[%s] Equipped!"),*GetName());
 	}
 }
 
@@ -110,7 +111,9 @@ void AVGMissionItemBase::OnPickedUp(AActor* NewCarrier)
 	if (AVGCharacterBase* CharacterCarrier = Cast<AVGCharacterBase>(NewCarrier))
 	{
 		Carrier = CharacterCarrier;
-
+		
+		// MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 		SetStateTag(VigilantMissionTags::ItemCarried);
 		// Carrier가 변경되었으므로 OnRep 수동 호출
 		OnRep_Carrier();
@@ -124,21 +127,16 @@ void AVGMissionItemBase::OnDropped(EVGEquipmentSlot Slot)
 		return;
 	}
 	
-	if (!Carrier)
-	{
-		return;
-	}
-	
 	if (UVGEquipmentComponent* EquipComp =
 			Carrier->FindComponentByClass<UVGEquipmentComponent>())
 	{
 		EquipComp->OnItemDropped.RemoveDynamic(this, &AVGMissionItemBase::OnDropped);
+		
+		Carrier = nullptr;
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		SetStateTag(VigilantMissionTags::ItemInactive);
+		OnRep_Carrier();
 	}
-	
-	Carrier = nullptr;
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	SetStateTag(VigilantMissionTags::ItemInactive);
-	OnRep_Carrier();
 }
 
 void AVGMissionItemBase::BeginPlay()
@@ -165,6 +163,17 @@ void AVGMissionItemBase::BeginPlay()
 
 void AVGMissionItemBase::OnRep_Carrier()
 {
+	// TODO: 캐리 상태 변경에 따른 시각적 피드백 처리
+	//       (예: 피킹 이펙트 재생, 아웃라인 제거 등)
+	
+	if (Carrier)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Change carrier - %s"),*GetName(), *Carrier->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("[%s] Change carrier - null"),*GetName());
+	}
 }
 
 void AVGMissionItemBase::OnRep_ItemStateTag()

@@ -32,9 +32,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	virtual void GetLifetimeReplicatedProps(
-		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, 
 		class AController* EventInstigator, AActor* DamageCauser) override;
 private:
@@ -70,6 +67,6 @@ protected:
 	TObjectPtr<AVGCharacterBase> LastAttacker;
 
 	// HP 바 표시용 — Replicated
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHPRatio, Category = "Mission|Samdbag")
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHPRatio)
 	float CurrentHPRatio = 1.f;
 };

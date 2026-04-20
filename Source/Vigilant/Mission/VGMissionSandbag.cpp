@@ -27,9 +27,9 @@ void AVGMissionSandbag::GetLifetimeReplicatedProps(
 
 void AVGMissionSandbag::ResetSandbag()
 {
-    CurrentHPRatio = 0.f; // 강제로 다른 값으로 만들어 리플리케이션 트리거 보장
 	StatComponent->ResetStats();
-	OnRep_CurrentHPRatio();
+	MeshComponent->SetVisibility(true);
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void AVGMissionSandbag::BeginPlay()
@@ -78,13 +78,18 @@ void AVGMissionSandbag::OnHPChanged(float NewHP, float MaxHP)
 {
 	// HP 비율을 Replicate해서 클라이언트 UI에 표시
 	CurrentHPRatio = (MaxHP > 0.f) ? (NewHP / MaxHP) : 0.f;
-	OnRep_CurrentHPRatio();
+	
+	if (!FMath::IsNearlyEqual(CurrentHPRatio, 1.f))
+	{
+		OnSandbagHitted.Broadcast();
+	}
 }
 
 void AVGMissionSandbag::OnRep_CurrentHPRatio()
 {
 	// TODO: 위젯 업데이트 로직 or 제거
-
+	UE_LOG(LogTemp, Display, TEXT("CurrentHPRatio is %f"), CurrentHPRatio);
+	
 	if (FMath::IsNearlyEqual(CurrentHPRatio, 1.f))
 	{
 		MeshComponent->SetVisibility(true);
@@ -96,10 +101,6 @@ void AVGMissionSandbag::OnRep_CurrentHPRatio()
 		MeshComponent->SetVisibility(false);
 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
-	else
-	{
-		OnSandbagHitted.Broadcast();
-	}
 }
 
 void AVGMissionSandbag::OnDead(AController* LastInstigator)
@@ -108,4 +109,5 @@ void AVGMissionSandbag::OnDead(AController* LastInstigator)
 	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	// 막타 플레이어와 함께 미션에 보고
 	OnSandbagDefeated.Broadcast(LastAttacker);
+	UE_LOG(LogTemp, Display, TEXT("[%s] is dead."), *GetName());
 }

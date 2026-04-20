@@ -3,6 +3,8 @@
 #include "Common/VGGameplayTags.h"
 #include "Net/UnrealNetwork.h"
 #include "Character/Component/VGEquipmentComponent.h"
+#include "Character/VGCharacterBase.h"
+#include "Components/ArrowComponent.h"
 
 AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 {
@@ -49,7 +51,7 @@ void AVGMissionGimmickStatue::BeginPlay()
 	Super::BeginPlay();
 	
 	InitialAngle = GetActorRotation().Yaw;
-	TargetAngle = InitialAngle;
+	// SetActorRotation(FRotator(0,InitialAngle,0));
 }
 
 void AVGMissionGimmickStatue::Tick(float DeltaTime)
@@ -94,7 +96,7 @@ void AVGMissionGimmickStatue::RotateToTarget(float DeltaTime)
 		// 서버에서만 정답 체크
 		if (HasAuthority())
 		{
-			if (IsAtAnswerAngle() && bStopAtAnswerAngle)
+			if (IsAtAnswerAngle() && !bIsOnAnswerStop)
 			{
 				SetStateTag(VigilantMissionTags::GimmickCompleted);
 			}
@@ -109,7 +111,7 @@ void AVGMissionGimmickStatue::RotateToTarget(float DeltaTime)
 bool AVGMissionGimmickStatue::IsAtAnswerAngle() const
 {
 	// FRotator::NormalizeAxis : 각도 값을 -180~180 범위로 정규화해줍니다.
-	const float Diff = FMath::Abs(FRotator::NormalizeAxis(TargetAngle - AnswerAngle));
+	float Diff = FMath::Abs(FRotator::NormalizeAxis(TargetAngle - AnswerAngle));
 	return Diff   < AngleTolerance;
 }
 

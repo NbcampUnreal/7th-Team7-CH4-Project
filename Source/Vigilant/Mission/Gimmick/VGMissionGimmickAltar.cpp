@@ -1,11 +1,14 @@
 ﻿#include "VGMissionGimmickAltar.h"
+#include "NiagaraComponentPool.h"
 #include "Common/VGGameplayTags.h"
 #include "Character/VGCharacterBase.h"
 #include "Character/Component/VGEquipmentComponent.h"
 #include "Mission/Item/VGMissionItemCarry.h"
 #include "Mission/Item/VGMissionItemBase.h"
 #include "Data/VGMissionItemDataAsset.h"
+#include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 AVGMissionGimmickAltar::AVGMissionGimmickAltar()
@@ -19,6 +22,7 @@ bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 {
 	if (GimmickStateTag != VigilantMissionTags::GimmickInactive)
 	{
+		// UE_LOG(LogTemp, Error, TEXT("[%s] Now %s"), *GetName(), *GimmickStateTag.ToString());
 		return false;
 	}
 	
@@ -43,17 +47,19 @@ bool AVGMissionGimmickAltar::CanInteractWith(AActor* Interactor) const
 			continue;
 		}
 		
-		if (!Slot.ItemDataAsset)
+		UVGMissionItemDataAsset* ItemDataAsset = Slot.ItemDataAsset.Get();
+		if (!ItemDataAsset)
 		{
 			continue;
 		}
 		
-		if (FindMissionItemByTag(EquipComp, Slot.ItemDataAsset->ItemTypeTag))
+		if (FindMissionItemByTag(EquipComp, ItemDataAsset->ItemTypeTag))
 		{
 			return true;
 		}
 	}
 
+	UE_LOG(LogTemp, Error, TEXT("[%s] No matching item."), *GetName());
 	return false;
 }
 
@@ -119,16 +125,14 @@ void AVGMissionGimmickAltar::UpdateHintEffectVisibility()
 		return;
 	}
 	
-	const float DistSq = FVector::DistSquared(
+	float DistSq = FVector::DistSquared(
 		GetActorLocation(),
 		LocalPC->GetPawn()->GetActorLocation()
 	);
     
-	const bool bShouldShow = DistSq < FMath::Square(HintVisibleRange);
+	bool bShouldShow = DistSq < FMath::Square(HintVisibleRange);
     
-	// [Fix] 1:1 대응으로 구성되지만 런타임 안전을 위해 Min 사용
-	const int32 Count = FMath::Min(HintEffectComponents.Num(), PlacementSlots.Num());
-	for (int32 Index = 0; Index < Count; Index++)
+	for (int32 Index = 0; Index < HintEffectComponents.Num(); Index++)
 	{
 		UNiagaraComponent* Comp = HintEffectComponents[Index];
 		if (!Comp)
@@ -137,8 +141,8 @@ void AVGMissionGimmickAltar::UpdateHintEffectVisibility()
 		}
 		
 		// 이미 채워진 슬롯은 무조건 비활성
-		const bool bSlotEmpty = !IsSlotBitSet(Index);
-		const bool bActivate = bShouldShow && bSlotEmpty;
+		bool bSlotEmpty = !IsSlotBitSet(Index);
+		bool bActivate = bShouldShow && bSlotEmpty;
         
 		if (bActivate && !Comp->IsActive())
 		{
@@ -154,13 +158,6 @@ void AVGMissionGimmickAltar::UpdateHintEffectVisibility()
 void AVGMissionGimmickAltar::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// PlacedSlotMask(uint8) 한계 체크 — 8슬롯 초과 시 비트 오버플로 발생
-	ensureMsgf(PlacementSlots.Num() <= 8,
-		TEXT("[%s] PlacementSlots.Num() = %d exceeds PlacedSlotMask(uint8) limit(8)."),
-		*GetName(), PlacementSlots.Num());
-	// PlacementSlots와 1:1 인덱스 매칭 유지 (힌트가 없는 슬롯도 nullptr로 채움)
-	HintEffectComponents.Reserve(PlacementSlots.Num());
 	
 	for (int32 i = 0; i < PlacementSlots.Num(); i++)
 	{
@@ -180,11 +177,16 @@ void AVGMissionGimmickAltar::BeginPlay()
 		NiagaraComp->RegisterComponent();
         
 		// 메쉬 정보 전달 (Niagara에 User.Mesh 파라미터가 있을 경우)
-		if (Slot.ItemDataAsset && Slot.ItemDataAsset->ItemMesh)
+		UVGMissionItemDataAsset* ItemDataAsset = Slot.ItemDataAsset.Get();
+		if (ItemDataAsset)
 		{
-			NiagaraComp->SetVariableObject(FName("User.TargetObject"), Slot.ItemDataAsset->ItemMesh);
+			// NiagaraComp->SetVariableStaticMesh(FName("User.TargetMesh"), ItemDataAsset->ItemMesh);
+			NiagaraComp->SetVariableObject(FName("User.TargetObject"), ItemDataAsset->ItemMesh);
+			UE_LOG(LogTemp, Warning, TEXT("TargetMesh = %s"),
+	*GetNameSafe(ItemDataAsset->ItemMesh));
 		}
 		
+		NiagaraComp->Activate();
 		NiagaraComp->ReinitializeSystem();
 		HintEffectComponents.Add(NiagaraComp);
 	}
@@ -228,13 +230,14 @@ bool AVGMissionGimmickAltar::IsSlotBitSet(int32 SlotIndex) const
 bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot)
 {
 	// 헬퍼로 일치하는 아이템을 찾은 뒤 CarryItem으로 캐스팅
-	if (!Slot.ItemDataAsset)
+	UVGMissionItemDataAsset* ItemDataAsset = Slot.ItemDataAsset.Get();
+	if (!ItemDataAsset)
 	{
 		return false;
 	}
 	
 	AVGMissionItemBase* FoundItem =
-		FindMissionItemByTag(EquipComp, Slot.ItemDataAsset->ItemTypeTag);
+		FindMissionItemByTag(EquipComp, ItemDataAsset->ItemTypeTag);
 	
 	AVGMissionItemCarry* CarryItem = Cast<AVGMissionItemCarry>(FoundItem);
 	if (!CarryItem)
@@ -259,9 +262,14 @@ bool AVGMissionGimmickAltar::TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp
 
 bool AVGMissionGimmickAltar::AreAllSlotsFilled() const
 {
-	// PlacementSlots의 모든 슬롯 비트가 채워져 있는지 O(1) 비트 비교
-	// PlacementSlots.Num()이 8을 넘으면 BeginPlay에서 ensure로 방어됨
-	const uint8 FullMask = static_cast<uint8>((1 << PlacementSlots.Num()) - 1);
-	return (PlacedSlotMask & FullMask) == FullMask;
+	for (const FVGAltarPlacementSlot& Slot : PlacementSlots)
+	{
+		if (!Slot.IsOccupied())
+		{
+			return false;
+		}
+	}
+	
+	return true;
 }
 

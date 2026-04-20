@@ -12,10 +12,8 @@ struct VIGILANT_API FVGCarryPlaceInfo
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY()
-	TObjectPtr<AActor> AttachmentTargetActor = nullptr;
-	UPROPERTY()
-	FVector RelativeLocation = FVector::ZeroVector;
+	TObjectPtr<AActor> AttachmentTargetActor;
+	FVector RelativeLocation;
 };
 
 UCLASS()
@@ -34,9 +32,6 @@ public:
 
 	UFUNCTION()
 	void OnRep_PlaceInfo();
-	
-	UFUNCTION(BlueprintImplementableEvent)
-	void BP_OnRep_PlaceInfo();
 	
 protected:
 	UPROPERTY(ReplicatedUsing=OnRep_PlaceInfo)

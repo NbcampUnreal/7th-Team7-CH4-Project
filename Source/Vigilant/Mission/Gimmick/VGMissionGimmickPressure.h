@@ -73,10 +73,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
 	bool bToggleMode = false; // true면 재밟기 시 비활성화 (마피아 방해용)
 	
-	// true면 발판에서 벗어날 때 Inactive로 복귀, false면 한번 눌리면 상태 유지 (일회성 트리거)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
-	bool bRevertOnRelease = false;
-	
 	// 눌렸을 때 내려가는 깊이 (cm)
 	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Pressure|Animation")
 	float PressDepth = 8.f;
