@@ -29,7 +29,10 @@ void UVGUIManagerSubsystem::Deinitialize()
 
 void UVGUIManagerSubsystem::TransferMissionTimeData(float StartTime, float EndTime, bool Init)
 {
-	CurrentHUDWidget->SetPhaseTimeData(StartTime, EndTime, Init);
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetPhaseTimeData(StartTime, EndTime, Init);
+	}
 }
 
 void UVGUIManagerSubsystem::OnStaminaUpdate(float NewValue, float MaxValue)
