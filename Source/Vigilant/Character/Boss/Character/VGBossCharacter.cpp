@@ -61,6 +61,8 @@ void AVGBossCharacter::BeginPlay()
 			StatComponent->InitStat(BossData->BaseHealth, StatComponent->GetMaxStamina());
 		}
 	}
+	
+	CharacterTags.AddTag(VigilantCharacter::StaggerImmune);
 }
 
 void AVGBossCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)

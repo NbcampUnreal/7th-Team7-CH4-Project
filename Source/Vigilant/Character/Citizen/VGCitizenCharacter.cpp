@@ -123,6 +123,11 @@ void AVGCitizenCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, 
 
 void AVGCitizenCharacter::Interact()
 {
+	if (!CanInteract())
+	{
+		return;
+	}
+	
 	AActor* Target = EquipmentComponent->GetCurrentInteractableTarget();
 	if (!IsInteractionAllowed(Target))
 	{
@@ -137,8 +142,11 @@ void AVGCitizenCharacter::Interact()
 
 void AVGCitizenCharacter::DropItem()
 {
-	// 특정 상황에 (태그보유) 리턴 하는 로직 추가 하는 부분
-	// ^_^
+	if (!CanInteract())
+	{
+		return;
+	}
+	
 	if (EquipmentComponent)
 	{
 		EquipmentComponent->DropItem();
@@ -162,6 +170,11 @@ void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 
 void AVGCitizenCharacter::StartBlock(const FInputActionValue& Value)
 {
+	if (!CanBlock())
+	{
+		return;
+	}
+	
 	if (!CombatComponent || !StatComponent)
 	{
 		return;
@@ -190,16 +203,35 @@ void AVGCitizenCharacter::StopBlock(const FInputActionValue& Value)
 	}
 }
 
+#pragma region State Check
+bool AVGCitizenCharacter::CanDodge() const
+{
+	// 회피는 공격을 중단할 수 있음
+	return !CharacterTags.HasTag(VigilantCharacter::Stunned) &&
+		!CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Falling);
+}
+
+bool AVGCitizenCharacter::CanInteract() const
+{
+	return !CharacterTags.HasTag(VigilantCharacter::Attacking) &&
+		!CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Stunned) &&
+		!CharacterTags.HasTag(VigilantCharacter::Guard);
+}
+
+bool AVGCitizenCharacter::CanBlock() const
+{
+	return !CharacterTags.HasTag(VigilantCharacter::Dodge) &&
+		!CharacterTags.HasTag(VigilantCharacter::Stunned);
+}
+
+#pragma endregion
 
 #pragma region 구르기 로직 및 RPC
 void AVGCitizenCharacter::Dodge()
 {
-	// 특정 태그 보유시 리턴, 추가가능
-	if (CharacterTags.HasTag(VigilantCharacter::Dodge))
-	{
-		return;
-	}
-	if (CharacterTags.HasTag(VigilantCharacter::Falling))
+	if (!CanDodge())
 	{
 		return;
 	}
