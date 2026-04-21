@@ -60,7 +60,7 @@ protected:
 	UFUNCTION()
 	void HandleUIByPhase(FGameplayTag NewPhaseTag);
 	UFUNCTION()
-	void HandleTimeReduced(float NewEndTime);
+	void HandleTimeChanged();
 	
 	// GameState 대기용
 	FTimerHandle BindTimerHandle;
