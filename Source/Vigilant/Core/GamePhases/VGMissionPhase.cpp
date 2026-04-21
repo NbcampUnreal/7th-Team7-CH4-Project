@@ -152,8 +152,8 @@ void UVGMissionPhase::OnMissionCleared(float TimeReducedAmount)
 	{
 		VGGameState->PhaseEndTime -= TimeReducedAmount;
 		
-		float ElapsedTime = PhaseDuration - VGGameState->GetRemainingPhaseTime();
-		VGGameState->BossNerfRate = FMath::Clamp(ElapsedTime / PhaseDuration, 0.1f, 1.0f);
+		float NewPhaseDuration = VGGameState->PhaseEndTime - VGGameState->PhaseStartTime;
+		VGGameState->BossNerfRate = FMath::Clamp(NewPhaseDuration / PhaseDuration, 0.1f, 1.0f);
 		
 		float RemainingTime = VGGameState->GetRemainingPhaseTime();
 		
