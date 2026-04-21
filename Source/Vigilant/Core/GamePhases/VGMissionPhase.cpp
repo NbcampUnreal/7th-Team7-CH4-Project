@@ -43,6 +43,7 @@ void UVGMissionPhase::ExitPhase()
 			{
 				if (APlayerController* PlayerController = VGPlayerState->GetPlayerController())
 				{
+					PlayerController->SetIgnoreMoveInput(true);
 					
 					if (AVGCharacterBase* VGCharacter = Cast<AVGCharacterBase>(PlayerController->GetPawn()))
 					{

@@ -56,6 +56,8 @@ void UVGFinalCombatPhase::EnterPhase()
         APlayerController* PlayerController = VGPlayerState->GetPlayerController();
         if (!PlayerController) continue;
     	
+    	PlayerController->SetIgnoreMoveInput(false);
+    	
 
         APawn* CurrentPawn = PlayerController->GetPawn();
 
