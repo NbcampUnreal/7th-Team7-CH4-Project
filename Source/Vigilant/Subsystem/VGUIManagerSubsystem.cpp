@@ -100,6 +100,22 @@ void UVGUIManagerSubsystem::RelayReadyEvent(bool bReady)
 	OnPlayerReadySignature.Broadcast(bReady);
 }
 
+void UVGUIManagerSubsystem::SetEquipIcon(int32 SlotIndex, UTexture2D* Icon)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetEquipIcon(SlotIndex, Icon);
+	}
+}
+
+void UVGUIManagerSubsystem::ClearEquipIcon(int32 SlotIndex)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->ClearEquipIcon(SlotIndex);
+	}
+}
+
 void UVGUIManagerSubsystem::CreateHUDWidget()
 {
 	if (CurrentHUDWidget)

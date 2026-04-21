@@ -377,6 +377,18 @@ void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipment
 	{
 		CombatComponent->SetActiveShieldData(ShieldData);
 	}
+	
+	//아이콘정보 전달
+	if (IVGUIControllerInterface* UIController = Cast<IVGUIControllerInterface>(GetController()))
+	{
+		int32 SlotIndex = (Slot == EVGEquipmentSlot::LeftHand) ? 1 : 2;
+		if (EquipmentData)
+		{
+			UIController->UpdateEquipIconUI(SlotIndex, EquipmentData->ItemIcon);
+		}
+	}
+	
+	
 }
 
 void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
@@ -394,6 +406,23 @@ void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
 	{
 		CombatComponent->SetActiveShieldData(nullptr);
 	}
+	
+	
+	//아이템 드롭 정보 전달
+	if (IVGUIControllerInterface* UIController = Cast<IVGUIControllerInterface>(GetController()))
+	{
+		if (Slot == EVGEquipmentSlot::BothHands)
+		{
+			UIController->ClearEquipIconUI(1);
+			UIController->ClearEquipIconUI(2);
+		}
+		else
+		{
+			int32 SlotIndex = (Slot == EVGEquipmentSlot::LeftHand) ? 1 : 2;
+			UIController->ClearEquipIconUI(SlotIndex);
+		}
+	}
+	
 }
 
 void AVGCitizenCharacter::CheckGuardBreakOnStaminaChanged(float CurrentStamina, float MaxStamina)

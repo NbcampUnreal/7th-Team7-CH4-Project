@@ -66,6 +66,10 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	UFUNCTION()
 	void RelayReadyEvent(bool bReady);
 	
+	UFUNCTION()
+	void SetEquipIcon(int32 SlotIndex, UTexture2D* Icon);
+	void ClearEquipIcon(int32 SlotIndex);
+	
 	FUIOnPlayerReadySignature OnPlayerReadySignature;
 #pragma region 위젯 생성과 표시, 숨김
 	void CreateHUDWidget();

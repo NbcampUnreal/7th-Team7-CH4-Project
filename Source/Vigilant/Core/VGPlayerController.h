@@ -56,6 +56,8 @@ public:
 	//UI전달을 위한 인터페이스 구현함수
 	virtual void ShowInteractUI(const FString& InteractText, const FVector& TargetLocation, bool bShow) override;
 	
+	virtual void UpdateEquipIconUI(int32 SlotIndex, UTexture2D* Icon) override;
+	virtual void ClearEquipIconUI(int32 SlotIndex) override;
 	
 	UFUNCTION(Client, Reliable)
 	void Client_SetInputToGame();
