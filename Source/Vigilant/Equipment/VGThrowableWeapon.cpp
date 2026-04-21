@@ -20,7 +20,7 @@ void AVGThrowableWeapon::ConsumeAmmo()
 		
 		if (CurrentAmmo <= 0 && HasAuthority())
 		{
-			Destroy();
+			OnItemConsumed.Broadcast(this);
 		}
 	}
 }
