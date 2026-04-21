@@ -2,6 +2,7 @@
 #include "DrawDebugHelpers.h"
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Character/Component/VGHiddenPocketComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
@@ -55,6 +56,10 @@ AVGCharacterBase::AVGCharacterBase()
 
 	// Configure Character Movement
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	
+	// Setting Collision Response
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	// Create the camera boom
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
