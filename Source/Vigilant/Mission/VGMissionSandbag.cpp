@@ -57,22 +57,10 @@ float AVGMissionSandbag::TakeDamage(float DamageAmount, struct FDamageEvent cons
 	// EventInstigator(Controller)에서 AVGCharacterBase를 꺼내 LastAttacker 갱신
 	if (HasAuthority() && EventInstigator)
 	{
-		if (AVGCharacterBase* AttackerCharacter = Cast<AVGCharacterBase>(EventInstigator->GetPawn()))
-		{
-			RegisterAttacker(AttackerCharacter);
-		}
+		LastAttacker = Cast<AVGCharacterBase>(EventInstigator->GetPawn());
 	}
 	
 	return ActualDamage;
-}
-
-void AVGMissionSandbag::RegisterAttacker(AVGCharacterBase* Attacker)
-{
-	if (!HasAuthority()) return;
-	if (!Attacker) return;
-
-	// 데미지를 줄 때마다 마지막 공격자 갱신
-	LastAttacker = Attacker;
 }
 
 void AVGMissionSandbag::OnHPChanged(float NewHP, float MaxHP)

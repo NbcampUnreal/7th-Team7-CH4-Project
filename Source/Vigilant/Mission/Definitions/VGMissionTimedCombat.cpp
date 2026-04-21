@@ -66,7 +66,12 @@ void AVGMissionTimedCombat::OnTimerExpired()
 	{
 		return;
 	}
+	if (bIsResetting)
+	{
+		return;
+	}
 	
+	bIsResetting = true;
 	SetMissionState(VigilantMissionTags::MissionInactive);
 	for (AVGMissionSandbag* Sandbag : MissionSandbags)
 	{
@@ -78,6 +83,7 @@ void AVGMissionTimedCombat::OnTimerExpired()
 		Sandbag->ResetSandbag();
 	}
 	
+	bIsResetting = false;
 	UE_LOG(LogTemp, Log, TEXT("[%s] Timed Up!"), *GetName());
 	ClearContributers();
 }

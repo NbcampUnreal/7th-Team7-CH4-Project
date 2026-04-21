@@ -12,7 +12,6 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 	bReplicates = true;
 	GimmickTypeTag = VigilantMissionTags::StatueGimmick;
 	
-	
 }
 
 bool AVGMissionGimmickStatue::CanInteractWith(AActor* Interactor) const

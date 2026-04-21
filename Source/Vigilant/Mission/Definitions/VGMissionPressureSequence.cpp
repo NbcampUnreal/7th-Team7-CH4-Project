@@ -41,6 +41,12 @@ bool AVGMissionPressureSequence::CheckSequenceOrder(AVGMissionGimmickPressure* P
 	
 	if (Pressure->GetGimmickIndex() != CurrentSequenceIndex)
 	{
+		if (bIsResetting)
+		{
+			return;
+		}
+		
+		bIsResetting = true;
 		// 순서 틀림 — 모든 발판 상태 초기화
 		UE_LOG(LogTemp, Warning, TEXT("[PressureSeq] WRONG ORDER → Reset all"));
 		CurrentSequenceIndex = 0;
@@ -53,6 +59,7 @@ bool AVGMissionPressureSequence::CheckSequenceOrder(AVGMissionGimmickPressure* P
 			}
 		}
 		
+		bIsResetting = false;
 		ClearContributers();
 		return false;
 	}

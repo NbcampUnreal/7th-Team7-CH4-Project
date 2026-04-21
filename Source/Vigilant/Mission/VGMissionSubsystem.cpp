@@ -145,7 +145,10 @@ float UVGMissionSubsystem::GetMissionProgress() const
 
 void UVGMissionSubsystem::HandleMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)
 {
-	CachedCompletedCount++;
+	if (NewStateTag == VigilantMissionTags::MissionCompleted)
+	{
+		CachedCompletedCount++;
+	}
 	OnMissionStateChanged.Broadcast(MissionID, NewStateTag);
 }
 

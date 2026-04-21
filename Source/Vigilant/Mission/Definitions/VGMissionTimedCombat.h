@@ -25,4 +25,7 @@ private:
 	
 	void StartTimer();
 	void OnTimerExpired();
+	
+protected:
+	bool bIsResetting = false;
 };
