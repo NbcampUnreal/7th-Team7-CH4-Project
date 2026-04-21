@@ -35,7 +35,7 @@ void AVGMissionTimedCombat::OnSandbagDefeated(AVGCharacterBase* LastAttacker)
 	
 	if (AreAllSandbagsDefeated())
 	{
-		GetWorldTimerManager().ClearTimer(SandbagTimerHandle);
+		GetWorldTimerManager().ClearTimer(MissionTimerHandle);
 		CompleteMission();
 	}
 }
@@ -78,6 +78,6 @@ void AVGMissionTimedCombat::OnTimerExpired()
 		Sandbag->ResetSandbag();
 	}
 	
-	UE_LOG(LogTemp, Error, TEXT("[%s] Timed Up!"), *GetName());
+	UE_LOG(LogTemp, Log, TEXT("[%s] Timed Up!"), *GetName());
 	ClearContributers();
 }

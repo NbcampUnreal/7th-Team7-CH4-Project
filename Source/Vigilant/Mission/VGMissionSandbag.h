@@ -70,6 +70,6 @@ protected:
 	TObjectPtr<AVGCharacterBase> LastAttacker;
 	
 	// HP 바 표시용 — Replicated
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHPRatio, Category = "Mission|Samdbag")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHPRatio, Category = "Mission|Sandbag")
 	float CurrentHPRatio = 1.f;
 };

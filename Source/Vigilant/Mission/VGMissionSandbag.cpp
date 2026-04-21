@@ -28,6 +28,8 @@ void AVGMissionSandbag::GetLifetimeReplicatedProps(
 
 void AVGMissionSandbag::ResetSandbag()
 {
+	// 임시로 0으로 낮춰 리플리케이션/피드백 경로를 강제로 태우기 위한 우회.
+	CurrentHPRatio = 0.f;
     StatComponent->ResetStats(); // OnHPChanged → CurrentHPRatio = 1.f 자동 설정
 }
 
