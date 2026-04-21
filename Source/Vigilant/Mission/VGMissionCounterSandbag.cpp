@@ -92,16 +92,16 @@ void AVGMissionCounterSandbag::StartCounter()
 	}
 }
 
-void AVGMissionCounterSandbag::UpdateCounter(float DeltaSeconds)
+void AVGMissionCounterSandbag::UpdateCounter(float DeltaTime)
 {
 	// ── 1. 액터 Yaw 회전 ─────────────────────────────────────────────────────
 	FRotator CurrentRot = GetActorRotation();
 	FRotator TargetRot  = FRotator(CurrentRot.Pitch, TargetYaw, CurrentRot.Roll);
-	SetActorRotation(FMath::RInterpConstantTo(CurrentRot, TargetRot, DeltaSeconds, CounterRotationSpeed));
+	SetActorRotation(FMath::RInterpConstantTo(CurrentRot, TargetRot, DeltaTime, CounterRotationSpeed));
  
 	// ── 2. MeshComponent Roll 숙이기 ─────────────────────────────────────────
 	CounterProgress = FMath::Clamp(
-		CounterProgress + DeltaSeconds / CounterTiltDuration,
+		CounterProgress + DeltaTime / CounterTiltDuration,
 		0.f, 1.f);
  
 	FRotator MeshRot = MeshComponent->GetRelativeRotation();
@@ -112,6 +112,25 @@ void AVGMissionCounterSandbag::UpdateCounter(float DeltaSeconds)
 	if (CounterProgress >= 1.f)
 	{
 		TriggerCounterHit();
+	}
+}
+
+void AVGMissionCounterSandbag::UpdateCounterReturning(float DeltaTime)
+{	
+	// 올리기
+	CounterProgress = FMath::Clamp(
+			CounterProgress - DeltaTime / CounterTiltDuration,
+			0.f, 1.f);
+	
+	FRotator MeshRot = MeshComponent->GetRelativeRotation();
+	MeshRot.Roll = FMath::Lerp(StartRoll + CounterTiltAngle, StartRoll, CounterProgress);
+	MeshComponent->SetRelativeRotation(MeshRot);
+ 
+	// ── 3. 숙임 완료 판정 ────────────────────────────────────────────────────
+	if (CounterProgress <= 0.f)
+	{
+		CounterProgress = 0.f;
+		FinishCounter();
 	}
 }
 
@@ -159,8 +178,7 @@ void AVGMissionCounterSandbag::FinishCounter()
 	MeshRot.Roll     = StartRoll;
 	MeshComponent->SetRelativeRotation(MeshRot);
  
-	// Returning → Idle 순으로 전환
-	SetCounterState(EVGSandbagCounterState::Returning);
+	// Idle로 전환
 	SetCounterState(EVGSandbagCounterState::Idle);
 	
 }
@@ -185,6 +203,10 @@ void AVGMissionCounterSandbag::Tick(float DeltaTime)
 	if (CounterState == EVGSandbagCounterState::Countering)
 	{
 		UpdateCounter(DeltaTime);
+	}
+	else if (CounterState  == EVGSandbagCounterState::Returning)
+	{
+		UpdateCounterReturning(DeltaTime);
 	}
 }
 

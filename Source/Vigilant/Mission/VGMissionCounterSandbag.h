@@ -46,6 +46,7 @@ protected:
 	
 	void StartCounter();
 	void UpdateCounter(float DeltaSeconds);
+	void UpdateCounterReturning(float DeltaTime);
 	void TriggerCounterHit();
 	void FinishCounter();
 	
