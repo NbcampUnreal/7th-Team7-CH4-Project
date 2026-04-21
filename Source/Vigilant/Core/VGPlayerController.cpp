@@ -23,7 +23,7 @@ void AVGPlayerController::BeginPlay()
 	{
 		return;
 	}
-	
+
 
 	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 	{
@@ -66,7 +66,7 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 레디!"))
-		
+
 		//마우스 게임으로!
 		FInputModeGameOnly InputGameOnly;
 
@@ -77,10 +77,7 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 
 		VGGameMode->CheckAllPlayersReady();
 	}
-	
-	
 }
-
 
 
 void AVGPlayerController::Server_SetName_Implementation(const FString& NewName)
@@ -105,7 +102,7 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 				FInputModeGameAndUI InputMode;
 				SetInputMode(InputMode);
 				bShowMouseCursor = true;
-		
+
 				if (APawn* MyPawn = GetPawn())
 				{
 					MyPawn->DisableInput(this);
@@ -115,32 +112,31 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 		if (UVGUIManagerSubsystem* UIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
 		{
 			UIManager->ShowHUD();
-		
+
 			UIManager->OnChatMessageRequested.AddUniqueDynamic(this, &AVGPlayerController::OnChatMessageReceived);
 			UIManager->OnPlayerReadySignature.AddUniqueDynamic(this, &AVGPlayerController::Server_SetReady);
-			
+
 			// 있으면 바로 연결
 			if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 			{
-				float StartTime=VGGameState->PhaseStartTime;
+				float StartTime = VGGameState->PhaseStartTime;
 				float EndTime = VGGameState->PhaseEndTime;
 				UIManager->TransferMissionTimeData(StartTime, EndTime);
-				
+
 				VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
 				VGGameState->OnPhaseEndTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeReduced);
 			}
 			else
 			{
 				GetWorld()->GetTimerManager().SetTimer(
-					BindTimerHandle, 
-					this, 
-					&AVGPlayerController::TryBindGameState, 
-					0.1f, 
+					BindTimerHandle,
+					this,
+					&AVGPlayerController::TryBindGameState,
+					0.1f,
 					true
 				);
 				UE_LOG(LogTemp, Warning, TEXT("[AVGPlayerController] GameState 대기 중"));
 			}
-			
 		}
 	}
 }
@@ -174,12 +170,62 @@ void AVGPlayerController::ReceiveChatMessage(const FString& Message)
 	Client_ReceiveChatMessage(Message);
 }
 
+void AVGPlayerController::ShowInteractUI(const FString& InteractText, const FVector& TargetLocation, bool bShow)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* VGUIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			if (bShow == true)
+			{
+				VGUIManager->ShowInteract(InteractText, this, TargetLocation);
+		
+				
+			}
+			else
+			{
+				VGUIManager->HideInteract();
+			}
+		}
+	}
+}
+
+void AVGPlayerController::UpdateEquipIconUI(int32 SlotIndex, UTexture2D* Icon)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			// UIManager를 거쳐 HUD의 SetEquipIcon 호출
+			if (UIManager->GetCurrentHUDWidget())
+			{
+				UIManager->SetEquipIcon(SlotIndex, Icon);
+			}
+		}
+	}
+}
+
+void AVGPlayerController::ClearEquipIconUI(int32 SlotIndex)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		// UIManager를 거쳐 HUD의 ClearEquipIcon 호출
+		{
+			if (UIManager->GetCurrentHUDWidget())
+			{
+				UIManager->ClearEquipIcon(SlotIndex);
+			}
+		}
+	}
+}
+
 void AVGPlayerController::Client_SetInputToGame_Implementation()
 {
 	FInputModeGameOnly InputGameOnly;
 	SetInputMode(InputGameOnly);
 	bShowMouseCursor = false;
-	
+
 	if (APawn* MyPawn = GetPawn())
 	{
 		MyPawn->EnableInput(this);
@@ -207,7 +253,7 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 		// 미션 페이즈에서 다른 페이즈 넘어가면 프로그레스바 게이지 채우기 중지
 		VGUIManager->StopMissionTimeData();
 	}
-	
+
 	// 투표 페이즈 태그가 있으면 UI 띄움
 	if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseVote))
 	{
@@ -229,7 +275,7 @@ void AVGPlayerController::TryBindGameState()
 		// 델리게이트 연결
 		VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
 		VGGameState->OnPhaseEndTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeReduced);
-		
+
 		// UI 연동 안된 클라이언트도 연동
 		if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 		{
@@ -238,7 +284,7 @@ void AVGPlayerController::TryBindGameState()
 				UIManager->TransferMissionTimeData(VGGameState->PhaseStartTime, VGGameState->PhaseEndTime);
 			}
 		}
-		
+
 		GetWorld()->GetTimerManager().ClearTimer(BindTimerHandle);
 		UE_LOG(LogTemp, Log, TEXT("[VGPlayerController] GameState 바인딩 성공"));
 	}

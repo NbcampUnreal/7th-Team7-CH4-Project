@@ -448,10 +448,25 @@ void UVGEquipmentComponent::UpdateInteractableTarget()
 
 	if (ClosestTarget != CurrentInteractableTarget)
 	{
-		if (CurrentInteractableTarget) SetHighlight(CurrentInteractableTarget, false);
-		if (ClosestTarget) SetHighlight(ClosestTarget, true);
+		if (CurrentInteractableTarget)
+		{
+			OnInteractTargetFound.Broadcast(TEXT("상호작용"),CurrentInteractableTarget->GetActorLocation(),false);
+			SetHighlight(CurrentInteractableTarget, false);
+		}
+		if (ClosestTarget)
+		{
+			OnInteractTargetFound.Broadcast(TEXT("상호작용"),ClosestTarget->GetActorLocation(),true);
+			SetHighlight(ClosestTarget, true);
+		}
 		CurrentInteractableTarget = ClosestTarget;
+		
+		if (CurrentInteractableTarget)
+		{
+			
+		}
 	}
+	
+	
 }
 
 void UVGEquipmentComponent::SetHighlight(AActor* TargetActor, bool bHighlight)
@@ -497,5 +512,6 @@ void UVGEquipmentComponent::SetHighlight(AActor* TargetActor, bool bHighlight)
 			Mesh->SetRenderCustomDepth(bHighlight);
 			Mesh->SetCustomDepthStencilValue(1);
 		}
+		
 	}
 }

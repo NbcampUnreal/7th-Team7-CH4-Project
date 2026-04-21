@@ -21,6 +21,26 @@ void UVGHUDWidget::NativeConstruct()
 	}
 }
 
+void UVGHUDWidget::SetEquipIcon(int32 SlotIndex, UTexture2D* IconTexture)
+{
+	UImage* TargetImage = (SlotIndex == 1) ? Equip_Left : Equip_Right; // 왼손 오른손 판단
+	if (TargetImage && IconTexture)
+	{
+		TargetImage->SetBrushFromTexture(IconTexture);
+		TargetImage->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 1.f)); // 투명도 복구
+	}
+}
+
+void UVGHUDWidget::ClearEquipIcon(int32 SlotIndex)
+{
+	UImage* TargetImage = (SlotIndex == 1) ? Equip_Left : Equip_Right;
+	if (TargetImage)
+	{
+		// 이미지를 투명하게 만들어 숨김
+		TargetImage->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
+	}
+}
+
 void UVGHUDWidget::UpdateStaminaUI(float NewValue, float MaxValue)
 {
 	if (MaxValue > 0.f)
@@ -41,10 +61,12 @@ void UVGHUDWidget::UpdateHealthUI(float NewValue, float MaxValue)
 			// 체력 20% 부터 표시됨
 			if (NewValue/MaxValue <= 0.2f)
 			{
+				BloodImage->SetVisibility(ESlateVisibility::Visible);
 				BloodImage->SetRenderOpacity(TargetAlpha);
 			}
 			else
 			{
+				BloodImage->SetVisibility(ESlateVisibility::Collapsed);
 				BloodImage->SetRenderOpacity(0.f);
 			}
 		}
