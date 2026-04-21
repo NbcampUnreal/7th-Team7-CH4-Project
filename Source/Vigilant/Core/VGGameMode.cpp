@@ -426,7 +426,7 @@ bool AVGGameMode::CanPlayerTakeDamage_Implementation(AActor* DamageCauser, class
 void AVGGameMode::HandleMatchFinished()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 모든 페이즈 종료. 서버 트래블 초기화 시작"));
-	GetWorld()->ServerTravel(TEXT("/Game/Vigilant/Levels/MainLevel_WP?listen"));
+	GetWorld()->ServerTravel(TEXT("/Game/Vigilant/Levels/NewWorld_WP?listen"));
 }
 
 int32 AVGGameMode::AssignPlayerSlot(class AVGPlayerState* VGPlayerState)
