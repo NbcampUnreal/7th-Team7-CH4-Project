@@ -30,4 +30,8 @@ public:
 protected:
 	// 막고라 페이즈 넘어갔을 때 페이즈 시간 재계산용
 	float PauseBeginServerTime = 0.0f;
+	
+	// 막고라 페이즈에서 -1 로 초기화되기전 원래 미션 페이즈 시간 저장용
+	float SavedPhaseStartTime = 0.0f;
+	float SavedPhaseEndTime = 0.0f;
 };

@@ -7,6 +7,7 @@
 #include "Data/VGEquipmentDataAsset.h"
 #include "Components/MeshComponent.h"
 #include "Engine/OverlapResult.h"
+#include "Character/VGCharacterBase.h"
 
 UVGEquipmentComponent::UVGEquipmentComponent()
 {
@@ -46,6 +47,13 @@ void UVGEquipmentComponent::Server_InteractWithActor_Implementation(AActor* Targ
 	if (!TargetActor || !Interactor)
 	{
 		return;
+	}
+	
+	// 서버에서 해당 페이즈 규칙에 해당되는지 확인
+	AVGCharacterBase* VGInteractor = Cast<AVGCharacterBase>(Interactor);
+	if (VGInteractor && !VGInteractor->IsInteractionAllowed(TargetActor))
+	{
+		return; 
 	}
 	
 	if (TargetActor->Implements<UVGInteractable>())

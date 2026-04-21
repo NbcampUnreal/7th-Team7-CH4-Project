@@ -103,7 +103,11 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	void ClearAllWidgets();
 	// (이용호 추가) 월드 초기화 감지용
 	void OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IValues);
-	
+	// (이용호 추가) 보스 체력 업데이트용
+	UFUNCTION()
+	void OnBossHealthUpdate(float NewValue, float MaxValue);
+	// (이용호 추가) 보스 체력바 사이즈 연동용
+	void SetHUDBarSizeByNerf(float NerfRate);
 	// 마지막 단계 
 	void LoggingChatMessage(const FString& Message);
 };

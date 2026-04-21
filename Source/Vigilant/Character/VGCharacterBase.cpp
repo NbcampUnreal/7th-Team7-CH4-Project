@@ -9,6 +9,7 @@
 #include "Component/VGLockOnComponent.h"
 #include "Component/VGStatComponent.h"
 #include "Core/Interface/VGGameModeInterface.h"
+#include "Core/VGGameState.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/GameModeBase.h"
@@ -661,12 +662,15 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 
 bool AVGCharacterBase::IsCombatActionAllowed() const
 {
-	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+	if (AVGGameState* GameState = GetWorld()->GetGameState<AVGGameState>())
 	{
-		if (GameMode->Implements<UVGGameModeInterface>())
+		// 투표 페이즈면 입력도 안됨
+		if (GameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseVote))
 		{
-			return IVGGameModeInterface::Execute_CanPlayerAttack(GameMode, const_cast<AVGCharacterBase*>(this));
+			return false;
 		}
+			
+		return true;
 	}
 
 	return true;
@@ -674,19 +678,34 @@ bool AVGCharacterBase::IsCombatActionAllowed() const
 
 bool AVGCharacterBase::IsInteractionAllowed(AActor* Target) const
 {
-	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+	// 서버 체크용
+	if (HasAuthority())
 	{
-		if (GameMode->Implements<UVGGameModeInterface>())
+		if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
 		{
-			return IVGGameModeInterface::Execute_CanPlayerInteract(GameMode, const_cast<AVGCharacterBase*>(this),
-			                                                       Target);
+			if (GameMode->Implements<UVGGameModeInterface>())
+			{
+				return IVGGameModeInterface::Execute_CanPlayerInteract(GameMode, const_cast<AVGCharacterBase*>(this), Target);
+			}
+		}
+	}
+	// 클라이언트 체크용
+	else
+	{
+		if (AVGGameState* GameState = GetWorld()->GetGameState<AVGGameState>())
+		{
+			if (GameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseVote) ||
+				GameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseLobby))
+			{
+				return false;
+			}
 		}
 	}
 
 	return true;
 }
 
-void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
+void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation, bool bKeepInputLocked)
 {
 	// z값 제외 전부 무시
 	FRotator SafeRotation = FRotator(0.0f, NewRotation.Yaw, 0.0f);
@@ -695,27 +714,47 @@ void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
 	SetActorRotation(SafeRotation, ETeleportType::TeleportPhysics);
 
 	// 카메라 회전
-	if (AController* PlayerController = GetController())
+	if (AController* BaseController = GetController())
 	{
-		PlayerController->SetControlRotation(SafeRotation);
+		BaseController->SetControlRotation(SafeRotation);
+		
+		if (APlayerController* PlayerController = Cast<APlayerController>(BaseController))
+		{
+			PlayerController->SetIgnoreMoveInput(true);
+		}
 	}
+	// 이미 들어온 인풋 값 삭제
+	ConsumeMovementInputVector();
+	
 	// 관성 삭제
 	if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(
 		GetMovementComponent()))
 	{
+		CharacterMovementComponent->StopMovementImmediately();
 		CharacterMovementComponent->Velocity = FVector::ZeroVector;
+		
+		CharacterMovementComponent->ClearAccumulatedForces();
 	}
 
 	// 몸통이 무조간 카메라 방향보도록 고정 후 0.1초 후에 풀기
 	bUseControllerRotationYaw = true;
+	
 	FTimerHandle SyncTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
-		SyncTimerHandle,
-		FTimerDelegate::CreateWeakLambda(this, [this]()
+		SyncTimerHandle, 
+		FTimerDelegate::CreateWeakLambda(this, [this, bKeepInputLocked]()
 		{
 			if (this)
 			{
 				bUseControllerRotationYaw = false;
+				
+				if (!bKeepInputLocked)
+				{
+					if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+					{
+						PlayerController->ResetIgnoreMoveInput();;
+					}
+				}
 			}
 		}),
 		0.1f,
