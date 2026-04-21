@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "VGBossSkillComponent.generated.h"
 
+class UNiagaraSystem;
 class UVGBossDataAsset;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -29,6 +30,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Skill")
 	void ExecuteSkill_E();
 	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayHitEffect(AActor* TargetActor);
 protected:
 	// 서버에게 스킬 사용을 요청 (쿨타임, 태그 검사)
 	UFUNCTION(Server, Reliable)
@@ -51,6 +54,15 @@ protected:
 	// 착지 시 애니메이션 블루프린트에서 호출할 함수
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Skill|Leap")
 	void ExecuteLeapImpact();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Effect")
+	TObjectPtr<UNiagaraSystem> SkillENiagaraEffect;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Effect")
+	TObjectPtr<UNiagaraSystem> HitNiagaraEffect;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill|Effect")
+	TSubclassOf<UCameraShakeBase> SmashCameraShake;
 
 public:
 	// 데이터 에셋 참조 (블루프린트에서 보스 데이터 에셋 할당)
