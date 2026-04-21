@@ -21,4 +21,5 @@ private:
 	bool CheckSequenceOrder(AVGMissionGimmickPressure* Pressure);
 	
 	int32 CurrentSequenceIndex = 0;
+	bool bIsResetting = false;
 };

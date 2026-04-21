@@ -47,6 +47,11 @@ void AVGMissionItemCarry::PlaceOnTarget(AVGMissionGimmickBase* TargetGimmick, FV
 
 void AVGMissionItemCarry::OnRep_PlaceInfo()
 {
+	if (PlaceInfo.AttachmentTargetActor == nullptr)
+	{
+		return;
+	}
+	
 	if (UPrimitiveComponent* RootComp =
 		Cast<UPrimitiveComponent>(GetRootComponent()))
 	{
@@ -59,10 +64,6 @@ void AVGMissionItemCarry::OnRep_PlaceInfo()
     	
 	SetActorRelativeLocation(PlaceInfo.RelativeLocation);
 	SetActorRelativeRotation(FRotator::ZeroRotator);
-	
-	UE_LOG(LogTemp, Warning, TEXT("[%s] Attachment placed! At %s %s"),*GetName(),
-	 *PlaceInfo.AttachmentTargetActor.GetName(),
-	  *PlaceInfo.RelativeLocation.ToString());
 	
 	BP_OnRep_PlaceInfo();
 }

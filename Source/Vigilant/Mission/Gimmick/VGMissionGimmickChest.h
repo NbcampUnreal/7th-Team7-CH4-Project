@@ -22,8 +22,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	void GetLifetimeReplicatedProps(
-	TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	virtual void GetLifetimeReplicatedProps(
+		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	virtual void OnRep_GimmickStateTag() override;
 	
@@ -89,7 +89,7 @@ protected:
 	FTimerHandle DissolveTimerHandle;
 	float DissolveElapsed = 0.f;
 	
-	static constexpr float DissolveTickInterval = 0.033f;
+	static constexpr float DissolveTickInterval = 0.05f;
 	
 	// 열쇠 아이템 타입 태그 — 이 태그를 가진 아이템만 사용 가능
 	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Chest")
