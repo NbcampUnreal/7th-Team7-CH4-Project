@@ -107,7 +107,10 @@ void UVGEquipmentComponent::OnRep_LefthandItem(AVGEquippableActor* OldItem)
 	}
 	else if (OldItem)
 	{
-		HandleItemAttachment(OldItem, NAME_None, false);
+		if (IsValid(OldItem))
+		{
+			HandleItemAttachment(OldItem, NAME_None, false);
+		}
 		OnItemDropped.Broadcast(EVGEquipmentSlot::LeftHand);
 	}
 }
@@ -121,8 +124,45 @@ void UVGEquipmentComponent::OnRep_RighthandItem(AVGEquippableActor* OldItem)
 	}
 	else if (OldItem)
 	{
-		HandleItemAttachment(OldItem, NAME_None, false);
+		if (IsValid(OldItem))
+		{
+			HandleItemAttachment(OldItem, NAME_None, false);
+		}
 		OnItemDropped.Broadcast(EVGEquipmentSlot::RightHand);
+	}
+}
+
+void UVGEquipmentComponent::HandleItemConsumed(AVGEquippableActor* ConsumedItem)
+{
+	if (!ConsumedItem || !GetOwner()->HasAuthority())
+	{
+		return;
+	}
+	
+	EVGEquipmentSlot ClearedSlot = EVGEquipmentSlot::None;
+	
+	if (ConsumedItem->EquipmentData && ConsumedItem->EquipmentData->EquipRule == EVGEquipRules::BothHands)
+	{
+		LeftHandItem = nullptr;
+		RightHandItem = nullptr;
+		ClearedSlot = EVGEquipmentSlot::BothHands;
+	}
+	else if (RightHandItem == ConsumedItem)
+	{
+		RightHandItem = nullptr;
+		ClearedSlot = EVGEquipmentSlot::RightHand;
+	}
+	else if (LeftHandItem == ConsumedItem)
+	{
+		LeftHandItem = nullptr;
+		ClearedSlot = EVGEquipmentSlot::LeftHand;
+	}
+	
+	if (ClearedSlot != EVGEquipmentSlot::None)
+	{
+		ConsumedItem->OnItemConsumed.RemoveDynamic(this, &UVGEquipmentComponent::HandleItemConsumed);
+		ConsumedItem->Destroy();
+		OnItemDropped.Broadcast(ClearedSlot);
 	}
 }
 
@@ -212,7 +252,7 @@ void UVGEquipmentComponent::Server_EquipItem_Implementation(AVGEquippableActor* 
 
 	if (bEquipSuccess)
 	{
-		// TODO: 캐릭터에 ItemData->GrantedEquipmentTag 할당
+		ItemToEquip->OnItemConsumed.AddUniqueDynamic(this, &UVGEquipmentComponent::HandleItemConsumed);
 		EVGEquipmentSlot EquippedSlot = (ItemData->EquipRule == EVGEquipRules::LeftHandOnly)
 			                                ? EVGEquipmentSlot::LeftHand
 			                                : EVGEquipmentSlot::RightHand;
@@ -237,6 +277,8 @@ void UVGEquipmentComponent::Server_DropItem_Implementation(EVGEquipmentSlot Slot
 	{
 		return;
 	}
+	
+	TargetItem->OnItemConsumed.RemoveDynamic(this, &UVGEquipmentComponent::HandleItemConsumed);
 
 	FVector HandLocation = TargetItem->GetActorLocation();
 	FRotator DropRotation = TargetItem->GetActorRotation();
