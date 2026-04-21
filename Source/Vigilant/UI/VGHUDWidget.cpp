@@ -41,10 +41,12 @@ void UVGHUDWidget::UpdateHealthUI(float NewValue, float MaxValue)
 			// 체력 20% 부터 표시됨
 			if (NewValue/MaxValue <= 0.2f)
 			{
+				BloodImage->SetVisibility(ESlateVisibility::Visible);
 				BloodImage->SetRenderOpacity(TargetAlpha);
 			}
 			else
 			{
+				BloodImage->SetVisibility(ESlateVisibility::Collapsed);
 				BloodImage->SetRenderOpacity(0.f);
 			}
 		}

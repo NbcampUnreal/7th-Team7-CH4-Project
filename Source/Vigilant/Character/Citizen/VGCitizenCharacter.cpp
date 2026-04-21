@@ -9,6 +9,7 @@
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "Core/Interface/VGUIControllerInterface.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -53,7 +54,15 @@ void AVGCitizenCharacter::BeginPlay()
 					EquipmentComponent->OnEquipmentSlotChanged.AddDynamic(
 						UIManager, &UVGUIManagerSubsystem::EquipSlotChanged);
 				}
+				
+				
+					EquipmentComponent->OnInteractTargetFound.AddDynamic(
+						this, &AVGCitizenCharacter::HandleInteractFound);
+				
+				
 			}
+			
+						
 		}
 	}
 	
@@ -162,6 +171,14 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 	}
 }
 
+void AVGCitizenCharacter::HandleInteractFound(const FString& InfoText, const FVector& TargetLocation, bool bShow)
+{
+	if (IVGUIControllerInterface* UIControllerInterface= Cast<IVGUIControllerInterface>(GetController()))
+	{
+		UIControllerInterface->ShowInteractUI(InfoText, TargetLocation, bShow);
+	}
+}
+
 void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 {
 	Super::Move(Value);
@@ -235,7 +252,10 @@ void AVGCitizenCharacter::Dodge()
 	{
 		return;
 	}
-	
+	if (StatComponent->GetCurrentStamina() < 2.f) // 최소 사용 가능 스태미너, 일단 하드코딩
+	{
+		return;
+	}
 	// 잠겨있다면 회전 잠시 풀기
 	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
 	{
@@ -243,6 +263,9 @@ void AVGCitizenCharacter::Dodge()
 	}
 	
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
+	
+	
+	
 	//방향 계산
 	FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
 	if (DodgeDirection.IsNearlyZero())
@@ -267,6 +290,11 @@ void AVGCitizenCharacter::Dodge()
 void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
 {
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
+	
+	if (StatComponent)
+	{
+		StatComponent->ConsumeStamina(20.f); //일단하드코딩
+	}
 
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{

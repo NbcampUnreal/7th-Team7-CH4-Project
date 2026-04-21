@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "Interface/VGChatReciveInterface.h"
+#include "Interface/VGUIControllerInterface.h"
 #include "VGPlayerController.generated.h"
 
 class UInputMappingContext;
@@ -11,7 +12,8 @@ class UInputAction;
 UCLASS()
 class VIGILANT_API AVGPlayerController : 
 public APlayerController,
-public IVGChatReciveInterface
+public IVGChatReciveInterface,
+public IVGUIControllerInterface
 
 {
 	GENERATED_BODY()
@@ -51,9 +53,14 @@ public:
 	void Client_ReceiveChatMessage(const FString& Message);
 	// 게임모드 -> 플레이어 컨트롤러를 위한 인터페이스 구현함수. Wrapping ClientRPC 
 	virtual void ReceiveChatMessage(const FString& Message) override;
+	//UI전달을 위한 인터페이스 구현함수
+	virtual void ShowInteractUI(const FString& InteractText, const FVector& TargetLocation, bool bShow) override;
+	
 	
 	UFUNCTION(Client, Reliable)
 	void Client_SetInputToGame();
+	
+	
 	
 protected:
 	// 페이즈 변경 시 UI 처리용 위한 함수

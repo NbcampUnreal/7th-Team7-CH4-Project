@@ -10,6 +10,7 @@ class UVGTitleWidget;
 class UVGPopupWidget;
 class UVGVoteWidget;
 class UVGHUDWidget;
+class UVGInteractionWidget;
 /**
  * 
  */
@@ -29,4 +30,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 	TSubclassOf<UVGTitleWidget> TitleWidgetClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
+	TSubclassOf<UVGInteractionWidget> InteractionWidgetClass;
 };
