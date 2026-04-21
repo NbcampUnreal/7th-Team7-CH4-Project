@@ -311,8 +311,6 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 				Client_CancelAttackPrediction();
 				return;
 			}
-			
-			AmmoProvider->ConsumeAmmo();
 		}
 	}
 	
@@ -411,18 +409,15 @@ void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActo
 	}
 	
 	// --- 1. Ammo Validation ---
+	IVGAmmoProviderInterface* AmmoProvider = nullptr;
 	if (UMeshComponent* TraceMesh = GetActiveTraceMesh())
 	{
-		if (IVGAmmoProviderInterface* AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner()))
-		{
-			if (!AmmoProvider->HasAmmo())
+		AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner());
+		if (AmmoProvider && !AmmoProvider->HasAmmo())
 			{
 				Client_CancelAttackPrediction();
 				return;
 			}
-			
-			AmmoProvider->ConsumeAmmo();
-		}
 	}
 	
 	// --- 2. Load Data ---
@@ -448,6 +443,12 @@ void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActo
 			float FinalDamage = Data->BaseDamage * DamageMultiplier;
 			Projectile->InitializeProjectile(FinalDamage);
 		}
+	}
+	
+	// --- 4. Consume Ammo ---
+	if (AmmoProvider)
+	{
+		AmmoProvider->ConsumeAmmo();
 	}
 }
 
