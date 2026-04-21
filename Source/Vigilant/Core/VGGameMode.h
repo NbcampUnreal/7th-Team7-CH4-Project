@@ -37,8 +37,6 @@ protected:
 	UPROPERTY(Transient)
 	AVGCharacterBase* DuelTarget;
 	
-	int32 ConnectedPlayerCount = 0;
-	
 	// 이미 게임이 시작되었는지 체크용
 	bool bGameHasStarted = false;
 	
