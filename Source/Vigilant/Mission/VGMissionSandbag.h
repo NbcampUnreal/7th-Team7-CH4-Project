@@ -66,12 +66,6 @@ protected:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Attack")
 	TObjectPtr<AVGCharacterBase> LastAttacker;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sandbag|Counter")
-	float RollAtIdle;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sandbag|Counter")
-	float RollAtCounter;
-	
 	// HP 바 표시용 — Replicated
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHPRatio, Category = "Mission|Sandbag")
 	float CurrentHPRatio = 1.f;
