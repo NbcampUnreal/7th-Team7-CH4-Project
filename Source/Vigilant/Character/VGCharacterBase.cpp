@@ -8,6 +8,7 @@
 #include "Component/VGLockOnComponent.h"
 #include "Component/VGStatComponent.h"
 #include "Core/Interface/VGGameModeInterface.h"
+#include "Core/VGGameState.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/GameModeBase.h"
@@ -630,12 +631,15 @@ void AVGCharacterBase::NotifyPlayerInteraction(class AVGCharacterBase* TargetPla
 
 bool AVGCharacterBase::IsCombatActionAllowed() const
 {
-	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+	if (AVGGameState* GameState = GetWorld()->GetGameState<AVGGameState>())
 	{
-		if (GameMode->Implements<UVGGameModeInterface>())
+		// 투표 페이즈면 입력도 안됨
+		if (GameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseVote))
 		{
-			return IVGGameModeInterface::Execute_CanPlayerAttack(GameMode, const_cast<AVGCharacterBase*>(this));
+			return false;
 		}
+			
+		return true;
 	}
 	
 	return true;
@@ -643,11 +647,27 @@ bool AVGCharacterBase::IsCombatActionAllowed() const
 
 bool AVGCharacterBase::IsInteractionAllowed(AActor* Target) const
 {
-	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+	// 서버 체크용
+	if (HasAuthority())
 	{
-		if (GameMode->Implements<UVGGameModeInterface>())
+		if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
 		{
-			return IVGGameModeInterface::Execute_CanPlayerInteract(GameMode, const_cast<AVGCharacterBase*>(this), Target);
+			if (GameMode->Implements<UVGGameModeInterface>())
+			{
+				return IVGGameModeInterface::Execute_CanPlayerInteract(GameMode, const_cast<AVGCharacterBase*>(this), Target);
+			}
+		}
+	}
+	// 클라이언트 체크용
+	else
+	{
+		if (AVGGameState* GameState = GetWorld()->GetGameState<AVGGameState>())
+		{
+			if (GameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseVote) ||
+				GameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseLobby))
+			{
+				return false;
+			}
 		}
 	}
 	
