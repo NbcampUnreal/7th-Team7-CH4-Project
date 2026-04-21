@@ -203,7 +203,9 @@ void AVGMissionBase::ShuffleGimmickIndexes()
 		{
 			Gimmick->SetGimmickIndex(Indexes[Index]); // 자동 인덱스 부여
 		}
-		Indexes.RemoveAt(Index);
+		
+		// RemoveAt 보다 효율적인 함수로 변경
+		Indexes.RemoveAtSwap(Index);
 	}
 }
 

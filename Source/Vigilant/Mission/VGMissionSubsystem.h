@@ -66,4 +66,6 @@ public:
 private:
 	UPROPERTY()
 	TArray<TObjectPtr<AVGMissionBase>> RegisteredMissions;
+	
+	int32 CachedCompletedCount;
 };

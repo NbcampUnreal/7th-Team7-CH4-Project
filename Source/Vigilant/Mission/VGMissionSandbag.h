@@ -56,7 +56,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSandbagReseted OnSandbagReseted;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sandbag")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Stat")
 	TObjectPtr<UVGStatComponent> StatComponent;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission")
@@ -66,7 +66,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	
 	// 마지막으로 데미지를 준 플레이어 — 서버 전용
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Attack")
 	TObjectPtr<AVGCharacterBase> LastAttacker;
 	
 	// HP 바 표시용 — Replicated

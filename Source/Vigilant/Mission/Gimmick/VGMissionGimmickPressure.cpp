@@ -47,7 +47,6 @@ void AVGMissionGimmickPressure::BeginPlay()
 	FOnTimelineFloat Callback;
 	Callback.BindUFunction(this, FName("OnPressTimelineUpdate"));
 	PressTimeline->AddInterpFloat(PressCurve, Callback);
- 
 }
 
 void AVGMissionGimmickPressure::PlayPressAnimation()
@@ -118,6 +117,12 @@ void AVGMissionGimmickPressure::OnTriggerBoxBeginOverlap(UPrimitiveComponent* Ov
 	if (IsValid(TargetClass) && OtherActor->IsA(TargetClass))
 	{
 		OverlappingActors.Add(OtherActor);
+		OverlappingActors.RemoveAll(
+			[](const TObjectPtr<AActor>& A)
+			{
+				return !IsValid(A);
+			}
+		);
 		
 		if (OverlappingActors.Num() >= RequiredActorCount)
 		{

@@ -25,7 +25,4 @@ private:
 	
 	void StartTimer();
 	void OnTimerExpired();
-	
-protected:
-	FTimerHandle SandbagTimerHandle;
 };
