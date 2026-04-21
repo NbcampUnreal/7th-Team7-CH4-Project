@@ -654,7 +654,7 @@ bool AVGCharacterBase::IsInteractionAllowed(AActor* Target) const
 	return true;
 }
 
-void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
+void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation, bool bKeepInputLocked)
 {
 	// z값 제외 전부 무시
 	FRotator SafeRotation = FRotator(0.0f, NewRotation.Yaw, 0.0f);
@@ -663,26 +663,46 @@ void AVGCharacterBase::Client_ForceRotation_Implementation(FRotator NewRotation)
 	SetActorRotation(SafeRotation, ETeleportType::TeleportPhysics);
 
 	// 카메라 회전
-	if (AController* PlayerController = GetController())
+	if (AController* BaseController = GetController())
 	{
-		PlayerController->SetControlRotation(SafeRotation);
+		BaseController->SetControlRotation(SafeRotation);
+		
+		if (APlayerController* PlayerController = Cast<APlayerController>(BaseController))
+		{
+			PlayerController->SetIgnoreMoveInput(true);
+		}
 	}
+	// 이미 들어온 인풋 값 삭제
+	ConsumeMovementInputVector();
+	
 	// 관성 삭제
 	if (UCharacterMovementComponent* CharacterMovementComponent = Cast<UCharacterMovementComponent>(GetMovementComponent()))
 	{
+		CharacterMovementComponent->StopMovementImmediately();
 		CharacterMovementComponent->Velocity = FVector::ZeroVector;
+		
+		CharacterMovementComponent->ClearAccumulatedForces();
 	}
 	
-	// 몸통이 무조간 카메라 방향보도록 고정 후 0.1초 후에 풀기
+	// 몸통 고정 및 캐릭터인풋 막아놓은 것 0.1초 후에 해제
 	bUseControllerRotationYaw = true;
+	
 	FTimerHandle SyncTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(
 		SyncTimerHandle, 
-		FTimerDelegate::CreateWeakLambda(this, [this]()
+		FTimerDelegate::CreateWeakLambda(this, [this, bKeepInputLocked]()
 		{
 			if (this)
 			{
 				bUseControllerRotationYaw = false;
+				
+				if (!bKeepInputLocked)
+				{
+					if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+					{
+						PlayerController->ResetIgnoreMoveInput();;
+					}
+				}
 			}
 		}), 
 		0.1f, 

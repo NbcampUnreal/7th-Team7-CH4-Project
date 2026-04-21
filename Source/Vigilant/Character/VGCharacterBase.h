@@ -197,7 +197,7 @@ public:
 	void NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer);
 	
 	UFUNCTION(Client, Reliable)
-	void Client_ForceRotation(FRotator NewRotation);
+	void Client_ForceRotation(FRotator NewRotation, bool bKeepInputLocked = false);
 	
 	// 현재 해당 동작이 가능한 페이즈인지 확인용 함수
 	bool IsCombatActionAllowed() const;
