@@ -11,11 +11,35 @@
 #include "Components/CapsuleComponent.h"
 #include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Subsystem/VGUIManagerSubsystem.h"
 
 AVGBossCharacter::AVGBossCharacter()
 {
 	// 스킬 컴포넌트 생성 및 부착
 	SkillComponent = CreateDefaultSubobject<UVGBossSkillComponent>(TEXT("BossSkillComponent"));
+}
+
+void AVGBossCharacter::ApplyNerfAndInitStat(float NerfRate)
+{
+	// 서버에서만 실행됨
+	if (HasAuthority() && BossData)
+	{
+		// 보스 체력, 스태미나 설정
+		if (BossData && StatComponent)
+		{
+			float FinalHealth = BossData->BaseHealth * NerfRate;
+			StatComponent->InitStat(FinalHealth, StatComponent->GetMaxStamina());
+		}
+        
+		// 보스 공격력 설정
+		if (CombatComponent)
+		{
+			CombatComponent->SetDamageMultiplier(NerfRate);
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("[VGBossCharacter] 보스 스탯 배율 확인용: %.2f"), NerfRate);
+	}
+	
 }
 
 void AVGBossCharacter::BeginPlay()
@@ -49,7 +73,25 @@ void AVGBossCharacter::BeginPlay()
 		CombatComponent->SetActiveCombatData(CombatComponent->GetCurrentCombatData(), GetMesh());
 	}
   
-  CharacterTags.AddTag(VigilantCharacter::StaggerImmune);
+	CharacterTags.AddTag(VigilantCharacter::StaggerImmune);
+	
+	if (StatComponent)
+	{
+		if (APlayerController* LocalPlayerController = GetWorld()->GetFirstPlayerController())
+		{
+			if (ULocalPlayer* LocalPlayer = LocalPlayerController->GetLocalPlayer())
+			{
+				if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+				{
+					// VGUIManagerSubsystem의 OnBossHealthUpdate 함수에 체력 변경 바안딩
+					StatComponent->OnHPChanged.AddUniqueDynamic(UIManager, &UVGUIManagerSubsystem::OnBossHealthUpdate);
+					
+					// 초기화 (최대체력에 연동)
+					UIManager->OnBossHealthUpdate(StatComponent->GetCurrentHP(), StatComponent->GetMaxHP());
+				}
+			}
+		}
+	}
 }
 
 void AVGBossCharacter::AddBossMappingContext(AController* InController)
