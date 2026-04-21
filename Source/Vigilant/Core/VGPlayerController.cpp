@@ -286,7 +286,6 @@ void AVGPlayerController::TryBindGameState()
 		// 델리게이트 연결
 		VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
 		VGGameState->OnPhaseTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeChanged);
-		VGGameState->OnPhaseEndTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeReduced);
 
 		// UI 연동 안된 클라이언트도 연동
 		if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
