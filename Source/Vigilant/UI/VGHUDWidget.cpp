@@ -78,7 +78,8 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Init)
 {
 	TargetStartTime = InStartTime;
-	if (Init == true)
+	// Init 값이 true 거나 들어온 EndTime 이 0.1f(막고라 페이즈같이 시간 제한이 없는 페이즈) 이면 초기화
+	if (Init == true || TargetNewEndTime < 0.0f)
 	{
 		TargetNewEndTime = InEndTime;
 		TargetOldEndTime = TargetNewEndTime;
