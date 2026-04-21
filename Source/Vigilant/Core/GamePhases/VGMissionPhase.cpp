@@ -3,6 +3,8 @@
 #include "TimerManager.h"
 #include "Core/VGGameState.h"
 #include "Character/VGCharacterBase.h"
+#include "GameFramework/PlayerStart.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 void UVGMissionPhase::EnterPhase()
 {
@@ -33,6 +35,37 @@ void UVGMissionPhase::ExitPhase()
 	
 	if (GameModeRef)
 	{
+		int32 JailIndex = 1;
+
+		for (APlayerState* CurrentPlayerState : GameModeRef->GetWorld()->GetGameState()->PlayerArray)
+		{
+			if (AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(CurrentPlayerState))
+			{
+				if (APlayerController* PlayerController = VGPlayerState->GetPlayerController())
+				{
+					
+					if (AVGCharacterBase* VGCharacter = Cast<AVGCharacterBase>(PlayerController->GetPawn()))
+					{
+						// 게임모드에 저장해둔 CachedJailSpawns 사용
+						if (GameModeRef->CachedJailSpawns.Contains(JailIndex))
+						{
+							APlayerStart* TargetJailStart = GameModeRef->CachedJailSpawns[JailIndex];
+							if (TargetJailStart)
+							{
+								FVector JailLoc = TargetJailStart->GetActorLocation();
+								FRotator JailRot = TargetJailStart->GetActorRotation();
+								
+								VGCharacter->Client_ForceRotation(JailRot, true);
+								VGCharacter->TeleportTo(JailLoc, JailRot, false, true);
+							}
+						}
+					}
+				}
+			}
+		
+			JailIndex++;
+		}
+		
 		GameModeRef->GetWorldTimerManager().ClearTimer(PhaseTimerHandle);
 	}
 	
