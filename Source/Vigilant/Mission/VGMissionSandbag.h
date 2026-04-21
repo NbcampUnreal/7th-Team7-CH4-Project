@@ -34,15 +34,16 @@ protected:
 	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, 
 		class AController* EventInstigator, AActor* DamageCauser) override;
-private:
-	UFUNCTION()
-	void OnDead(AController* LastInstigator);
-
-	UFUNCTION()
-	void OnHPChanged(float NewHP, float MaxHP);
 	
 	UFUNCTION()
-	void OnRep_CurrentHPRatio();
+	virtual void OnDead(AController* LastInstigator);
+
+	UFUNCTION()
+	virtual void OnHPChanged(float NewHP, float MaxHP);
+	
+	UFUNCTION()
+	virtual void OnRep_CurrentHPRatio();
+	
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSandbagDefeated OnSandbagDefeated;
