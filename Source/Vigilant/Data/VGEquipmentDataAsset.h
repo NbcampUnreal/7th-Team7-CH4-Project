@@ -27,9 +27,6 @@ class VIGILANT_API UVGEquipmentDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment|UI")
-	TObjectPtr<UTexture2D> ItemIcon;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
 	EVGEquipRules EquipRule;
 	

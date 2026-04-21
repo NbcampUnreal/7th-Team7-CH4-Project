@@ -84,8 +84,6 @@ void UVGDuelPhase::EnterPhase()
 		}
 	}
 	
-	
-	
 
 }
 

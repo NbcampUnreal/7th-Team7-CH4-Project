@@ -16,45 +16,17 @@
 void UVGUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	
-	FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UVGUIManagerSubsystem::OnWorldInitialized);
 }
 
 void UVGUIManagerSubsystem::Deinitialize()
 {
-	FWorldDelegates::OnPostWorldInitialization.RemoveAll(this);
-	
 	Super::Deinitialize();
 }
 
 void UVGUIManagerSubsystem::TransferMissionTimeData(float StartTime, float EndTime, bool Init)
 {
-	if (CurrentHUDWidget)
-	{
-		CurrentHUDWidget->SetPhaseTimeData(StartTime, EndTime, Init);
-	}
+	CurrentHUDWidget->SetPhaseTimeData(StartTime, EndTime, Init);
 }
-
-void UVGUIManagerSubsystem::StopMissionTimeData()
-{
-	if (CurrentHUDWidget)
-	{
-		CurrentHUDWidget->StopPhaseTimeData();
-	}
-}
-
-void UVGUIManagerSubsystem::PauseUpdateTimerToHUD()
-{
-	if (CurrentHUDWidget)
-	CurrentHUDWidget->PauseUpdateTimer();
-}
-
-void UVGUIManagerSubsystem::ResumeUpdateTimerToHUD()
-{
-	if (CurrentHUDWidget)
-	CurrentHUDWidget->ResumeUpdateTimer();
-}
-
 
 void UVGUIManagerSubsystem::OnStaminaUpdate(float NewValue, float MaxValue)
 {
@@ -254,34 +226,6 @@ void UVGUIManagerSubsystem::HidePopup()
 void UVGUIManagerSubsystem::RequsetSendChatMessage(const FString& Message)
 {
 	OnChatMessageRequested.Broadcast(Message);
-}
-
-void UVGUIManagerSubsystem::ClearAllWidgets()
-{
-	if (CurrentHUDWidget)
-	{
-		CurrentHUDWidget->RemoveFromParent();
-		CurrentHUDWidget = nullptr;
-	}
-	
-	if (CurrentVoteWidget)
-	{
-		CurrentVoteWidget->RemoveFromParent();
-		CurrentVoteWidget = nullptr;
-	}
-	
-	if (CurrentPopupWidget)
-	{
-		CurrentPopupWidget->RemoveFromParent();
-		CurrentPopupWidget = nullptr;
-	}
-	
-	UE_LOG(LogTemp, Warning, TEXT("[VGUIManagerSubsystem] UI 전부 파괴"));
-}
-
-void UVGUIManagerSubsystem::OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IValues)
-{
-	ClearAllWidgets();
 }
 
 void UVGUIManagerSubsystem::LoggingChatMessage(const FString& Message)

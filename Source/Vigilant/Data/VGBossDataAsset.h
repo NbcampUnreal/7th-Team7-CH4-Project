@@ -42,10 +42,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Q_Roar")
 	class UAnimMontage* SkillMontage_Q;
 
-	// Q 스킬 피격 시 적용할 데미지 타입
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Q_Roar")
-	TSubclassOf<class UVGDamageType_Slow> RoarDamageTypeClass;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Q_Roar")
 	float CooldownTime_Q = 5.0f;
 
@@ -55,19 +51,31 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Q_Roar")
 	float RoarRadius = 500.0f;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Q_Roar")
+	UParticleSystem* RoarEffect; // Q 스킬 이펙트
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Q_Roar")
+	USoundBase* RoarSound; // Q 스킬 사운드
+
 	// E 스킬 (점프 찍기)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|E_Leap")
 	UAnimMontage* SkillMontage_E;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|E_Leap")
-	float CooldownTime_E = 5.0f;
-	
 	UPROPERTY(EditDefaultsOnly, Category = "Skill|E_Leap")
 	float LeapDamage = 50.f;   
 
 	UPROPERTY(EditDefaultsOnly, Category = "Skill|E_Leap")
 	float LeapRadius = 500.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|E_Leap")
+	float CooldownTime_E = 5.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|E_Leap")
+	UParticleSystem* LeapEffect; // E 스킬 이펙트
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|E_Leap")
+	USoundBase* LeapSound; // E 스킬 사운드
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Death")
 	UAnimMontage* DeathMontage;
 	// (추후 확장) 페이즈별 강화 수치나 이펙트 등을 여기에 추가

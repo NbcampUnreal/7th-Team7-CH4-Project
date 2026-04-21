@@ -48,9 +48,6 @@ protected:
 	TSubclassOf<APawn> TargetClassFilter;
 	
 	UPROPERTY(EditAnywhere, Category = "LockOn")
-	TSubclassOf<APawn> LockOnClassFilterInBoss;
-	
-	UPROPERTY(EditAnywhere, Category = "LockOn")
 	float CameraInterpSpeed = 10.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "LockOn")

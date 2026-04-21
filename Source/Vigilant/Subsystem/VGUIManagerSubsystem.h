@@ -40,21 +40,15 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	UVGHUDWidget* GetCurrentHUDWidget() const {return CurrentHUDWidget;}
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
-	UFUNCTION()
+	
 	void TransferMissionTimeData(float StartTime, float EndTime, bool Init = false);
 	
-	// (이용호 추가) HUD의 정지 함수를 호출할 함수
-	void StopMissionTimeData();
-	
-	
-	void PauseUpdateTimerToHUD();
-	void ResumeUpdateTimerToHUD();
 	//표시 업데이트 실질적으로 여기(HUD전달)
 	UFUNCTION()
 	void OnStaminaUpdate(float NewValue, float MaxValue);
 	UFUNCTION()
 	void OnHealthUpdate(float NewValue, float MaxValue);
-	// (이용호 추가) 투표 전달용 함수
+	// (이용호 작업) 투표 전달용 함수
 	UFUNCTION()
 	void RequestSubmitVote(int32 TargetIndex);
 	
@@ -89,10 +83,6 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	// (이용호 추가)  PlayerController가 구독할 변수 추가
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
 	FOnVoteRequestedSignature OnVoteRequested;
-	// (이용호 추가) 서버 트래블시 현재 있던 UI 전부 파괴
-	void ClearAllWidgets();
-	// (이용호 추가) 월드 초기화 감지용
-	void OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IValues);
 	
 	// 마지막 단계 
 	void LoggingChatMessage(const FString& Message);

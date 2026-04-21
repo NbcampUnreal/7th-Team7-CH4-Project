@@ -13,7 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "Mission/VGMissionSubsystem.h"
-#include "Algo/RandomShuffle.h"
+
 
 AVGGameMode::AVGGameMode()
 {
@@ -38,12 +38,6 @@ void AVGGameMode::BeginPlay()
 		PushPhase(InitialPhase); 
 	}
 	
-	//김형백 랜덤 매시를 위한 난수 생성
-	for (int i = 0; i < 11; i++) // 매시 갯수는 하드코딩(바쁨 - 캐릭터데이터에셋 뽑아서 매시 배열 갯수를 뽑는게 정석)
-	{
-		RandomMeshNumber.Add(i);
-	}
-	Algo::RandomShuffle(RandomMeshNumber);
 }
 
 void AVGGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
@@ -160,15 +154,6 @@ void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 	
 	ConnectedPlayerCount++;
 	UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 플레이어 접속 완료. 배정된 번호: %d"), NewPlayer->GetPlayerState<AVGPlayerState>()->EntryIndex);
-	
-	//랜덤숫자 나눠주기
-	if (AVGPlayerState* VGPlayerState = NewPlayer->GetPlayerState<AVGPlayerState>() )
-	{
-		if (RandomMeshNumber.Num()>0)
-		{
-			VGPlayerState->AssignedMeshIndex = RandomMeshNumber.Pop();
-		}
-	}
 }
 
 void AVGGameMode::Logout(AController* Exiting)

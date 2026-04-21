@@ -1,7 +1,6 @@
 ﻿#include "VGMissionSandbag.h"
 #include "Character/VGCharacterBase.h"
 #include "Character/Component/VGStatComponent.h"
-#include "Engine/DamageEvents.h"
 #include "Net/UnrealNetwork.h"
 
 AVGMissionSandbag::AVGMissionSandbag()

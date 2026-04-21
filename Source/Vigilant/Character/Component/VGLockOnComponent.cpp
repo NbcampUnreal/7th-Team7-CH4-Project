@@ -19,7 +19,6 @@ UVGLockOnComponent::UVGLockOnComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 	SetIsReplicatedByDefault(true);
 	TargetClassFilter = APawn::StaticClass();
-	LockOnClassFilterInBoss = APawn::StaticClass();
 	// ...
 }
 
@@ -38,8 +37,7 @@ void UVGLockOnComponent::BeginPlay()
 }
 
 
-bool UVGLockOnComponent::IsTargetObscured(const FVector& StartLocation, const FVector& EndLocation,
-                                          AActor* TargetToIgnore) const
+bool UVGLockOnComponent::IsTargetObscured(const FVector& StartLocation, const FVector& EndLocation, AActor* TargetToIgnore) const
 {
 	AActor* Owner = GetOwner();
 	if (!Owner)
@@ -59,7 +57,7 @@ bool UVGLockOnComponent::IsTargetObscured(const FVector& StartLocation, const FV
 		HitResult,
 		StartLocation,
 		EndLocation,
-		ECollisionChannel::ECC_Visibility,
+		ECollisionChannel::ECC_Visibility, 
 		Params
 	);
 	return bHit;
@@ -72,12 +70,12 @@ void UVGLockOnComponent::CheckTargetLineOfSight(FVector StartLocation, FVector E
 	{
 		return;
 	}
-
+	
 	bool bHit = IsTargetObscured(StartLocation, EndLocation, CurrentLockOnTarget);
 	if (bHit)
 	{
 		CurrentOcclusionTime += DeltaTime;
-		if (CurrentOcclusionTime > MaxOcclusionTime)
+		if (CurrentOcclusionTime>MaxOcclusionTime)
 		{
 			ClearLockOn();
 		}
@@ -118,25 +116,13 @@ AActor* UVGLockOnComponent::FindBestTarget()
 	UE_LOG(LogTemp, Warning, TEXT("오너 위치: %s, 탐색 반경: %f"),
 	       *Owner->GetActorLocation().ToString(), MaxLockOnDistance);
 
-	//미션 페이지에 따라 필터 클래스 변경
-	TSubclassOf<APawn> Filter;
-	IGameplayTagAssetInterface* CheckPhase = GetWorld()->GetGameState<IGameplayTagAssetInterface>();
-	if (CheckPhase->HasMatchingGameplayTag(VigilantPhaseTags::PhaseCombat))
-	{
-		Filter = LockOnClassFilterInBoss;
-	}
-	else
-	{
-		Filter = TargetClassFilter;
-	}
-
 	bool bResult =
 		UKismetSystemLibrary::SphereOverlapActors(
 			Owner,
 			Owner->GetActorLocation(),
 			MaxLockOnDistance,
 			ObjectTypes,
-			Filter,
+			TargetClassFilter,
 			IgnoreTargets,
 			LockOnTargetList);
 
@@ -167,7 +153,7 @@ AActor* UVGLockOnComponent::FindBestTarget()
 			{
 				continue; //벽에 가려지면 무시
 			}
-
+			
 			//거리 정규화 (0~1)
 			float NormalizeDist = 1.f - (TargetDistance / MaxLockOnDistance);
 			//가중치를 곱한 점수 산출
@@ -357,8 +343,8 @@ void UVGLockOnComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 	//장애물에 가로막히면 체크하는 로직
 	CheckTargetLineOfSight(StartLocation, TargetLocation, DeltaTime);
-
-
+	
+	
 	if (CurrentLockOnTarget && LockOnWidgetInstance && LockOnWidgetInstance->IsInViewport())
 	{
 		FVector2D ScreenPosition;

@@ -11,7 +11,6 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Character/Boss/DamageType/VGDamageType_Slow.h"
 
 UVGBossSkillComponent::UVGBossSkillComponent()
 {
@@ -24,49 +23,70 @@ void UVGBossSkillComponent::BeginPlay()
 
 }
 
-void UVGBossSkillComponent::ExecuteRoarSlow()
+void UVGBossSkillComponent::ExecuteRoarAoE()
 {
 	if (!BossDataAsset)
 	{
 		return;
 	}
-	
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+    
 	if (!OwnerCharacter)
 	{
 		return;
 	}
+	FVector CenterLocation = OwnerCharacter->GetActorLocation();
 	
-	// 서버에서만 피격 판정 진행
+	if (BossDataAsset->RoarEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			BossDataAsset->RoarEffect,
+			CenterLocation,
+			FRotator::ZeroRotator,
+			FVector(2.0f)
+		);
+	}
+	if (BossDataAsset->RoarSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			BossDataAsset->RoarSound,
+			CenterLocation
+		);
+	}
+	
 	if (OwnerCharacter->HasAuthority())
 	{
-		FVector CenterLocation = OwnerCharacter->GetActorLocation();
 		FCollisionShape Sphere = FCollisionShape::MakeSphere(BossDataAsset->RoarRadius); 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(OwnerCharacter);
 
 		TArray<FOverlapResult> OverlapResults;
-		bool bHit = GetWorld()->OverlapMultiByChannel(OverlapResults, CenterLocation, FQuat::Identity, ECC_Pawn, Sphere, QueryParams);
+		bool bHit = GetWorld()->OverlapMultiByChannel(
+			OverlapResults,
+			CenterLocation,
+			FQuat::Identity,
+			ECC_Pawn,
+			Sphere,
+			QueryParams
+		);
+
+		DrawDebugSphere(GetWorld(), CenterLocation, BossDataAsset->RoarRadius, 32, bHit ? FColor::Green : FColor::Red, false, 2.0f);
 
 		if (bHit)
 		{
-			// 한 번의 포효에 똑같은 대상이 여러 번 맞는 것을 방지
-			TSet<AActor*> DamagedActors;
-
 			for (const FOverlapResult& Overlap : OverlapResults)
 			{
 				AActor* HitActor = Overlap.GetActor();
-             
-				if (HitActor && HitActor->IsA<APawn>() && !DamagedActors.Contains(HitActor))
+				if (HitActor)
 				{
-					DamagedActors.Add(HitActor);
-
 					UGameplayStatics::ApplyDamage(
-						HitActor, 
-						1.0f,
-						OwnerCharacter->GetController(), 
-						OwnerCharacter, 
-						BossDataAsset->RoarDamageTypeClass
+						HitActor,
+						BossDataAsset->RoarBaseDamage,
+						OwnerCharacter->GetInstigatorController(),
+						OwnerCharacter,
+						UDamageType::StaticClass()
 					);
 				}
 			}
@@ -136,14 +156,31 @@ void UVGBossSkillComponent::ExecuteLeapImpact()
 	{
 		return;
 	}
+	FVector ImpactLocation = OwnerCharacter->GetActorLocation();
 
+	if (BossDataAsset->LeapEffect)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			BossDataAsset->LeapEffect, ImpactLocation,
+			FRotator::ZeroRotator,
+			FVector(2.0f)
+		);
+	}
+	if (BossDataAsset->LeapSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			GetWorld(),
+			BossDataAsset->LeapSound,
+			ImpactLocation
+		);
+	}
 	// 데미지 판정 로직
 	if (OwnerCharacter->HasAuthority())
 	{
-		FVector ImpactLocation = OwnerCharacter->GetActorLocation();
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(OwnerCharacter);
-		
+
 		TArray<FOverlapResult> OverlapResults;
 		bool bHit = GetWorld()->OverlapMultiByChannel(
 			OverlapResults, ImpactLocation,
@@ -157,23 +194,17 @@ void UVGBossSkillComponent::ExecuteLeapImpact()
 
 		if (bHit)
 		{
-			// 한 번의 공격에 여러 번 데미지가 들어가는 것을 방지
-			TSet<AActor*> DamagedActors;
-			
 			for (const FOverlapResult& Result : OverlapResults)
 			{
 				AActor* HitActor = Result.GetActor();
-				
-				if (HitActor && HitActor->IsA<APawn>() && !DamagedActors.Contains(HitActor))
+				if (HitActor)
 				{
-					DamagedActors.Add(HitActor);
-
 					UGameplayStatics::ApplyDamage(
-					    HitActor, 
-					    BossDataAsset->LeapDamage, 
-					    OwnerCharacter->GetController(), 
-					    OwnerCharacter, 
-					    UDamageType::StaticClass()
+						HitActor, 
+						BossDataAsset->LeapDamage, 
+						OwnerCharacter->GetController(), 
+						OwnerCharacter, 
+						UDamageType::StaticClass()
 					);
 				}
 			}

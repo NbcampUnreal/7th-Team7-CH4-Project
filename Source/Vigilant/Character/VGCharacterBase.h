@@ -6,10 +6,7 @@
 #include "CharacterInterface/VGCharacterGameplayTagEditor.h"
 #include "GameFramework/Character.h"
 #include "Interaction/VGInteractable.h"
-#include "Data/VGCharacterDataAsset.h"
-
 #include "VGCharacterBase.generated.h"
-
 
 class UVGLockOnComponent;
 class UInputAction;
@@ -35,9 +32,6 @@ protected:
 	/**
 	 * 
 	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Data")
-	TObjectPtr<UVGCharacterDataAsset> CharacterDataAsset;
-	
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, Category = "GameplayTags", meta = (AllowPrivateAccess = "true"), 
 		ReplicatedUsing=OnRep_CharacterTags, meta = (AllowPrivateAccess = "true"))
 	FGameplayTagContainer CharacterTags;
@@ -74,10 +68,10 @@ protected:
 	float CameraZoomSpeed = 50.0f;
 
 	// Walk & Sprint Speed
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float NormalSpeed = 600.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed = 900.0f;
 
 #pragma region Interfaces Func
@@ -121,14 +115,8 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void PawnClientRestart() override;
-	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnRep_PlayerState() override;
-	
-	//매쉬 결정
-	void ApplyPlayerMesh();
 	
 	// Input Handlers
 	virtual void Move(const FInputActionValue& Value);
@@ -136,15 +124,11 @@ protected:
 	void StopJump(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	
+	
 	void CameraZoom(const FInputActionValue& Value);
 	void LightAttack(const FInputActionValue& Value);
 	void HeavyAttack(const FInputActionValue& Value);
 	void HiddenPocketToggle(const FInputActionValue& Value);
-	
-	// State Check
-	bool CanMove() const;
-	bool CanAttack() const;
-	bool CanSprint() const;
 	
 	//캐릭터 회전 설정
 	void SetCharacterRotationState(bool bIsLockedOn);
@@ -204,28 +188,13 @@ public:
 	bool IsInteractionAllowed(AActor* Target = nullptr) const;
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
-
 	
 protected:
 	// (이용호 추가) 스탯컴포넌트의 OnDead 델리게이트와 연결용 함수
 	UFUNCTION()
 	virtual void HandleDeath(AController* Killer);
 	
-public:
-	// --- 디버프(슬로우) 관련 함수 --- (하상빈 추가)
-	void ApplySlow(float SlowMultiplier, float Duration);
 
-protected:
-	// 슬로우 해제 함수
-	void ClearSlow();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetSpeedMultiplier(float NewMultiplier);
-
-	FTimerHandle SlowTimerHandle;
-    
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	float CurrentSpeedMultiplier = 1.0f;
 	
 #pragma region Stagger & Knockback
 	virtual void ApplyStagger(FVector PushDirection, float KnockbackForce);

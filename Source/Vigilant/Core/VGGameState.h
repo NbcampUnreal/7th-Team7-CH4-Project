@@ -12,7 +12,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, FGameplayTag, NewPh
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionProgressUpdated, float, CurrentProgress);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDuelWinnerAnnounced, const FString&, WinnerName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossNerfUpdated, float, BossRate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseEndTimeChanged, float, NewEndTime);
 
 UCLASS()
 class VIGILANT_API AVGGameState : public AGameState, public IGameplayTagAssetInterface
@@ -37,9 +36,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
 	FOnBossNerfUpdated OnBossNerfUpdated;
 	
-	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
-	FOnPhaseEndTimeChanged OnPhaseEndTimeChanged;
-	
 	// 서버가 갱신하고 클라이언트로 동기화되는 데이터
 	
 	// 현재 페이즈 상태
@@ -55,7 +51,7 @@ public:
 	FString LastDuelWinnerName;
 
 	// 페이즈가 끝나는 서버 시간
-	UPROPERTY(ReplicatedUsing = OnRep_PhaseEndTime, BlueprintReadOnly, Category = "Vigilant|Time")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Time")
 	float PhaseEndTime;
 	
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Time")
@@ -92,8 +88,5 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_BossNerfRate();
-	
-	UFUNCTION()
-	void OnRep_PhaseEndTime(float OldEndTime);
 	
 };
