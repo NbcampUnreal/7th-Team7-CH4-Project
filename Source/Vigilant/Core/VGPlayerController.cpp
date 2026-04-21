@@ -214,7 +214,18 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 		VGUIManager->ShowVote();
 		VGUIManager->HideHUD();
 	}
-	// 투표 페이즈 아니면 닫음
+	else if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseCombat))
+	{
+		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
+		{
+			// 상단 게이지바 사이즈를 먼저 줄임
+			VGUIManager->SetHUDBarSizeByNerf(VGGameState->BossNerfRate);
+		}
+		
+		VGUIManager->StopMissionTimeData();
+		VGUIManager->ShowHUD();
+		VGUIManager->HideVote();
+	}
 	else
 	{
 		VGUIManager->HideVote();
