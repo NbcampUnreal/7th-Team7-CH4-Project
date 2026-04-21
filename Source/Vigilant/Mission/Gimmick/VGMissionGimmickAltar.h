@@ -29,12 +29,6 @@ struct FVGAltarPlacementSlot
 	// Hint Effect
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VFX")
 	TObjectPtr<UNiagaraSystem> RequiredItemHintEffect = nullptr;
-	
-	// 런타임: 현재 배치된 아이템
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	TObjectPtr<AVGMissionItemCarry> PlacedItem = nullptr;
-
-	bool IsOccupied() const { return PlacedItem != nullptr; }
 };
 
 UCLASS()
@@ -64,7 +58,7 @@ private:
 	bool IsSlotBitSet(int32 SlotIndex) const;
 	
 	// 슬롯에 아이템 배치 시도
-	bool TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot);
+	bool TryPlaceItemToSlot(UVGEquipmentComponent* EquipComp, FVGAltarPlacementSlot& Slot, int32 SlotIndex);
 	
 	// 모든 슬롯 비트가 채워졌는지 — O(1) 비트 비교
 	bool AreAllSlotsFilled() const;
@@ -80,6 +74,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Altar")
 	float HintVisibleRange = 650.f;
+	
+	UPROPERTY()
+	TArray<TObjectPtr<AVGMissionItemCarry>> PlacedItems;
 	
 	// 슬롯 점유 비트마스크 — 1바이트로 최대 8슬롯의 점유 여부를 압축해 클라이언트로 전송
 	UPROPERTY(Replicated)

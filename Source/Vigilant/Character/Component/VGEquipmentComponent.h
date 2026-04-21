@@ -25,6 +25,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemDroppedSignature, EVGEquipmen
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentSlotChangedSignature, EVGEquipmentSlot, NewActiveSlot);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentSlotChangedSignature, int32, ActiveSlotIndex);
 
+//UI를 위한 델리게이트
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnInteractTargetFoundSignature, const FString&, InfoText,const FVector&, TargetLocation, bool, bShow);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteractTargetLostSignature);
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VIGILANT_API UVGEquipmentComponent : public UActorComponent
 {
@@ -63,6 +67,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Equipment|Events")
 	FOnEquipmentSlotChangedSignature OnEquipmentSlotChanged;
 	
+	UPROPERTY(BlueprintAssignable, Category = "Equipment|Events")
+	FOnInteractTargetFoundSignature OnInteractTargetFound;
+
+	UPROPERTY(BlueprintAssignable, Category = "Equipment|Events")
+	FOnInteractTargetLostSignature OnInteractTargetLost;
 	
 	// 현재 활성화된 슬롯을 기억할 변수 (기본값: 오른손)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
@@ -86,6 +95,9 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_RighthandItem(AVGEquippableActor* OldItem);
+	
+	UFUNCTION()
+	void HandleItemConsumed(AVGEquippableActor* ConsumedItem);
 	
 	void HandleItemAttachment(AVGEquippableActor* Item, FName SocketName, bool bIsEquipping);
 	

@@ -32,9 +32,6 @@ public IVGInteractable
 
 	// Components
 protected:
-	/**
-	 * 
-	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Data")
 	TObjectPtr<UVGCharacterDataAsset> CharacterDataAsset;
 	
@@ -61,17 +58,22 @@ protected:
 	
 	
 	// Camera Settings
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float DefaultCameraDistance = 400.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float MinCameraDistance = 200.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	float MaxCameraDistance = 800.0f;
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float MaxCameraDistance = 600.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float CameraZoomSpeed = 50.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float CameraZoomInterpSpeed = 10.0f;
+	
+	float TargetCameraDistance;
 
 	// Walk & Sprint Speed
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
@@ -107,7 +109,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	TObjectPtr<UInputAction> LockOnAction;
-	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
 	TObjectPtr<UInputAction> CameraZoomAction;
@@ -171,7 +172,6 @@ protected:
 	bool bWantsToSprint = false;
 #pragma endregion
 	
-	
 	UFUNCTION()
 	void HandleLockOnTargetChanged(AActor* NewTarget);
 	void LockOn(const FInputActionValue& Value);
@@ -181,7 +181,6 @@ protected:
 	FVector DefaultSocketOffset = FVector(0.f, 25.f, 100.f);
 	UFUNCTION(Server, Reliable)
 	void Server_SetLockOnTag(bool bIsLockedOn);
-	
 	
 	UFUNCTION()
 	virtual void OnRep_CharacterTags(); // 캐릭터태그 변화시 부를 콜백(내용없음)
@@ -197,14 +196,13 @@ public:
 	void NotifyPlayerInteraction(class AVGCharacterBase* TargetPlayer);
 	
 	UFUNCTION(Client, Reliable)
-	void Client_ForceRotation(FRotator NewRotation);
+	void Client_ForceRotation(FRotator NewRotation, bool bKeepInputLocked = false);
 	
 	// 현재 해당 동작이 가능한 페이즈인지 확인용 함수
 	bool IsCombatActionAllowed() const;
 	bool IsInteractionAllowed(AActor* Target = nullptr) const;
 	virtual bool CanInteract_Implementation(AActor* Interactor) const override;
 	virtual void OnInteract_Implementation(AActor* Interactor, const FTransform& InteractTransform) override;
-
 	
 protected:
 	// (이용호 추가) 스탯컴포넌트의 OnDead 델리게이트와 연결용 함수
@@ -226,10 +224,9 @@ protected:
     
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float CurrentSpeedMultiplier = 1.0f;
-	
+
 #pragma region Stagger & Knockback
 	virtual void ApplyStagger(FVector PushDirection, float KnockbackForce);
-	
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayStaggerVisual();

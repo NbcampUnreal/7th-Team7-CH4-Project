@@ -170,12 +170,13 @@ void AVGMissionItemBase::OnRep_Carrier()
 void AVGMissionItemBase::OnRep_ItemStateTag()
 {
 	// Todo State 변경에 따른 피드백 처리
-	if (ItemStateTag == VigilantMissionTags::ItemCarried)
+	// 충돌체 끄고 키는 것은 EquipmentComponent에서 진행
+	/*if (ItemStateTag == VigilantMissionTags::ItemCarried)
 	{
 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	else if (ItemStateTag == VigilantMissionTags::ItemInactive)
 	{
 		MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	}
+	}*/
 }

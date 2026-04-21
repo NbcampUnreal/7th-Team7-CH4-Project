@@ -9,6 +9,7 @@
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "Core/Interface/VGUIControllerInterface.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -53,7 +54,15 @@ void AVGCitizenCharacter::BeginPlay()
 					EquipmentComponent->OnEquipmentSlotChanged.AddDynamic(
 						UIManager, &UVGUIManagerSubsystem::EquipSlotChanged);
 				}
+				
+				
+					EquipmentComponent->OnInteractTargetFound.AddDynamic(
+						this, &AVGCitizenCharacter::HandleInteractFound);
+				
+				
 			}
+			
+						
 		}
 	}
 	
@@ -162,6 +171,14 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 	}
 }
 
+void AVGCitizenCharacter::HandleInteractFound(const FString& InfoText, const FVector& TargetLocation, bool bShow)
+{
+	if (IVGUIControllerInterface* UIControllerInterface= Cast<IVGUIControllerInterface>(GetController()))
+	{
+		UIControllerInterface->ShowInteractUI(InfoText, TargetLocation, bShow);
+	}
+}
+
 void AVGCitizenCharacter::Move(const FInputActionValue& Value)
 {
 	Super::Move(Value);
@@ -235,7 +252,10 @@ void AVGCitizenCharacter::Dodge()
 	{
 		return;
 	}
-	
+	if (StatComponent->GetCurrentStamina() < 2.f) // 최소 사용 가능 스태미너, 일단 하드코딩
+	{
+		return;
+	}
 	// 잠겨있다면 회전 잠시 풀기
 	if (CharacterTags.HasTag(VigilantCharacter::LockOn))
 	{
@@ -243,6 +263,9 @@ void AVGCitizenCharacter::Dodge()
 	}
 	
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
+	
+	
+	
 	//방향 계산
 	FVector DodgeDirection = GetCharacterMovement()->GetLastInputVector();
 	if (DodgeDirection.IsNearlyZero())
@@ -267,6 +290,11 @@ void AVGCitizenCharacter::Dodge()
 void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
 {
 	CharacterTags.AddTag(VigilantCharacter::Dodge);
+	
+	if (StatComponent)
+	{
+		StatComponent->ConsumeStamina(20.f); //일단하드코딩
+	}
 
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
@@ -349,6 +377,18 @@ void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipment
 	{
 		CombatComponent->SetActiveShieldData(ShieldData);
 	}
+	
+	//아이콘정보 전달
+	if (IVGUIControllerInterface* UIController = Cast<IVGUIControllerInterface>(GetController()))
+	{
+		int32 SlotIndex = (Slot == EVGEquipmentSlot::LeftHand) ? 1 : 2;
+		if (EquipmentData)
+		{
+			UIController->UpdateEquipIconUI(SlotIndex, EquipmentData->ItemIcon);
+		}
+	}
+	
+	
 }
 
 void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
@@ -366,6 +406,23 @@ void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
 	{
 		CombatComponent->SetActiveShieldData(nullptr);
 	}
+	
+	
+	//아이템 드롭 정보 전달
+	if (IVGUIControllerInterface* UIController = Cast<IVGUIControllerInterface>(GetController()))
+	{
+		if (Slot == EVGEquipmentSlot::BothHands)
+		{
+			UIController->ClearEquipIconUI(1);
+			UIController->ClearEquipIconUI(2);
+		}
+		else
+		{
+			int32 SlotIndex = (Slot == EVGEquipmentSlot::LeftHand) ? 1 : 2;
+			UIController->ClearEquipIconUI(SlotIndex);
+		}
+	}
+	
 }
 
 void AVGCitizenCharacter::CheckGuardBreakOnStaminaChanged(float CurrentStamina, float MaxStamina)

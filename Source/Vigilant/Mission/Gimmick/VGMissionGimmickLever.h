@@ -56,14 +56,14 @@ protected:
 	TObjectPtr<UCurveFloat> LeverRotationCurve;
  
 	// 레버가 내려간(비활성) 상태의 Pitch 각도
-	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Lever")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Lever")
 	float InactivePitch = 200.f;
  
 	// 레버가 올라간(활성) 상태의 Pitch 각도
-	UPROPERTY(EditDefaultsOnly, Category = "Gimmick|Lever")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Lever")
 	float ActivePitch = 359.f;
 	
-	UPROPERTY(VisibleAnywhere, Category = "Gimmick|Lever")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|Lever")
 	float TargetPitch = 0.f;
 	
 	// 손잡이 머티리얼

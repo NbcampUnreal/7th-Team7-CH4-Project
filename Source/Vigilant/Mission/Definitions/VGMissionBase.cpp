@@ -92,27 +92,20 @@ void AVGMissionBase::BeginPlay()
 		}
 		
 		SetMissionState(VigilantMissionTags::MissionInactive);
-		TArray<int32> Indexes;
-		for (int32 i = 0; i < MissionGimmicks.Num(); i++)
-		{
-			Indexes.Add(i);
-		}
+		
+		// 미션 인덱스 교체
+		ShuffleGimmickIndexes();
 		
 		// 에디터에서 등록된 기믹들에 바인딩
-		for (int32 i = 0; i < MissionGimmicks.Num(); i++)
+		for (AVGMissionGimmickBase* Gimmick : MissionGimmicks)
 		{
-			int32 Index = FMath::RandRange(0,Indexes.Num()-1);
-			AVGMissionGimmickBase* Gimmick = MissionGimmicks[i];
 			if (Gimmick)
 			{
-				Gimmick->SetGimmickIndex(Indexes[Index]); // 자동 인덱스 부여
-
 				Gimmick->OnGimmickStateChanged.AddDynamic(
 					this, &AVGMissionBase::OnGimmickStateChanged);
 				Gimmick->OnGimmickInteracted.AddDynamic(
 					this, &AVGMissionBase::OnGimmickInteracted);
 			}
-			Indexes.RemoveAt(Index);
 		}
 		
 		// 에디터에서 등록된 Item 바인딩
@@ -193,13 +186,27 @@ void AVGMissionBase::OnItemStateChanged(AVGMissionItemBase* Item, FGameplayTag T
 {
 }
 
-bool AVGMissionBase::CheckMissionCondition(AActor* Reporter)
+void AVGMissionBase::ShuffleGimmickIndexes()
 {
-	// 자식이 override 안 하면 런타임에 경고
-	ensureMsgf(false, 
-		TEXT("CheckMissionCondition must be overridden in %s"),
-		*GetClass()->GetName());
-	return false;
+	TArray<int32> Indexes;
+	for (int32 i = 0; i < MissionGimmicks.Num(); i++)
+	{
+		Indexes.Add(i);
+	}
+		
+	// 에디터에서 등록된 기믹들에 바인딩
+	for (int32 i = 0; i < MissionGimmicks.Num(); i++)
+	{
+		int32 Index = FMath::RandRange(0,Indexes.Num()-1);
+		AVGMissionGimmickBase* Gimmick = MissionGimmicks[i];
+		if (Gimmick)
+		{
+			Gimmick->SetGimmickIndex(Indexes[Index]); // 자동 인덱스 부여
+		}
+		
+		// RemoveAt 보다 효율적인 함수로 변경
+		Indexes.RemoveAtSwap(Index);
+	}
 }
 
 void AVGMissionBase::SpawnRewardItems()

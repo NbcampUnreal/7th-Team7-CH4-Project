@@ -19,9 +19,6 @@ void AVGMissionTimedCombat::BeginPlay()
 		{
 			if (Sandbag)
 			{
-				Sandbag->OnSandbagDefeated.AddDynamic(
-					this, &AVGMissionTimedCombat::OnSandbagDefeated);
-				
 				Sandbag->OnSandbagHitted.AddDynamic(this, 
 					&AVGMissionTimedCombat::OnSandbagHitted);
 			}
@@ -38,7 +35,7 @@ void AVGMissionTimedCombat::OnSandbagDefeated(AVGCharacterBase* LastAttacker)
 	
 	if (AreAllSandbagsDefeated())
 	{
-		GetWorldTimerManager().ClearTimer(SandbagTimerHandle);
+		GetWorldTimerManager().ClearTimer(MissionTimerHandle);
 		CompleteMission();
 	}
 }
@@ -50,24 +47,6 @@ void AVGMissionTimedCombat::OnSandbagHitted()
 		StartTimer();
 		SetMissionState(VigilantMissionTags::MissionActive);
 	}
-}
-
-bool AVGMissionTimedCombat::AreAllSandbagsDefeated() const
-{
-	for (AVGMissionSandbag* Sandbag : MissionSandbags)
-	{
-		if (!Sandbag)
-		{
-			continue;
-		}
-		
-		UVGStatComponent* StatComp = Sandbag->StatComponent;
-		if (StatComp && StatComp->GetIsAlive())
-		{
-			return false;
-		}
-	}
-	return true;
 }
 
 void AVGMissionTimedCombat::StartTimer()
@@ -87,7 +66,12 @@ void AVGMissionTimedCombat::OnTimerExpired()
 	{
 		return;
 	}
+	if (bIsResetting)
+	{
+		return;
+	}
 	
+	bIsResetting = true;
 	SetMissionState(VigilantMissionTags::MissionInactive);
 	for (AVGMissionSandbag* Sandbag : MissionSandbags)
 	{
@@ -99,6 +83,7 @@ void AVGMissionTimedCombat::OnTimerExpired()
 		Sandbag->ResetSandbag();
 	}
 	
-	UE_LOG(LogTemp, Error, TEXT("[%s] Timed Up!"), *GetName());
+	bIsResetting = false;
+	UE_LOG(LogTemp, Log, TEXT("[%s] Timed Up!"), *GetName());
 	ClearContributers();
 }

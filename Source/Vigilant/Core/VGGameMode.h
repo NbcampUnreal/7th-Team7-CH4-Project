@@ -21,9 +21,6 @@ protected:
 	// 현제 게임의 페이즈 객체
 	UPROPERTY(Transient)
 	TArray<UVGPhaseBase*> PhaseStack;
-	// 감옥 스폰포인트 저장
-	UPROPERTY(Transient)
-	TMap<int32, class APlayerStart*> CachedJailSpawns;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Phase")
 	TSubclassOf<class UVGPhaseBase> InitialPhase;
@@ -36,8 +33,6 @@ protected:
 	
 	UPROPERTY(Transient)
 	AVGCharacterBase* DuelTarget;
-	
-	int32 ConnectedPlayerCount = 0;
 	
 	// 이미 게임이 시작되었는지 체크용
 	bool bGameHasStarted = false;
@@ -72,6 +67,10 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Vigilant|Lobby")
 	int32 MinimumPlayersNeeded = 2;
+	
+	// 감옥 스폰포인트 저장
+	UPROPERTY(Transient)
+	TMap<int32, class APlayerStart*> CachedJailSpawns;
 	
 	
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;

@@ -12,7 +12,6 @@ AVGMissionGimmickStatue::AVGMissionGimmickStatue()
 	bReplicates = true;
 	GimmickTypeTag = VigilantMissionTags::StatueGimmick;
 	
-	
 }
 
 bool AVGMissionGimmickStatue::CanInteractWith(AActor* Interactor) const
@@ -94,6 +93,8 @@ void AVGMissionGimmickStatue::RotateToTarget(float DeltaTime)
 		// 서버에서만 정답 체크
 		if (HasAuthority())
 		{
+			// bStopAtAnswerAngle == false 일 경우,
+			// VGMissionRotatingStatue에서 Completed로 전환시킵니다.
 			if (IsAtAnswerAngle() && bStopAtAnswerAngle)
 			{
 				SetStateTag(VigilantMissionTags::GimmickCompleted);
@@ -110,7 +111,7 @@ bool AVGMissionGimmickStatue::IsAtAnswerAngle() const
 {
 	// FRotator::NormalizeAxis : 각도 값을 -180~180 범위로 정규화해줍니다.
 	const float Diff = FMath::Abs(FRotator::NormalizeAxis(TargetAngle - AnswerAngle));
-	return Diff   < AngleTolerance;
+	return Diff < AngleTolerance;
 }
 
 void AVGMissionGimmickStatue::OnRep_TargetAngle()

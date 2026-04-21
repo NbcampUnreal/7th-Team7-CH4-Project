@@ -28,9 +28,9 @@ void AVGMissionSandbag::GetLifetimeReplicatedProps(
 
 void AVGMissionSandbag::ResetSandbag()
 {
-    CurrentHPRatio = 0.f; // 강제로 다른 값으로 만들어 리플리케이션 트리거 보장
-	StatComponent->ResetStats();
-	OnRep_CurrentHPRatio();
+	// 임시로 0으로 낮춰 리플리케이션/피드백 경로를 강제로 태우기 위한 우회.
+	CurrentHPRatio = 0.f;
+    StatComponent->ResetStats(); // OnHPChanged → CurrentHPRatio = 1.f 자동 설정
 }
 
 void AVGMissionSandbag::BeginPlay()
@@ -57,22 +57,10 @@ float AVGMissionSandbag::TakeDamage(float DamageAmount, struct FDamageEvent cons
 	// EventInstigator(Controller)에서 AVGCharacterBase를 꺼내 LastAttacker 갱신
 	if (HasAuthority() && EventInstigator)
 	{
-		if (AVGCharacterBase* AttackerCharacter = Cast<AVGCharacterBase>(EventInstigator->GetPawn()))
-		{
-			RegisterAttacker(AttackerCharacter);
-		}
+		LastAttacker = Cast<AVGCharacterBase>(EventInstigator->GetPawn());
 	}
 	
 	return ActualDamage;
-}
-
-void AVGMissionSandbag::RegisterAttacker(AVGCharacterBase* Attacker)
-{
-	if (!HasAuthority()) return;
-	if (!Attacker) return;
-
-	// 데미지를 줄 때마다 마지막 공격자 갱신
-	LastAttacker = Attacker;
 }
 
 void AVGMissionSandbag::OnHPChanged(float NewHP, float MaxHP)

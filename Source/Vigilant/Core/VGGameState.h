@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, FGameplayTag, NewPh
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionProgressUpdated, float, CurrentProgress);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDuelWinnerAnnounced, const FString&, WinnerName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossNerfUpdated, float, BossRate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseEndTimeChanged, float, NewEndTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPhaseTimeChanged);
 
 UCLASS()
 class VIGILANT_API AVGGameState : public AGameState, public IGameplayTagAssetInterface
@@ -38,7 +38,7 @@ public:
 	FOnBossNerfUpdated OnBossNerfUpdated;
 	
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
-	FOnPhaseEndTimeChanged OnPhaseEndTimeChanged;
+	FOnPhaseTimeChanged OnPhaseTimeChanged;
 	
 	// 서버가 갱신하고 클라이언트로 동기화되는 데이터
 	
@@ -58,7 +58,7 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_PhaseEndTime, BlueprintReadOnly, Category = "Vigilant|Time")
 	float PhaseEndTime;
 	
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Time")
+	UPROPERTY(ReplicatedUsing = OnRep_PhaseStartTime, BlueprintReadOnly, Category = "Vigilant|Time")
 	float PhaseStartTime;
 	
 	// 미션 페이즈 결과에 따른 보스 스탯 배율
@@ -92,6 +92,9 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_BossNerfRate();
+	
+	UFUNCTION()
+	void OnRep_PhaseStartTime();
 	
 	UFUNCTION()
 	void OnRep_PhaseEndTime(float OldEndTime);

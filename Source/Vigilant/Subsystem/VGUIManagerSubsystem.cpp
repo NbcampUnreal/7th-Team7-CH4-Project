@@ -12,6 +12,9 @@
 #include "UI/VGPopupWidget.h"
 #include "UI/VGVoteWidget.h"
 #include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "UI/VGInteractionWidget.h"
+#include "UI/VGTitleWidget.h"
 
 void UVGUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -95,6 +98,22 @@ void UVGUIManagerSubsystem::RelayReadyEvent(bool bReady)
 		UE_LOG(LogTemp, Warning, TEXT("UIManager 전달 성공"));
 	}
 	OnPlayerReadySignature.Broadcast(bReady);
+}
+
+void UVGUIManagerSubsystem::SetEquipIcon(int32 SlotIndex, UTexture2D* Icon)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetEquipIcon(SlotIndex, Icon);
+	}
+}
+
+void UVGUIManagerSubsystem::ClearEquipIcon(int32 SlotIndex)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->ClearEquipIcon(SlotIndex);
+	}
 }
 
 void UVGUIManagerSubsystem::CreateHUDWidget()
@@ -251,6 +270,56 @@ void UVGUIManagerSubsystem::HidePopup()
 	}
 }
 
+void UVGUIManagerSubsystem::ShowInteract(
+	const FString& InfoText, const APlayerController* PlayerController, const FVector& TargetLocation)
+{
+	//없으면 최초 생성
+	if (!CurrentInteractWidget)
+	{
+		const UVGDevelopSettings* UISettings = GetDefault<UVGDevelopSettings>();
+
+		if (!UISettings->UIDataAssetClass.IsNull())
+		{
+			//
+			UVGUIDataAsset* LoadedUIDataAsset = UISettings->UIDataAssetClass.LoadSynchronous();
+			if (LoadedUIDataAsset && LoadedUIDataAsset->InteractionWidgetClass)
+			{
+				CurrentInteractWidget = CreateWidget<UVGInteractionWidget>(
+					GetLocalPlayer()->GetPlayerController(GetWorld())
+					, LoadedUIDataAsset->InteractionWidgetClass
+				);	
+			}
+		}
+	}
+	
+	
+	if (CurrentInteractWidget)
+	{
+		CurrentInteractWidget->SetInteractText(InfoText);
+		CurrentInteractWidget->SetAlignmentInViewport(FVector2D(0.5f, 0.5f));
+		CurrentInteractWidget->AddToViewport();
+		
+		if (CurrentInteractWidget->IsInViewport())
+		{
+			FVector2D ScreenPosition;
+			if (UGameplayStatics::ProjectWorldToScreen(PlayerController, TargetLocation, ScreenPosition))
+			{
+				CurrentInteractWidget->SetTargetWorldLocation(TargetLocation);
+				CurrentInteractWidget->SetPositionInViewport(ScreenPosition);
+			}
+		}
+	}
+	
+}
+
+void UVGUIManagerSubsystem::HideInteract()
+{
+	if (CurrentInteractWidget)
+	{
+		CurrentInteractWidget->HideInteract();
+	}
+}
+
 void UVGUIManagerSubsystem::RequsetSendChatMessage(const FString& Message)
 {
 	OnChatMessageRequested.Broadcast(Message);
@@ -282,6 +351,23 @@ void UVGUIManagerSubsystem::ClearAllWidgets()
 void UVGUIManagerSubsystem::OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IValues)
 {
 	ClearAllWidgets();
+}
+
+void UVGUIManagerSubsystem::OnBossHealthUpdate(float NewValue, float MaxValue)
+{
+	if (CurrentHUDWidget)
+	{
+		// 원래있던 미션게이지 함수 재활용
+		CurrentHUDWidget->UpdateMissionUI(NewValue, MaxValue);
+	}
+}
+
+void UVGUIManagerSubsystem::SetHUDBarSizeByNerf(float NerfRate)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetMissionBarContract(NerfRate);
+	}
 }
 
 void UVGUIManagerSubsystem::LoggingChatMessage(const FString& Message)

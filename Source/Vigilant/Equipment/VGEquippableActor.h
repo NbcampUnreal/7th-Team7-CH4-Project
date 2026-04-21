@@ -6,6 +6,8 @@
 
 class UVGEquipmentDataAsset;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemConsumedSignature, AVGEquippableActor*, ConsumedItem);
+
 UCLASS()
 class VIGILANT_API AVGEquippableActor : public AVGInteractableActorBase
 {
@@ -22,4 +24,7 @@ protected:
 public:	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<UVGEquipmentDataAsset> EquipmentData;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Equipment|Events")
+	FOnItemConsumedSignature OnItemConsumed;
 };

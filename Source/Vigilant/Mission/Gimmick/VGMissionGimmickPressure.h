@@ -66,7 +66,7 @@ protected:
 	TArray<TObjectPtr<AActor>> OverlappingActors;
 	
 	// 발판 활성화에 필요한 최소 인원 수 (기본 1, 에디터에서 조정 가능)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gimmick|Pressure")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Gimmick|Pressure")
 	int32 RequiredActorCount = 1;
 	
 	// 미션 종류에 따라 동작 방식 선택 가능하도록

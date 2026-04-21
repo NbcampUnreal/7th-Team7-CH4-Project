@@ -75,12 +75,13 @@ void UVGDuelPhase::EnterPhase()
 			FVector Loc = TargetStart->GetActorLocation();
 			FRotator Rot = TargetStart->GetActorRotation();
 
-			if (APlayerController* PC = Cast<APlayerController>(VGCharacter->GetController()))
+			if (APlayerController* PlayerController = Cast<APlayerController>(VGCharacter->GetController()))
 			{
-				PC->SetControlRotation(Rot);
-				PC->ClientSetRotation(Rot);
+				PlayerController->SetControlRotation(Rot);
+				PlayerController->ClientSetRotation(Rot);
 			}
 			VGCharacter->TeleportTo(Loc, Rot, false, true);
+			VGCharacter->Client_ForceRotation(Rot, false);
 		}
 	}
 	

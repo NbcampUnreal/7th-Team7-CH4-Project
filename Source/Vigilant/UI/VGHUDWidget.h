@@ -25,6 +25,13 @@ public:
 	
 	virtual void NativeConstruct() override;
 	
+	
+	UFUNCTION(Category = "UI|Equipment")
+	void SetEquipIcon(int32 SlotIndex, UTexture2D* IconTexture);
+
+	UFUNCTION(Category = "UI|Equipment")
+	void ClearEquipIcon(int32 SlotIndex);
+	
 	UFUNCTION(Category = "UI")
 	void UpdateStaminaUI(float NewValue, float MaxValue);
     
@@ -72,6 +79,8 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "UI|Time")
 	void SetPhaseTimeData(float InStartTime, float InEndTime, bool Init = false);
+	
+	void SetMissionBarContract(float NerfRate);
 	
 	// (이용호 추가) 막고라 페이즈 들어갈 때 프로그레스바 멈추기 용
 	UFUNCTION(BlueprintCallable, Category = "UI|Time")

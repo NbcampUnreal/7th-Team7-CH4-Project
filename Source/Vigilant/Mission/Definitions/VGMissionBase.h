@@ -80,8 +80,8 @@ protected:
 	virtual void OnItemStateChanged(
 		AVGMissionItemBase* Item, FGameplayTag Tag);
 	
-	/// 자식이 override — 달성 조건 판정
-	virtual bool CheckMissionCondition(AActor* Reporter);
+	// 기믹 순서 셔플
+	void ShuffleGimmickIndexes();
 	
 	// 자식이 override — 보상 아이템 클래스/위치 결정
 	virtual void SpawnRewardItems();

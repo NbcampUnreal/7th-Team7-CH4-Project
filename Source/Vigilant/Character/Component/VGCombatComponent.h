@@ -65,6 +65,10 @@ public:
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	UVGShieldDataAsset* GetCurrentShieldData() const;
 	UMeshComponent* GetActiveTraceMesh() const;
+	
+	// (이용호 추가) 데미지 배율 설정 함수
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SetDamageMultiplier(float NewMultiplier);
 
 protected:
 	virtual void BeginPlay() override;
@@ -126,6 +130,9 @@ private:
 	
 	UPROPERTY(Transient)
 	TObjectPtr<UVGAttackExecution> CurrentExecution;
+	
+	// (이용호 추가) 기본 데미지 배율
+	float DamageMultiplier = 1.0f;
 	
 private:
 	void InstantiateExecutionObject();

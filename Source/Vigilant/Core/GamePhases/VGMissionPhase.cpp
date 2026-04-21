@@ -3,6 +3,8 @@
 #include "TimerManager.h"
 #include "Core/VGGameState.h"
 #include "Character/VGCharacterBase.h"
+#include "GameFramework/PlayerStart.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 void UVGMissionPhase::EnterPhase()
 {
@@ -33,6 +35,38 @@ void UVGMissionPhase::ExitPhase()
 	
 	if (GameModeRef)
 	{
+		int32 JailIndex = 1;
+
+		for (APlayerState* CurrentPlayerState : GameModeRef->GetWorld()->GetGameState()->PlayerArray)
+		{
+			if (AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(CurrentPlayerState))
+			{
+				if (APlayerController* PlayerController = VGPlayerState->GetPlayerController())
+				{
+					PlayerController->SetIgnoreMoveInput(true);
+					
+					if (AVGCharacterBase* VGCharacter = Cast<AVGCharacterBase>(PlayerController->GetPawn()))
+					{
+						// 게임모드에 저장해둔 CachedJailSpawns 사용
+						if (GameModeRef->CachedJailSpawns.Contains(JailIndex))
+						{
+							APlayerStart* TargetJailStart = GameModeRef->CachedJailSpawns[JailIndex];
+							if (TargetJailStart)
+							{
+								FVector JailLoc = TargetJailStart->GetActorLocation();
+								FRotator JailRot = TargetJailStart->GetActorRotation();
+								
+								VGCharacter->Client_ForceRotation(JailRot, true);
+								VGCharacter->TeleportTo(JailLoc, JailRot, false, true);
+							}
+						}
+					}
+				}
+			}
+		
+			JailIndex++;
+		}
+		
 		GameModeRef->GetWorldTimerManager().ClearTimer(PhaseTimerHandle);
 	}
 	
@@ -58,6 +92,9 @@ void UVGMissionPhase::PausePhase()
 		if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
 		{
 			PauseBeginServerTime = VGGameState->GetServerWorldTimeSeconds();
+			
+			SavedPhaseStartTime = VGGameState->PhaseStartTime;
+			SavedPhaseEndTime = VGGameState->PhaseEndTime;
 		}
 		UE_LOG(LogTemp, Warning, TEXT("[VGMissionPhase] 미션 페이즈 타이머 일시정지"));
 	}
@@ -76,8 +113,8 @@ void UVGMissionPhase::ResumePhase()
 			float PausedDuration = CurrentServerTime - PauseBeginServerTime;
 
 			// 흐른 시간만큼 미션 페이즈 시간에 재적용
-			VGGameState->PhaseStartTime += PausedDuration;
-			VGGameState->PhaseEndTime += PausedDuration;
+			VGGameState->PhaseStartTime = SavedPhaseStartTime + PausedDuration;
+			VGGameState->PhaseEndTime = SavedPhaseEndTime + PausedDuration;
 			
 			UE_LOG(LogTemp, Warning, TEXT("미션 페이즈 재개, 막고라 페이즈 진행 시간인 %f만큼 늘림"), PausedDuration);
 		}
@@ -115,8 +152,8 @@ void UVGMissionPhase::OnMissionCleared(float TimeReducedAmount)
 	{
 		VGGameState->PhaseEndTime -= TimeReducedAmount;
 		
-		float ElapsedTime = PhaseDuration - VGGameState->GetRemainingPhaseTime();
-		VGGameState->BossNerfRate = FMath::Clamp(ElapsedTime / PhaseDuration, 0.1f, 1.0f);
+		float NewPhaseDuration = VGGameState->PhaseEndTime - VGGameState->PhaseStartTime;
+		VGGameState->BossNerfRate = FMath::Clamp(NewPhaseDuration / PhaseDuration, 0.1f, 1.0f);
 		
 		float RemainingTime = VGGameState->GetRemainingPhaseTime();
 		
