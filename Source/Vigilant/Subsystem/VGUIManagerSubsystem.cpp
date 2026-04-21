@@ -12,6 +12,9 @@
 #include "UI/VGPopupWidget.h"
 #include "UI/VGVoteWidget.h"
 #include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "UI/VGInteractionWidget.h"
+#include "UI/VGTitleWidget.h"
 
 void UVGUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -248,6 +251,56 @@ void UVGUIManagerSubsystem::HidePopup()
 	if (CurrentPopupWidget->IsInViewport())
 	{
 		CurrentPopupWidget->RemoveFromParent();
+	}
+}
+
+void UVGUIManagerSubsystem::ShowInteract(
+	const FString& InfoText, const APlayerController* PlayerController, const FVector& TargetLocation)
+{
+	//없으면 최초 생성
+	if (!CurrentInteractWidget)
+	{
+		const UVGDevelopSettings* UISettings = GetDefault<UVGDevelopSettings>();
+
+		if (!UISettings->UIDataAssetClass.IsNull())
+		{
+			//
+			UVGUIDataAsset* LoadedUIDataAsset = UISettings->UIDataAssetClass.LoadSynchronous();
+			if (LoadedUIDataAsset && LoadedUIDataAsset->InteractionWidgetClass)
+			{
+				CurrentInteractWidget = CreateWidget<UVGInteractionWidget>(
+					GetLocalPlayer()->GetPlayerController(GetWorld())
+					, LoadedUIDataAsset->InteractionWidgetClass
+				);	
+			}
+		}
+	}
+	
+	
+	if (CurrentInteractWidget)
+	{
+		CurrentInteractWidget->SetInteractText(InfoText);
+		CurrentInteractWidget->SetAlignmentInViewport(FVector2D(0.5f, 0.5f));
+		CurrentInteractWidget->AddToViewport();
+		
+		if (CurrentInteractWidget->IsInViewport())
+		{
+			FVector2D ScreenPosition;
+			if (UGameplayStatics::ProjectWorldToScreen(PlayerController, TargetLocation, ScreenPosition))
+			{
+				CurrentInteractWidget->SetTargetWorldLocation(TargetLocation);
+				CurrentInteractWidget->SetPositionInViewport(ScreenPosition);
+			}
+		}
+	}
+	
+}
+
+void UVGUIManagerSubsystem::HideInteract()
+{
+	if (CurrentInteractWidget)
+	{
+		CurrentInteractWidget->HideInteract();
 	}
 }
 

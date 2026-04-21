@@ -58,6 +58,10 @@ protected:
 	// 슬롯 선택 실행 함수
 	void SelectSlot(const FInputActionValue& Value);
 
+	//바인딩 함수
+	UFUNCTION()
+	void HandleInteractFound(const FString& InfoText, const FVector& TargetLocation, bool bShow);
+		
 	//base의 무브 함수 재정의
 	virtual void Move(const FInputActionValue& Value) override;
 

@@ -9,6 +9,7 @@
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "Core/Interface/VGUIControllerInterface.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -53,7 +54,15 @@ void AVGCitizenCharacter::BeginPlay()
 					EquipmentComponent->OnEquipmentSlotChanged.AddDynamic(
 						UIManager, &UVGUIManagerSubsystem::EquipSlotChanged);
 				}
+				
+				
+					EquipmentComponent->OnInteractTargetFound.AddDynamic(
+						this, &AVGCitizenCharacter::HandleInteractFound);
+				
+				
 			}
+			
+						
 		}
 	}
 	
@@ -159,6 +168,14 @@ void AVGCitizenCharacter::SelectSlot(const FInputActionValue& Value)
 	if (EquipmentComponent)
 	{
 		EquipmentComponent->SelectSlot(SlotNumber);
+	}
+}
+
+void AVGCitizenCharacter::HandleInteractFound(const FString& InfoText, const FVector& TargetLocation, bool bShow)
+{
+	if (IVGUIControllerInterface* UIControllerInterface= Cast<IVGUIControllerInterface>(GetController()))
+	{
+		UIControllerInterface->ShowInteractUI(InfoText, TargetLocation, bShow);
 	}
 }
 
