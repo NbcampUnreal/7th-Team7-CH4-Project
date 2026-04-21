@@ -55,6 +55,7 @@ void UVGFinalCombatPhase::EnterPhase()
 
         APlayerController* PlayerController = VGPlayerState->GetPlayerController();
         if (!PlayerController) continue;
+    	
 
         APawn* CurrentPawn = PlayerController->GetPawn();
 
@@ -95,7 +96,7 @@ void UVGFinalCombatPhase::EnterPhase()
             	
             	if (AVGCharacterBase* VGCharacter = Cast<AVGCharacterBase>(CurrentPawn))
             	{
-            		VGCharacter->Client_ForceRotation(CitizenRot);
+            		VGCharacter->Client_ForceRotation(CitizenRot, false);
             	}
             	
                 CitizenSpawnIndex++;
