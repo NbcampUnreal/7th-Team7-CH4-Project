@@ -81,7 +81,7 @@ protected: // [4] 내부 동작 함수
     
     // [5] 변수
 private: /* 체력 */
-    UPROPERTY(EditDefaultsOnly, Category = "VG|Stat|Health")
+    UPROPERTY(ReplicatedUsing = OnRep_MaxHP, EditDefaultsOnly, Category = "VG|Stat|Health")
     float MaxHP = 100.f;
     
     UPROPERTY(ReplicatedUsing = OnRep_CurrentHP, VisibleAnywhere, Category = "VG|Stat|Health")
@@ -120,6 +120,7 @@ private: /* 상태 */
     bool bIsAlive = true; 
 
 private: // [6] 네트워크 동기화 콜백 함수 (OnRep)
+    UFUNCTION() void OnRep_MaxHP();
     UFUNCTION() void OnRep_CurrentHP(float OldHP);
     UFUNCTION() void OnRep_CurrentStamina();
     UFUNCTION() void OnRep_bIsAlive();
