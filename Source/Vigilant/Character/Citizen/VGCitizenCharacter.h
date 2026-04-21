@@ -8,6 +8,7 @@
 #include "Interaction/VGInteractable.h"
 #include "VGCitizenCharacter.generated.h"
 
+class UVGEquipmentDataAsset;
 class UVGEquipmentComponent;
 class UInputAction;
 struct FInputActionValue;
@@ -61,7 +62,10 @@ protected:
 	//바인딩 함수
 	UFUNCTION()
 	void HandleInteractFound(const FString& InfoText, const FVector& TargetLocation, bool bShow);
-		
+	
+	UFUNCTION()
+	void HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent* EquippedMesh);
+	
 	//base의 무브 함수 재정의
 	virtual void Move(const FInputActionValue& Value) override;
 
@@ -96,8 +100,6 @@ protected:
 	UFUNCTION()
 	void OnMontageCompleted(UAnimMontage* Montage, bool bWasCancelled = false);
 
-	UFUNCTION()
-	void HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent* EquippedMesh);
 
 	UFUNCTION()
 	void HandleItemDropped(EVGEquipmentSlot Slot);

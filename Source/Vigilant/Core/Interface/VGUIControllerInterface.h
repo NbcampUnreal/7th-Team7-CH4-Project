@@ -23,4 +23,7 @@ class VIGILANT_API IVGUIControllerInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual void ShowInteractUI(const FString& InteractText, const FVector& TargetLocation, bool bShow) = 0;
+	
+	virtual void UpdateEquipIconUI(int32 SlotIndex, UTexture2D* Icon) = 0;
+	virtual void ClearEquipIconUI(int32 SlotIndex) = 0;
 };

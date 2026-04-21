@@ -190,6 +190,36 @@ void AVGPlayerController::ShowInteractUI(const FString& InteractText, const FVec
 	}
 }
 
+void AVGPlayerController::UpdateEquipIconUI(int32 SlotIndex, UTexture2D* Icon)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			// UIManager를 거쳐 HUD의 SetEquipIcon 호출
+			if (UIManager->GetCurrentHUDWidget())
+			{
+				UIManager->SetEquipIcon(SlotIndex, Icon);
+			}
+		}
+	}
+}
+
+void AVGPlayerController::ClearEquipIconUI(int32 SlotIndex)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		// UIManager를 거쳐 HUD의 ClearEquipIcon 호출
+		{
+			if (UIManager->GetCurrentHUDWidget())
+			{
+				UIManager->ClearEquipIcon(SlotIndex);
+			}
+		}
+	}
+}
+
 void AVGPlayerController::Client_SetInputToGame_Implementation()
 {
 	FInputModeGameOnly InputGameOnly;
