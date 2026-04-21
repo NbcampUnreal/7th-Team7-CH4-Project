@@ -43,7 +43,7 @@ bool AVGMissionPressureSequence::CheckSequenceOrder(AVGMissionGimmickPressure* P
 	{
 		if (bIsResetting)
 		{
-			return;
+			return false;
 		}
 		
 		bIsResetting = true;
