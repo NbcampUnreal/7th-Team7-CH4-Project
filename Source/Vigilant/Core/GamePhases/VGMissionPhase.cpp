@@ -92,6 +92,9 @@ void UVGMissionPhase::PausePhase()
 		if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
 		{
 			PauseBeginServerTime = VGGameState->GetServerWorldTimeSeconds();
+			
+			SavedPhaseStartTime = VGGameState->PhaseStartTime;
+			SavedPhaseEndTime = VGGameState->PhaseEndTime;
 		}
 		UE_LOG(LogTemp, Warning, TEXT("[VGMissionPhase] 미션 페이즈 타이머 일시정지"));
 	}
@@ -110,8 +113,8 @@ void UVGMissionPhase::ResumePhase()
 			float PausedDuration = CurrentServerTime - PauseBeginServerTime;
 
 			// 흐른 시간만큼 미션 페이즈 시간에 재적용
-			VGGameState->PhaseStartTime += PausedDuration;
-			VGGameState->PhaseEndTime += PausedDuration;
+			VGGameState->PhaseStartTime = SavedPhaseStartTime + PausedDuration;
+			VGGameState->PhaseEndTime = SavedPhaseEndTime + PausedDuration;
 			
 			UE_LOG(LogTemp, Warning, TEXT("미션 페이즈 재개, 막고라 페이즈 진행 시간인 %f만큼 늘림"), PausedDuration);
 		}
