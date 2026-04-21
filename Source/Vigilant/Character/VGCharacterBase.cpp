@@ -454,7 +454,8 @@ bool AVGCharacterBase::CanAttack() const
 {
 	// 기절, 회피 중에는 공격할 수 없음
 	return !CharacterTags.HasTag(VigilantCharacter::Dodge) &&
-		!CharacterTags.HasTag(VigilantCharacter::Stunned);
+		!CharacterTags.HasTag(VigilantCharacter::Stunned) &&
+		!CharacterTags.HasTag(VigilantCharacter::Attacking);
 }
 
 bool AVGCharacterBase::CanSprint() const
