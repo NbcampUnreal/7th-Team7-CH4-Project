@@ -455,7 +455,7 @@ void UVGEquipmentComponent::UpdateInteractableTarget()
 		}
 		if (ClosestTarget)
 		{
-			OnInteractTargetFound.Broadcast(TEXT("상호작용"),CurrentInteractableTarget->GetActorLocation(),true);
+			OnInteractTargetFound.Broadcast(TEXT("상호작용"),ClosestTarget->GetActorLocation(),true);
 			SetHighlight(ClosestTarget, true);
 		}
 		CurrentInteractableTarget = ClosestTarget;
