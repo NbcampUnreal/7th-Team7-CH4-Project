@@ -87,6 +87,9 @@ protected:
 	UFUNCTION()
 	void OnRep_RighthandItem(AVGEquippableActor* OldItem);
 	
+	UFUNCTION()
+	void HandleItemConsumed(AVGEquippableActor* ConsumedItem);
+	
 	void HandleItemAttachment(AVGEquippableActor* Item, FName SocketName, bool bIsEquipping);
 	
 	bool TryEquipToRightHand(AVGEquippableActor* ItemToEquip);
