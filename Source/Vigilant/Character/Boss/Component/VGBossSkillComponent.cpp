@@ -12,6 +12,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Character/Boss/DamageType/VGDamageType_Slow.h"
+#include "NiagaraFunctionLibrary.h"
 
 UVGBossSkillComponent::UVGBossSkillComponent()
 {
@@ -127,57 +128,91 @@ void UVGBossSkillComponent::Multicast_ExecuteSkill_Q_Implementation()
 void UVGBossSkillComponent::ExecuteLeapImpact()
 {
 	if (!BossDataAsset)
-	{
-		return;
-	}
-	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+    {
+       return;
+    }
+    
+    ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+    if (!OwnerCharacter)
+    {
+       return;
+    }
+	FVector ImpactLocation = OwnerCharacter->GetMesh()->GetSocketLocation(FName("HammerImpactSocket"));
+	ImpactLocation.Z = OwnerCharacter->GetActorLocation().Z - 90.0f; 
+
+    if (SkillENiagaraEffect)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            GetWorld(), 
+            SkillENiagaraEffect, 
+            ImpactLocation, 
+            OwnerCharacter->GetActorRotation()
+        );
+    }
 	
-	if (!OwnerCharacter)
+	if (SmashCameraShake)
 	{
-		return;
+		UGameplayStatics::PlayWorldCameraShake(GetWorld(), SmashCameraShake, ImpactLocation, 0.0f, 1500.0f);
 	}
+	
+    // 데미지 판정 로직
+    if (OwnerCharacter->HasAuthority())
+    {
+       FCollisionQueryParams QueryParams;
+       QueryParams.AddIgnoredActor(OwnerCharacter);
+       
+       TArray<FOverlapResult> OverlapResults;
+       
+       bool bHit = GetWorld()->OverlapMultiByChannel(
+          OverlapResults, 
+          ImpactLocation,
+          FQuat::Identity,
+          ECC_Pawn,
+          FCollisionShape::MakeSphere(BossDataAsset->LeapRadius),
+          QueryParams
+       );
 
-	// 데미지 판정 로직
-	if (OwnerCharacter->HasAuthority())
+       DrawDebugSphere(GetWorld(), ImpactLocation, BossDataAsset->LeapRadius, 32, FColor::Blue, false, 2.0f);
+
+       if (bHit)
+       {
+          TSet<AActor*> DamagedActors;
+          for (const FOverlapResult& Result : OverlapResults)
+          {
+             AActor* HitActor = Result.GetActor();
+             
+             if (HitActor && HitActor->IsA<APawn>() && !DamagedActors.Contains(HitActor))
+             {
+	             DamagedActors.Add(HitActor);
+
+             	UGameplayStatics::ApplyDamage(
+					 HitActor, 
+					 BossDataAsset->LeapDamage,
+					 OwnerCharacter->GetController(), 
+					 OwnerCharacter, 
+					 UDamageType::StaticClass()
+				 );
+             	
+             	Multicast_PlayHitEffect(HitActor);
+             }
+          }
+       }
+    }
+}
+
+void UVGBossSkillComponent::Multicast_PlayHitEffect_Implementation(AActor* TargetActor)
+{
+	if (HitNiagaraEffect && TargetActor)
 	{
-		FVector ImpactLocation = OwnerCharacter->GetActorLocation();
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(OwnerCharacter);
-		
-		TArray<FOverlapResult> OverlapResults;
-		bool bHit = GetWorld()->OverlapMultiByChannel(
-			OverlapResults, ImpactLocation,
-			FQuat::Identity,
-			ECC_Pawn,
-			FCollisionShape::MakeSphere(BossDataAsset->LeapRadius),
-			QueryParams
+		UNiagaraFunctionLibrary::SpawnSystemAttached(
+			HitNiagaraEffect,
+			TargetActor->GetRootComponent(),
+			NAME_None,
+			FVector(0.f, 0.f, 0.f),
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset,
+			true
 		);
-
-		DrawDebugSphere(GetWorld(), ImpactLocation, BossDataAsset->LeapRadius, 32, FColor::Blue, false, 2.0f);
-
-		if (bHit)
-		{
-			// 한 번의 공격에 여러 번 데미지가 들어가는 것을 방지
-			TSet<AActor*> DamagedActors;
-			
-			for (const FOverlapResult& Result : OverlapResults)
-			{
-				AActor* HitActor = Result.GetActor();
-				
-				if (HitActor && HitActor->IsA<APawn>() && !DamagedActors.Contains(HitActor))
-				{
-					DamagedActors.Add(HitActor);
-
-					UGameplayStatics::ApplyDamage(
-					    HitActor, 
-					    BossDataAsset->LeapDamage, 
-					    OwnerCharacter->GetController(), 
-					    OwnerCharacter, 
-					    UDamageType::StaticClass()
-					);
-				}
-			}
-		}
 	}
 }
 

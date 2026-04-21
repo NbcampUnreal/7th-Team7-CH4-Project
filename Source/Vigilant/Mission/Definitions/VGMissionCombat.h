@@ -19,10 +19,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
-private:
+
 	UFUNCTION()
-	void OnSandbagDefeated(AVGCharacterBase* LastAttacker);
+	virtual void OnSandbagDefeated(AVGCharacterBase* LastAttacker);
 
 	bool AreAllSandbagsDefeated() const;
 

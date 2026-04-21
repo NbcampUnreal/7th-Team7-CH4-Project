@@ -24,6 +24,29 @@ AVGMissionGimmickBase::AVGMissionGimmickBase()
 	Tags.Add(FName("InteractTarget"));
 }
 
+void AVGMissionGimmickBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	// 동적 머티리얼 생성
+	if (!BodyDynMat)
+	{
+		// [Fix] 메시에 머티리얼이 없을 경우 GetMaterial(0)이 nullptr → Create 크래시 방지
+		UMaterialInterface* BaseMaterial = MeshComponent ? MeshComponent->GetMaterial(0) : nullptr;
+		if (!BaseMaterial)
+		{
+			return;
+		}
+		BodyDynMat = UMaterialInstanceDynamic::Create(BaseMaterial, this);
+		if (!BodyDynMat)
+		{
+			return;
+		}
+		
+		MeshComponent->SetMaterial(0, BodyDynMat);
+	}
+}
+
 void AVGMissionGimmickBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -119,25 +142,9 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 	BP_OnGimmickStateTagChanged(GetStateTag());
 	
 	// State에 따른 색변경 처리
-	if (!BodyDynMat)
-	{
-		// [Fix] 메시에 머티리얼이 없을 경우 GetMaterial(0)이 nullptr → Create 크래시 방지
-		UMaterialInterface* BaseMaterial = MeshComponent ? MeshComponent->GetMaterial(0) : nullptr;
-		if (!BaseMaterial)
-		{
-			return;
-		}
-		BodyDynMat = UMaterialInstanceDynamic::Create(BaseMaterial, this);
-		if (!BodyDynMat)
-		{
-			return;
-		}
-		
-		MeshComponent->SetMaterial(0, BodyDynMat);
-	}
-	
 	FLinearColor Color = InactiveColor;
 	FLinearColor EmissiveColor = InactiveEmissiveColor;
+	
 	if (GimmickStateTag == VigilantMissionTags::GimmickCompleted)
 	{
 		Color = CompleteColor;

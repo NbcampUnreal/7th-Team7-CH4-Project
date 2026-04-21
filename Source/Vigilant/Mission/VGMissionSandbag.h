@@ -23,10 +23,7 @@ class VIGILANT_API AVGMissionSandbag : public AActor
 
 public:
 	AVGMissionSandbag();
-	// 데미지를 입힌 플레이어를 추적하기 위해 외부에서 직접 호출
-	UFUNCTION(BlueprintCallable)
-	void RegisterAttacker(AVGCharacterBase* Attacker);
-	
+
 	void ResetSandbag();
 	
 protected:
@@ -56,7 +53,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSandbagReseted OnSandbagReseted;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Sandbag")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Stat")
 	TObjectPtr<UVGStatComponent> StatComponent;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission")
@@ -66,17 +63,10 @@ protected:
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	
 	// 마지막으로 데미지를 준 플레이어 — 서버 전용
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Attack")
 	TObjectPtr<AVGCharacterBase> LastAttacker;
 	
-	// 마지막 피격 위치
-	UPROPERTY(Transient,Replicated)
-	FVector LastHitLocation;
-	// 마지막 피격 노말
-	UPROPERTY(Transient,Replicated)
-	FVector LastHitNormal;
-	
 	// HP 바 표시용 — Replicated
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHPRatio, Category = "Mission|Samdbag")
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentHPRatio, Category = "Mission|Sandbag")
 	float CurrentHPRatio = 1.f;
 };

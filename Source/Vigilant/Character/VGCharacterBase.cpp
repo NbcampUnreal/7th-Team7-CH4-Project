@@ -5,6 +5,7 @@
 #include "Character/Component/VGHiddenPocketComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Component/VGCombatComponent.h"
+#include "Component/VGEquipmentComponent.h"
 #include "Component/VGLockOnComponent.h"
 #include "Component/VGStatComponent.h"
 #include "Core/Interface/VGGameModeInterface.h"
@@ -64,6 +65,7 @@ AVGCharacterBase::AVGCharacterBase()
 	CameraBoom->bEnableCameraLag = false;
 	CameraBoom->bEnableCameraRotationLag = false;
 
+	
 	// create the orbiting camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -114,10 +116,12 @@ void AVGCharacterBase::PawnClientRestart()
 		{
 			if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
 			{
-				//스탯컴포넌트와 UI매니저 바인딩
+				//스탯컴포넌트와 UI매니저 바인딩 - 컨트롤러를 통해 UIManager에 접근하는게 Best지만..
 				StatComponent->OnStaminaChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::OnStaminaUpdate);
 				StatComponent->OnHPChanged.AddDynamic(UIManager, &UVGUIManagerSubsystem::OnHealthUpdate);
-
+				
+				
+				
 				//초기값 설정 요청
 				UIManager->OnStaminaUpdate(StatComponent->GetCurrentStamina(), StatComponent->GetMaxStamina());
 				UIManager->OnHealthUpdate(StatComponent->GetCurrentHP(), StatComponent->GetMaxHP());
@@ -133,6 +137,8 @@ void AVGCharacterBase::PawnClientRestart()
 			PlayerController->PlayerCameraManager->ViewPitchMin = -45.f;
 		}
 	}
+	
+	ApplyPlayerMesh();
 }
 //빙의 후 서버만 실행하는 생명주기 함수
 void AVGCharacterBase::PossessedBy(AController* NewController)

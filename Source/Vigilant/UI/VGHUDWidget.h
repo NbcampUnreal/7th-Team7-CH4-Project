@@ -25,6 +25,13 @@ public:
 	
 	virtual void NativeConstruct() override;
 	
+	
+	UFUNCTION(Category = "UI|Equipment")
+	void SetEquipIcon(int32 SlotIndex, UTexture2D* IconTexture);
+
+	UFUNCTION(Category = "UI|Equipment")
+	void ClearEquipIcon(int32 SlotIndex);
+	
 	UFUNCTION(Category = "UI")
 	void UpdateStaminaUI(float NewValue, float MaxValue);
     
