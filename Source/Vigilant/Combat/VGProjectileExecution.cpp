@@ -27,13 +27,13 @@ void UVGProjectileExecution::StartAttack()
 	}
 	
 	// 1. 로컬 탄약 확인
-	if (IVGAmmoProviderInterface* AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner()))
+	IVGAmmoProviderInterface* AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner());
+	if (AmmoProvider)
 	{
 		if (!AmmoProvider->HasAmmo())
 		{
 			return;
 		}
-		AmmoProvider->ConsumeAmmo();
 	}
 	
 	// 2. 카메라로부터 트레이스
@@ -72,4 +72,6 @@ void UVGProjectileExecution::StartAttack()
 	
 	// 4. 서버로 전송
 	CombatComponent->Server_SpawnProjectile(ProjectileClass, MuzzleLocation, SpawnRotation);
+	
+	AmmoProvider->ConsumeAmmo();
 }
