@@ -49,16 +49,17 @@ float AVGMissionSandbag::TakeDamage(float DamageAmount, struct FDamageEvent cons
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
-	if (StatComponent)
-	{
-		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
-	}
-	
 	// EventInstigator(Controller)에서 AVGCharacterBase를 꺼내 LastAttacker 갱신
 	if (HasAuthority() && EventInstigator)
 	{
 		LastAttacker = Cast<AVGCharacterBase>(EventInstigator->GetPawn());
 	}
+	
+	if (StatComponent)
+	{
+		StatComponent->ApplyDamageToStat(ActualDamage, EventInstigator);
+	}
+	
 	
 	return ActualDamage;
 }
