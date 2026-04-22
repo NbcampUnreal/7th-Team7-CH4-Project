@@ -14,7 +14,7 @@ UENUM()
 enum class EVGSandbagCounterState : uint8
 {
 	Idle       UMETA(DisplayName = "Idle"),       // 대기
-	Countering UMETA(DisplayName = "Countering"), // 회전 + 숙임 진행 중
+	Countering UMETA(DisplayName = "Countering"), // 회전 + 숙임 진행 / 충돌 판정 활성화 중
 	Hitting    UMETA(DisplayName = "Hitting"),    // 충돌 판정 활성화 중
 	Returning  UMETA(DisplayName = "Returning"),  // 원래 자세로 복귀 중
 };
@@ -47,7 +47,6 @@ protected:
 	// --- 반격 로직 함수들 ---
 	void StartCounter();		// 반격 시작(Server Only)
 	void UpdateCounter(float DeltaSeconds);		// 숙이기(Both)
-	void TriggerCounterHit();		// 판정 시작 (Server Only)
 	void UpdateCounterReturning(float DeltaTime);	// 복귀(Both)
 	void FinishCounter();		// 대기 상태로 복귀 (Server Only)
 	

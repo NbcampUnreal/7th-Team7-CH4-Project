@@ -12,7 +12,8 @@ AVGMissionCounterSandbag::AVGMissionCounterSandbag()
 	// 반격 판정 충돌체 — 평소엔 끔, TriggerCounterHit에서만 활성화
 	CounterHitBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CounterHitBox"));
 	CounterHitBox->SetupAttachment(MeshComponent);
-	CounterHitBox->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	CounterHitBox->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	CounterHitBox->SetGenerateOverlapEvents(true);
 	CounterHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -63,6 +64,8 @@ void AVGMissionCounterSandbag::OnCounterHitBoxOverlap_Implementation(UPrimitiveC
 		KnockbackDir * CounterKnockbackStrength,
 		true,   // bXYOverride
 		true);  // bZOverride
+	
+	UE_LOG(LogTemp, Warning, TEXT("Overlap Detected with: %s"), *OtherActor->GetName());
 }
 
 void AVGMissionCounterSandbag::StartCounter()
@@ -80,6 +83,7 @@ void AVGMissionCounterSandbag::StartCounter()
 	ToTarget.Z = 0.f;
 	TargetYaw  = ToTarget.Rotation().Yaw;
  
+	CounterHitBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	// 2. 상태 변경 (이 시점에 클라이언트로 데이터가 전송됨)
 	SetCounterState(EVGSandbagCounterState::Countering);
 }
@@ -103,7 +107,13 @@ void AVGMissionCounterSandbag::UpdateCounter(float DeltaTime)
 	// ── 3. 숙임 완료 판정 시서버에서 다음 단계로 전이) ───
 	if (HasAuthority() && CounterProgress >= 1.f)
 	{
-		TriggerCounterHit();
+		SetCounterState(EVGSandbagCounterState::Hitting);
+		GetWorldTimerManager().SetTimer(
+			CounterHitTimerHandle,
+			this,
+			&AVGMissionCounterSandbag::OnCounterHitTimerExpired,
+			CounterHitActiveDuration,
+			false);
 	}
 }
 
@@ -123,27 +133,6 @@ void AVGMissionCounterSandbag::UpdateCounterReturning(float DeltaTime)
 	{
 		FinishCounter();
 	}
-}
-
-void AVGMissionCounterSandbag::TriggerCounterHit()
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-	// 충돌체 활성화
-	CounterHitBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	
-	// Hitting 상태 → 클라이언트 OnRep에서 이펙트 처리
-	SetCounterState(EVGSandbagCounterState::Hitting);
- 
-	// CounterHitActiveDuration 후 복귀 상태로 전환
-	GetWorldTimerManager().SetTimer(
-		CounterHitTimerHandle,
-		this,
-		&AVGMissionCounterSandbag::OnCounterHitTimerExpired,
-		CounterHitActiveDuration,
-		false);
 }
 
 void AVGMissionCounterSandbag::FinishCounter()
