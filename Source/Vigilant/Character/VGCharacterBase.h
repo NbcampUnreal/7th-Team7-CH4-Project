@@ -120,6 +120,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Components|Combat")
 	FORCEINLINE UVGCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	
+	UFUNCTION(BlueprintCallable, Category = "Components|Stat")
+	FORCEINLINE UVGStatComponent* GetStatComponent() const { return StatComponent; }
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
