@@ -192,13 +192,18 @@ void UVGUIManagerSubsystem::ShowHUD()
 	{
 		CurrentHUDWidget->AddToViewport();
 	}
+	
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
 }
 
 void UVGUIManagerSubsystem::HideHUD()
 {
 	if (CurrentHUDWidget->IsInViewport())
 	{
-		CurrentHUDWidget->RemoveFromParent();
+		CurrentHUDWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
