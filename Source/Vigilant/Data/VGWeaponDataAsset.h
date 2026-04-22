@@ -5,6 +5,7 @@
 #include "VGWeaponDataAsset.generated.h"
 
 class UVGAttackExecution;
+class UNiagaraSystem;
 
 /**
  * 무기의 공격 관련 데이터를 담는 Data Asset.
@@ -14,10 +15,6 @@ class UVGAttackExecution;
  *
  * 플레이어의 맨손 공격 및 Boss 기본 공격에도 재사용되며,
  * 해당 경우 DropPriority 같은 Equipment 전용 필드는 무시됩니다.
- *
- * @note 원거리 무기가 필요하다면 이 클래스를 상속해 UVGRangedWeaponDataAsset을 만들고
- *       ProjectileClass 프로퍼티를 추가하면 됩니다.
- * @note 방패가 필요하다면 UVGEquipmentDataAsset을 직접 상속해 UVGShieldDataAsset을 만들면 됩니다.
  */
 UCLASS(BlueprintType)
 class VIGILANT_API UVGWeaponDataAsset : public UVGEquipmentDataAsset
@@ -27,6 +24,21 @@ class VIGILANT_API UVGWeaponDataAsset : public UVGEquipmentDataAsset
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Stats")
 	float BaseDamage;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Stats")
+	float LightAttackDamage = 15.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Stats")
+	float LightAttackStaminaCost = 10.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Stats")
+	float HeavyAttackDamage = 30.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Stats")
+	float HeavyAttackStaminaCost = 20.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Weapon|Movement")
+	bool bFaceCameraDuringAttack = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Stats", meta = (ClampMin = "0.1"))
 	float AttackSpeed = 1.0f;
@@ -45,4 +57,16 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Instanced, BlueprintReadOnly, Category = "Weapon|Execution")
 	TObjectPtr<UVGAttackExecution> AttackExecutionTemplate;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio")
+	TObjectPtr<USoundBase> SwingSound;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio")
+	TObjectPtr<USoundBase> HitSound;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visuals")
+	TObjectPtr<UNiagaraSystem> HitVFX;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visuals")
+	TSubclassOf<AActor> DummyProjectileClass;
 };
