@@ -23,6 +23,7 @@ void UVGStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UVGStatComponent, CurrentHP);
+	DOREPLIFETIME(UVGStatComponent, MaxHP);
 	DOREPLIFETIME(UVGStatComponent, bIsAlive);
 	DOREPLIFETIME(UVGStatComponent, LastInstigator);
 	
@@ -253,6 +254,11 @@ void UVGStatComponent::OnRep_bIsAlive()
 	{
 		OnDead.Broadcast(LastInstigator);
 	}
+}
+
+void UVGStatComponent::OnRep_MaxHP()
+{
+	OnHPChanged.Broadcast(CurrentHP, MaxHP);
 }
 
 void UVGStatComponent::OnRep_CurrentHP(float OldHP)

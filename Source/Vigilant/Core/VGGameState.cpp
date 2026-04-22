@@ -10,6 +10,9 @@ AVGGameState::AVGGameState()
 	PhaseEndTime = 0.0f;
 	PhaseStartTime = 0.0f;
 	BossNerfRate = 1.0f;
+	VotedPlayerName = TEXT("");
+	VotedPlayerIndex = -1;
+	bIsVoteTie = false;
 }
 
 void AVGGameState::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -56,6 +59,9 @@ void AVGGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVGGameState, PhaseEndTime);
 	DOREPLIFETIME(AVGGameState, PhaseStartTime);
 	DOREPLIFETIME(AVGGameState, BossNerfRate);
+	DOREPLIFETIME(AVGGameState, VotedPlayerName);
+	DOREPLIFETIME(AVGGameState, VotedPlayerIndex);
+	DOREPLIFETIME(AVGGameState, bIsVoteTie);
 }
 
 void AVGGameState::OnRep_CurrentPhaseTag()
@@ -81,17 +87,28 @@ void AVGGameState::OnRep_BossNerfRate()
 	OnBossNerfUpdated.Broadcast(BossNerfRate);
 }
 
+void AVGGameState::OnRep_PhaseStartTime()
+{
+	OnPhaseTimeChanged.Broadcast();
+}
+
 void AVGGameState::OnRep_PhaseEndTime(float OldEndTime)
 {
 	if (PhaseEndTime < OldEndTime)
 	{
 		// 미션 깨서 시간이 줄어든 경우
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameState] 시간이 단축되었습니다! (이전: %.1f -> 현재: %.1f)"), OldEndTime, PhaseEndTime);
-		OnPhaseEndTimeChanged.Broadcast(PhaseEndTime);
 	}
 	else if (PhaseEndTime > OldEndTime)
 	{
 		// 막고라 다녀온 경우
 		UE_LOG(LogTemp, Log, TEXT("[VGGameState] 페이즈 시간이 연장되었습니다. (이전: %.1f -> 현재: %.1f)"), OldEndTime, PhaseEndTime);
 	}
+	
+	OnPhaseTimeChanged.Broadcast();
+}
+
+void AVGGameState::Multicast_PlayVoteResultCinematic_Implementation(int32 TargetEntryIndex)
+{
+	OnVoteResultCinematic.Broadcast(TargetEntryIndex);
 }

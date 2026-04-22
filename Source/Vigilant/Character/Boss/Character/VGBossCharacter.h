@@ -33,6 +33,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vigilant|Input")
 	class UInputAction* SkillAction_E;
+	
+	// 미션과 투표 결과에 따라 달라질 스택 적용할 용도
+	void ApplyNerfAndInitStat(float NerfRate);
 
 protected:
 	virtual void BeginPlay() override;

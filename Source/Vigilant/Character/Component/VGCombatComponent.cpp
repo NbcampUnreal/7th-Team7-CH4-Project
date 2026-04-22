@@ -122,6 +122,14 @@ UMeshComponent* UVGCombatComponent::GetActiveTraceMesh() const
 	return ActiveTraceMesh.IsValid() ? ActiveTraceMesh.Get() : nullptr;
 }
 
+void UVGCombatComponent::SetDamageMultiplier(float NewMultiplier)
+{
+	if (GetOwner()->HasAuthority())
+	{
+		DamageMultiplier = NewMultiplier;
+	}
+}
+
 // ---------------------------------------------------------
 // INPUT & COMBO BUFFERING
 // ---------------------------------------------------------
@@ -375,10 +383,13 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 	float Distance = FVector::Distance(Owner->GetActorLocation(), HitActor->GetActorLocation());
 	if (Distance <= Data->MaxAttackRange)
 	{
+		// (이용호 추가) 데미지 배율 계산용
+		float FinalDamage = Data->BaseDamage * DamageMultiplier;
+		
 		UGameplayStatics::ApplyDamage
 		(
 			HitActor,
-			Data->BaseDamage,
+			FinalDamage,
 			Owner->GetInstigatorController(),
 			Owner,
 			nullptr
@@ -433,7 +444,9 @@ void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActo
 		
 		if (AVGProjectile* Projectile = Cast<AVGProjectile>(SpawnedActor))
 		{
-			Projectile->InitializeProjectile(Data->BaseDamage);
+			// // (이용호 추가) 데미지 배율 계산용
+			float FinalDamage = Data->BaseDamage * DamageMultiplier;
+			Projectile->InitializeProjectile(FinalDamage);
 		}
 	}
 }

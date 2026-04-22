@@ -124,7 +124,7 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 				UIManager->TransferMissionTimeData(StartTime, EndTime);
 
 				VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
-				VGGameState->OnPhaseEndTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeReduced);
+				VGGameState->OnPhaseTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeChanged);
 			}
 			else
 			{
@@ -260,7 +260,18 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 		VGUIManager->ShowVote();
 		VGUIManager->HideHUD();
 	}
-	// 투표 페이즈 아니면 닫음
+	else if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseCombat))
+	{
+		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
+		{
+			// 상단 게이지바 사이즈를 먼저 줄임
+			VGUIManager->SetHUDBarSizeByNerf(VGGameState->BossNerfRate);
+		}
+		
+		VGUIManager->StopMissionTimeData();
+		VGUIManager->ShowHUD();
+		VGUIManager->HideVote();
+	}
 	else
 	{
 		VGUIManager->HideVote();
@@ -274,7 +285,7 @@ void AVGPlayerController::TryBindGameState()
 	{
 		// 델리게이트 연결
 		VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
-		VGGameState->OnPhaseEndTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeReduced);
+		VGGameState->OnPhaseTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeChanged);
 
 		// UI 연동 안된 클라이언트도 연동
 		if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
@@ -320,14 +331,14 @@ void AVGPlayerController::Server_SendChatMessage_Implementation(const FString& C
 	}
 }
 
-void AVGPlayerController::HandleTimeReduced(float NewEndTime)
+void AVGPlayerController::HandleTimeChanged()
 {
 	if (UVGUIManagerSubsystem* VGUIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
 	{
 		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 		{
-			// 미션깨서 시간이 줄어들 때 UI 갱신
-			VGUIManager->TransferMissionTimeData(VGGameState->PhaseStartTime, NewEndTime, false);
+			// 미션 페이즈에서 페이즈 시작 시간이나 끝나는 시간이 달라졌을 때 실행(미션 완료, 막고라 끝)
+			VGUIManager->TransferMissionTimeData(VGGameState->PhaseStartTime, VGGameState->PhaseEndTime, false);
 		}
 	}
 }

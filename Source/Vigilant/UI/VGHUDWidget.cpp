@@ -75,6 +75,12 @@ void UVGHUDWidget::UpdateHealthUI(float NewValue, float MaxValue)
 
 void UVGHUDWidget::UpdateMissionUI(float NewValue, float MaxValue)
 {
+	// 보스 체력으로 퍼센트 적용
+	if (MissionProgress && MaxValue > 0.0f)
+	{
+		float HealthRatio = FMath::Clamp(NewValue / MaxValue, 0.0f, 1.0f);
+		MissionProgress->SetPercent(HealthRatio);
+	}
 }
 
 void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
@@ -100,7 +106,8 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Init)
 {
 	TargetStartTime = InStartTime;
-	if (Init == true)
+	// Init 값이 true 거나 들어온 EndTime 이 0.1f(막고라 페이즈같이 시간 제한이 없는 페이즈) 이면 초기화
+	if (Init == true || TargetNewEndTime < 0.0f)
 	{
 		TargetNewEndTime = InEndTime;
 		TargetOldEndTime = TargetNewEndTime;
@@ -128,6 +135,22 @@ void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Ini
 		
 		// 타이머 시작과 동시에 0초 차 지연 없이 UI를 즉시 1회 반영
 		UpdateTimePerSecond();
+	}
+}
+
+void UVGHUDWidget::SetMissionBarContract(float NerfRate)
+{
+	if (!TimerBarSize) return;
+
+	if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
+	{
+		float NewBarRate = 1 + (1 - NerfRate);
+		float NewOffsetSize = 360.0f * NewBarRate;
+        
+		FMargin CurrentOffsets = CanvasSlot->GetOffsets();
+		CurrentOffsets.Right = NewOffsetSize; 
+		CanvasSlot->SetOffsets(CurrentOffsets);
+		
 	}
 }
 

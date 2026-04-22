@@ -58,7 +58,7 @@ void AVGGameMode::PreLogin(const FString& Options, const FString& Address, const
 	}
 
 	// 서버에 이미 6명이 있을 때
-	if (ConnectedPlayerCount >= 6)
+	if (GetNumPlayers() >= 6)
 	{
 		ErrorMessage = TEXT("Server is full (Max 6 Players).");
 		return;
@@ -158,8 +158,6 @@ FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const
 
 void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	
-	
 	//랜덤숫자 나눠주기
 	if (AVGPlayerState* VGPlayerState = NewPlayer->GetPlayerState<AVGPlayerState>())
 	{
@@ -171,16 +169,13 @@ void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 	
 	Super::PostLogin(NewPlayer);
 
-	ConnectedPlayerCount++;
 	UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 플레이어 접속 완료. 배정된 번호: %d"),
 	       NewPlayer->GetPlayerState<AVGPlayerState>()->EntryIndex);
-
-
 }
 
 void AVGGameMode::Logout(AController* Exiting)
 {
-	AVGPlayerState* ExitingPlayerState = Exiting->GetPlayerState<AVGPlayerState>();
+  AVGPlayerState* ExitingPlayerState = Exiting->GetPlayerState<AVGPlayerState>();
 	if (ExitingPlayerState)
 	{
 		// 해당되는 슬롯 비우기
@@ -189,39 +184,39 @@ void AVGGameMode::Logout(AController* Exiting)
 		{
 			bSlotOccupied[ReleasedIndex] = false;
 		}
+		
+		if (bGameHasStarted)
+		{
+			if (ExitingPlayerState->IsRole(VigilantRoleTags::Mafia))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("마피아 탈주!"));
+				CheckWinCondition();
+			}
+			else if (ExitingPlayerState->IsRole(VigilantRoleTags::Citizen))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("시민 %s 탈주!"), *ExitingPlayerState->VGPlayerName);
+				CheckWinCondition();
+			}
+		}
 	}
-
-	if (bGameHasStarted)
+	
+	Super::Logout(Exiting);
+	
+	int32 RemainingPlayers = GetNumPlayers();
+	
+	// 서버에서 모두 나갔으면
+	if (RemainingPlayers == 0)
 	{
-		if (ExitingPlayerState->IsRole(VigilantRoleTags::Mafia))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("마피아 탈주!"));
-			CheckWinCondition();
-		}
-		else if (ExitingPlayerState->IsRole(VigilantRoleTags::Citizen))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("시민 %s 탈주!"), *ExitingPlayerState->VGPlayerName);
-			CheckWinCondition();
-		}
+		UE_LOG(LogTemp, Error, TEXT("[VGGameMode] 모든 플레이어가 퇴장했습니다. 방을 초기화합니다."));
+		GetWorld()->ServerTravel(TEXT("?Restart"), false); 
 	}
-
-	ConnectedPlayerCount = FMath::Max(0, ConnectedPlayerCount - 1);
-
+	
 	// 레디 중인 사람이 나갔을 때를 위한 체크 
 	if (!bGameHasStarted)
 	{
 		// 다시 전인원 레디 여부 판정
 		CheckAllPlayersReady();
 	}
-
-	// 서버에서 모두 나갔으면
-	if (ConnectedPlayerCount == 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[VGGameMode] 모든 플레이어가 퇴장했습니다. 방을 초기화합니다."));
-		GetWorld()->ServerTravel(TEXT("?Restart"), false);
-	}
-
-	Super::Logout(Exiting);
 }
 
 void AVGGameMode::TransitionToPhase(TSubclassOf<class UVGPhaseBase> NextPhase)
@@ -431,7 +426,7 @@ bool AVGGameMode::CanPlayerTakeDamage_Implementation(AActor* DamageCauser, class
 void AVGGameMode::HandleMatchFinished()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 모든 페이즈 종료. 서버 트래블 초기화 시작"));
-	GetWorld()->ServerTravel(TEXT("/Game/Vigilant/Levels/MainLevel_WP?listen"));
+	GetWorld()->ServerTravel(TEXT("/Game/Vigilant/Levels/NewWorld_WP?listen"));
 }
 
 int32 AVGGameMode::AssignPlayerSlot(class AVGPlayerState* VGPlayerState)
