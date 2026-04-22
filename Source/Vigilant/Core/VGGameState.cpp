@@ -10,6 +10,9 @@ AVGGameState::AVGGameState()
 	PhaseEndTime = 0.0f;
 	PhaseStartTime = 0.0f;
 	BossNerfRate = 1.0f;
+	VotedPlayerName = TEXT("");
+	VotedPlayerIndex = -1;
+	bIsVoteTie = false;
 }
 
 void AVGGameState::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -56,6 +59,9 @@ void AVGGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVGGameState, PhaseEndTime);
 	DOREPLIFETIME(AVGGameState, PhaseStartTime);
 	DOREPLIFETIME(AVGGameState, BossNerfRate);
+	DOREPLIFETIME(AVGGameState, VotedPlayerName);
+	DOREPLIFETIME(AVGGameState, VotedPlayerIndex);
+	DOREPLIFETIME(AVGGameState, bIsVoteTie);
 }
 
 void AVGGameState::OnRep_CurrentPhaseTag()
@@ -100,4 +106,9 @@ void AVGGameState::OnRep_PhaseEndTime(float OldEndTime)
 	}
 	
 	OnPhaseTimeChanged.Broadcast();
+}
+
+void AVGGameState::Multicast_PlayVoteResultCinematic_Implementation(int32 TargetEntryIndex)
+{
+	OnVoteResultCinematic.Broadcast(TargetEntryIndex);
 }
