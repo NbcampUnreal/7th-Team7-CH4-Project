@@ -35,7 +35,7 @@ protected:
 		TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	// 카운터 전용 충돌체에 충돌시의 동작
-	UFUNCTION()
+	UFUNCTION(BlueprintNativeEvent)
 	void OnCounterHitBoxOverlap(
 		UPrimitiveComponent* OverlappedComponent,
 		AActor*              OtherActor,
@@ -44,30 +44,35 @@ protected:
 		bool                 bFromSweep,
 		const FHitResult&    SweepResult);
 	
-	void StartCounter();
-	void UpdateCounter(float DeltaSeconds);
-	void UpdateCounterReturning(float DeltaTime);
-	void TriggerCounterHit();
-	void FinishCounter();
+	// --- 반격 로직 함수들 ---
+	void StartCounter();		// 반격 시작(Server Only)
+	void UpdateCounter(float DeltaSeconds);		// 숙이기(Both)
+	void TriggerCounterHit();		// 판정 시작 (Server Only)
+	void UpdateCounterReturning(float DeltaTime);	// 복귀(Both)
+	void FinishCounter();		// 대기 상태로 복귀 (Server Only)
+	
+	UFUNCTION()
+	void OnCounterHitTimerExpired();   // 타이머 종료 후 Returning으로 전환용
 	
 	void SetCounterState(EVGSandbagCounterState NewState);
-	
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	
-protected:
-	virtual void OnDead(AController* LastInstigator) override;
-	virtual void OnHPChanged(float NewHP, float MaxHP) override;
-	
+		
 	UFUNCTION()
 	void OnRep_CounterState();
 	
 	UFUNCTION()
 	void OnRep_HitCount();
 	
+	virtual void OnDead(AController* LastInstigator) override;
+	virtual void OnHPChanged(float NewHP, float MaxHP) override;
+
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnChangeCounterState(EVGSandbagCounterState CurrentState);
+	
+public:
+	virtual void Tick(float DeltaTime) override;
+	
+protected:
 	
 protected:
 	// 카운터 전용 충돌체
@@ -111,9 +116,11 @@ protected:
 	float CounterProgress;
 	
 	// 반격 대상을 바라보는 Yaw
+	UPROPERTY(Replicated)
 	float TargetYaw = 0.f;
 	
 	// 숙이기 시작한 각도
+	UPROPERTY(Replicated)
 	float StartRoll = 0.f;
 	
 	// 카운터 충돌체 비활성을 위한 타이머

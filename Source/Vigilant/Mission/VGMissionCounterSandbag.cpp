@@ -7,7 +7,6 @@
 AVGMissionCounterSandbag::AVGMissionCounterSandbag()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	
 	bReplicates = true;
 	
 	// 반격 판정 충돌체 — 평소엔 끔, TriggerCounterHit에서만 활성화
@@ -34,9 +33,11 @@ void AVGMissionCounterSandbag::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ThisClass, CounterState);
+	DOREPLIFETIME(ThisClass, TargetYaw);
+	DOREPLIFETIME(ThisClass, StartRoll);
 }
 
-void AVGMissionCounterSandbag::OnCounterHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AVGMissionCounterSandbag::OnCounterHitBoxOverlap_Implementation(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!HasAuthority() || OtherActor == this)
@@ -66,40 +67,31 @@ void AVGMissionCounterSandbag::OnCounterHitBoxOverlap(UPrimitiveComponent* Overl
 
 void AVGMissionCounterSandbag::StartCounter()
 {
-	if (!IsValid(LastAttacker))
+	if (!HasAuthority() || !IsValid(LastAttacker))
 	{
 		return;
 	}
 	
-	// 숙임 시작 전 현재 Roll 기록
+	// 1. 서버에서 회전 목표값 및 시작 각도 계산
 	StartRoll = MeshComponent->GetRelativeRotation().Roll;
 	CounterProgress = 0.f;
- 
-	// LastAttacker 방향의 Yaw 계산
+	
 	FVector ToTarget = LastAttacker->GetActorLocation() - GetActorLocation();
 	ToTarget.Z = 0.f;
 	TargetYaw  = ToTarget.Rotation().Yaw;
  
-	if (HasAuthority())
-	{
-		UE_LOG(LogTemp, Log, TEXT("Authority [%s] StartCounter"), *GetName());
-		// Countering 상태로 전환 → 클라이언트 OnRep에서 비주얼 처리
-		SetCounterState(EVGSandbagCounterState::Countering);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] StartCounter"), *GetName());
-	}
+	// 2. 상태 변경 (이 시점에 클라이언트로 데이터가 전송됨)
+	SetCounterState(EVGSandbagCounterState::Countering);
 }
 
 void AVGMissionCounterSandbag::UpdateCounter(float DeltaTime)
 {
-	// ── 1. 액터 Yaw 회전 ─────────────────────────────────────────────────────
+	// ── 1. 액터 Yaw 회전 (공격자 바라보기) ──
 	FRotator CurrentRot = GetActorRotation();
 	FRotator TargetRot  = FRotator(CurrentRot.Pitch, TargetYaw, CurrentRot.Roll);
 	SetActorRotation(FMath::RInterpConstantTo(CurrentRot, TargetRot, DeltaTime, CounterRotationSpeed));
  
-	// ── 2. MeshComponent Roll 숙이기 ─────────────────────────────────────────
+	// ── 2. MeshComponent Roll 숙이기 (CounterProgress 사용) ──
 	CounterProgress = FMath::Clamp(
 		CounterProgress + DeltaTime / CounterTiltDuration,
 		0.f, 1.f);
@@ -108,8 +100,8 @@ void AVGMissionCounterSandbag::UpdateCounter(float DeltaTime)
 	MeshRot.Roll = FMath::Lerp(StartRoll, StartRoll + CounterTiltAngle, CounterProgress);
 	MeshComponent->SetRelativeRotation(MeshRot);
  
-	// ── 3. 숙임 완료 판정 ────────────────────────────────────────────────────
-	if (CounterProgress >= 1.f)
+	// ── 3. 숙임 완료 판정 시서버에서 다음 단계로 전이) ───
+	if (HasAuthority() && CounterProgress >= 1.f)
 	{
 		TriggerCounterHit();
 	}
@@ -117,96 +109,95 @@ void AVGMissionCounterSandbag::UpdateCounter(float DeltaTime)
 
 void AVGMissionCounterSandbag::UpdateCounterReturning(float DeltaTime)
 {	
-	// 올리기
+	//Roll 다시 세우기 (1.0 -> 0.0)
 	CounterProgress = FMath::Clamp(
 			CounterProgress - DeltaTime / CounterTiltDuration,
 			0.f, 1.f);
 	
 	FRotator MeshRot = MeshComponent->GetRelativeRotation();
-	MeshRot.Roll = FMath::Lerp(StartRoll + CounterTiltAngle, StartRoll, CounterProgress);
+	MeshRot.Roll = FMath::Lerp(StartRoll, StartRoll + CounterTiltAngle, CounterProgress);
 	MeshComponent->SetRelativeRotation(MeshRot);
  
-	// ── 3. 숙임 완료 판정 ────────────────────────────────────────────────────
-	if (CounterProgress <= 0.f)
+	// 복귀 완료 시 서버에서 종료 처리
+	if (HasAuthority() && CounterProgress <= 0.f)
 	{
-		CounterProgress = 0.f;
 		FinishCounter();
 	}
 }
 
 void AVGMissionCounterSandbag::TriggerCounterHit()
 {
-	if (HasAuthority())
+	if (!HasAuthority())
 	{
-		UE_LOG(LogTemp, Log, TEXT("Authority [%s] TriggerCounterHit"), *GetName());
-		// 충돌체 활성화
-		CounterHitBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		return;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] TriggerCounterHit"), *GetName());
-	}
+	// 충돌체 활성화
+	CounterHitBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	
 	// Hitting 상태 → 클라이언트 OnRep에서 이펙트 처리
 	SetCounterState(EVGSandbagCounterState::Hitting);
  
-	// CounterHitActiveDuration 후 종료
+	// CounterHitActiveDuration 후 복귀 상태로 전환
 	GetWorldTimerManager().SetTimer(
 		CounterHitTimerHandle,
 		this,
-		&AVGMissionCounterSandbag::FinishCounter,
+		&AVGMissionCounterSandbag::OnCounterHitTimerExpired,
 		CounterHitActiveDuration,
 		false);
 }
 
 void AVGMissionCounterSandbag::FinishCounter()
 {
-	if (HasAuthority())
-	{
-		UE_LOG(LogTemp, Log, TEXT("Authority [%s] FinishCounter"), *GetName());
-		// 충돌체 비활성화
-		CounterHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		CounterdCharacters.Empty();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("[%s] FinishCounter"), *GetName());
-	}
- 
-	// Mesh Roll 원래 값으로 복귀
-	FRotator MeshRot = MeshComponent->GetRelativeRotation();
-	MeshRot.Roll     = StartRoll;
-	MeshComponent->SetRelativeRotation(MeshRot);
- 
-	// Idle로 전환
-	SetCounterState(EVGSandbagCounterState::Idle);
-	
-}
-
-void AVGMissionCounterSandbag::SetCounterState(EVGSandbagCounterState NewState)
-{
-	// 서버 전용
 	if (!HasAuthority())
 	{
 		return;
 	}
-	CounterState = NewState;
- 
-	// UE는 서버 자신의 ReplicatedUsing 콜백을 자동 호출하지 않으므로 직접 호출
-	OnRep_CounterState();
+	
+	// Idle로 전환
+	SetCounterState(EVGSandbagCounterState::Idle);
+}
+
+void AVGMissionCounterSandbag::OnCounterHitTimerExpired()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	// 서버: 충돌체 끄고 Returning 상태로 변경
+	CounterHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CounterdCharacters.Empty();
+    
+	SetCounterState(EVGSandbagCounterState::Returning);
+}
+
+void AVGMissionCounterSandbag::SetCounterState(EVGSandbagCounterState NewState)
+{
+	if (HasAuthority())
+	{
+		CounterState = NewState;
+		OnRep_CounterState(); // 서버도 콜백 직접 호출
+	}
 }
 
 void AVGMissionCounterSandbag::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (CounterState == EVGSandbagCounterState::Countering)
+	switch (CounterState)
 	{
-		UpdateCounter(DeltaTime);
-	}
-	else if (CounterState  == EVGSandbagCounterState::Returning)
-	{
-		UpdateCounterReturning(DeltaTime);
+	case EVGSandbagCounterState::Countering:
+		{
+			UpdateCounter(DeltaTime);
+		}
+		break;
+	case EVGSandbagCounterState::Returning:
+		{
+			UpdateCounterReturning(DeltaTime);
+		}
+		break;
+	default:
+		break;
 	}
 }
 
