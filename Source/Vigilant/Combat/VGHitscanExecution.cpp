@@ -55,7 +55,7 @@ void UVGHitscanExecution::StartAttack()
 	FHitResult HitResult;
 	if (UWorld* World = GetWorld())
 	{
-		bool bHit = World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Pawn, QueryParams);
+		bool bHit = World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 		if (bHit && HitResult.GetActor())
 		{
 			CombatComponent->Server_ProcessHit(HitResult);
