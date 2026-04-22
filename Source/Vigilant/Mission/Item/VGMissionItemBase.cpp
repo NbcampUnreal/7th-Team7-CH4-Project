@@ -37,8 +37,11 @@ void AVGMissionItemBase::SetStateTag(FGameplayTag NewStateTag)
 bool AVGMissionItemBase::CanInteractWith(AActor* Interactor) const
 {
 	// 이미 누군가 들고 있으면 상호작용 불가
-	if (IsCarried()) return false;
-
+	if (IsCarried())
+	{
+		return false;
+	}
+	
 	// 이미 사용됐거나 놓인 상태면 불가
 	if (ItemStateTag != VigilantMissionTags::ItemInactive) return false;
 
