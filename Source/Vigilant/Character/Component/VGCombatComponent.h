@@ -58,10 +58,13 @@ public:
 	
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ProcessHit(AActor* HitActor);
+	void Server_ProcessHit(const FHitResult& HitResult);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SpawnProjectile(TSubclassOf<AActor> ProjectileClass, const FVector& SpawnLocation, const FRotator& SpawnRotation);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayImpactFeedback(const FHitResult& HitResult, UVGWeaponDataAsset* WeaponData);
 	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	UVGShieldDataAsset* GetCurrentShieldData() const;
