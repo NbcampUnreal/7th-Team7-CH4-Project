@@ -106,16 +106,20 @@ void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Init)
 {
 	TargetStartTime = InStartTime;
+	
+	float CalculatedDuration = InEndTime - InStartTime;
+	if (!bIsDurationSet && CalculatedDuration > 1.0f)
+	{
+		OriginalPhaseDuration = CalculatedDuration; 
+		bIsDurationSet = true;
+	}
+	
 	// Init 값이 true 거나 들어온 EndTime 이 0.1f(막고라 페이즈같이 시간 제한이 없는 페이즈) 이면 초기화
 	if (Init == true || TargetNewEndTime < 0.0f)
 	{
 		TargetNewEndTime = InEndTime;
-		TargetOldEndTime = TargetNewEndTime;
 	}
-	if (!FMath::IsNearlyEqual(TargetNewEndTime, InEndTime))
-	{
-		TargetOldEndTime = TargetNewEndTime;
-	}
+	
 	TargetNewEndTime = InEndTime;
 	
 	
@@ -140,12 +144,12 @@ void UVGHUDWidget::SetPhaseTimeData(float InStartTime, float InEndTime, bool Ini
 
 void UVGHUDWidget::SetMissionBarContract(float NerfRate)
 {
-	if (!TimerBarSize) return;
+	if (!TimerBarSize || NerfRate <= 0.0f) return;
 
 	if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 	{
-		float NewBarRate = 1 + (1 - NerfRate);
-		float NewOffsetSize = 360.0f * NewBarRate;
+		float OffsetSizeRatio = 2.0f - NerfRate; 
+		float NewOffsetSize = 360.0f * OffsetSizeRatio;
         
 		FMargin CurrentOffsets = CanvasSlot->GetOffsets();
 		CurrentOffsets.Right = NewOffsetSize; 
@@ -171,7 +175,6 @@ void UVGHUDWidget::UpdateTimePerSecond()
 	float CurrentTime = BaseGameState ? BaseGameState->GetServerWorldTimeSeconds() : GetWorld()->GetTimeSeconds();
 
 	float TotalTime = TargetNewEndTime - TargetStartTime;
-	float OldTotalTime = TargetOldEndTime - TargetStartTime;
 	float ElapsedTime = CurrentTime - TargetStartTime;
 
 	if (TotalTime > 0.f)
@@ -181,11 +184,13 @@ void UVGHUDWidget::UpdateTimePerSecond()
 		// 프로그레스 바 업데이트
 		MissionProgress->SetPercent(MissionTimeRatio);
 
-		float OffsetSizeRaito = OldTotalTime/TotalTime;
+		float CurrentNerfRate = TotalTime / OriginalPhaseDuration; 
+		float OffsetSizeRatio = 2.0f - CurrentNerfRate;
+		
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 		{
 			FMargin CurrentOffsets = CanvasSlot->GetOffsets();
-			CurrentOffsets.Right = 360.0f * OffsetSizeRaito;
+			CurrentOffsets.Right = 360.0f * OffsetSizeRatio;
 			CanvasSlot->SetOffsets(CurrentOffsets);
 		}
 

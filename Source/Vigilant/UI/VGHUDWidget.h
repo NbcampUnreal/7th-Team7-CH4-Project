@@ -92,6 +92,11 @@ public:
 	float TargetStartTime = -1.f;
 	float TargetNewEndTime = -1.f;
 	float TargetOldEndTime = -1.f;
+	// (이용호 추가) 기존 페이즈의 길이 저장용
+	float OriginalPhaseDuration = -1.0f;
+	// 최초 1회만 저장하도록 하기위한 불변수
+	bool bIsDurationSet = false;
+	
 	
 	UFUNCTION()
 	void PauseUpdateTimer();

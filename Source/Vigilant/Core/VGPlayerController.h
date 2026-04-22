@@ -70,6 +70,9 @@ protected:
 	void HandleUIByPhase(FGameplayTag NewPhaseTag);
 	UFUNCTION()
 	void HandleTimeChanged();
+	// 보스 스탯 업데이트 수신용
+	UFUNCTION()
+	void HandleBossNerfUpdated(float NewBossRate);
 	
 	// GameState 대기용
 	FTimerHandle BindTimerHandle;

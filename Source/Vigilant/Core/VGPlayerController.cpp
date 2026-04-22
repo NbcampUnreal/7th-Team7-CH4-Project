@@ -125,6 +125,7 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 
 				VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
 				VGGameState->OnPhaseTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeChanged);
+				VGGameState->OnBossNerfUpdated.AddUniqueDynamic(this, &AVGPlayerController::HandleBossNerfUpdated);
 			}
 			else
 			{
@@ -262,14 +263,15 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 	}
 	else if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseCombat))
 	{
+		VGUIManager->StopMissionTimeData();
+		VGUIManager->ShowHUD();
+		
 		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 		{
 			// 상단 게이지바 사이즈를 먼저 줄임
 			VGUIManager->SetHUDBarSizeByNerf(VGGameState->BossNerfRate);
 		}
 		
-		VGUIManager->StopMissionTimeData();
-		VGUIManager->ShowHUD();
 		VGUIManager->HideVote();
 	}
 	else
@@ -286,6 +288,7 @@ void AVGPlayerController::TryBindGameState()
 		// 델리게이트 연결
 		VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
 		VGGameState->OnPhaseTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeChanged);
+		VGGameState->OnBossNerfUpdated.AddUniqueDynamic(this, &AVGPlayerController::HandleBossNerfUpdated);
 
 		// UI 연동 안된 클라이언트도 연동
 		if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
@@ -339,6 +342,20 @@ void AVGPlayerController::HandleTimeChanged()
 		{
 			// 미션 페이즈에서 페이즈 시작 시간이나 끝나는 시간이 달라졌을 때 실행(미션 완료, 막고라 끝)
 			VGUIManager->TransferMissionTimeData(VGGameState->PhaseStartTime, VGGameState->PhaseEndTime, false);
+		}
+	}
+}
+
+void AVGPlayerController::HandleBossNerfUpdated(float NewBossRate)
+{
+	if (UVGUIManagerSubsystem* VGUIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
+	{
+		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
+		{
+			if (!VGGameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseMission))
+			{
+				VGUIManager->SetHUDBarSizeByNerf(NewBossRate);
+			}
 		}
 	}
 }
