@@ -1,6 +1,7 @@
 #include "Character/Component/VGCombatComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameplayTagAssetInterface.h"
+#include "VGStatComponent.h"
 #include "Combat/VGAmmoProviderInterface.h"
 #include "Combat/VGAttackExecution.h"
 #include "Combat/VGProjectile.h"
@@ -44,6 +45,8 @@ void UVGCombatComponent::BeginPlay()
 	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter && OwnerCharacter->GetMesh())
 	{
+		CachedStatComponent = OwnerCharacter->FindComponentByClass<UVGStatComponent>();
+		
 		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
 		if (AnimInstance)
 		{
@@ -159,6 +162,15 @@ void UVGCombatComponent::TryLightAttack()
 	{
 		return;
 	}
+	
+	// 스태미나 확인
+	if (CachedStatComponent.IsValid())
+	{
+		if (CachedStatComponent->GetCurrentStamina() < Data->LightAttackStaminaCost)
+		{
+			return;
+		}
+	}
 
 	// 3. 새로운 공격
 	CurrentComboIndex = 0;
@@ -189,9 +201,22 @@ void UVGCombatComponent::TryHeavyAttack()
 	}
 
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	if (!Data || !Data->HeavyAttackMontage)
+	{
+		return;
+	}
+	
 	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->HeavyAttackMontage))
 	{
 		return;
+	}
+	
+	if (CachedStatComponent.IsValid())
+	{
+		if (CachedStatComponent->GetCurrentStamina() < Data->LightAttackStaminaCost)
+		{
+			return;
+		}
 	}
 
 	CurrentComboIndex = 0;
@@ -205,6 +230,8 @@ void UVGCombatComponent::TryHeavyAttack()
 
 void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 {
+	bIsCurrentAttackHeavy = bIsHeavy;
+	
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (!Data)
 	{
@@ -301,6 +328,25 @@ void UVGCombatComponent::OnComboWindowClosed()
 
 void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 ExpectedComboIndex)
 {
+	// --- 0. Stamina Check & Consume ---
+	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	if (!Data)
+	{
+		return;
+	}
+	
+	if (CachedStatComponent.IsValid())
+	{
+		float RequiredStamina = bIsHeavy ? Data->HeavyAttackStaminaCost : Data->LightAttackStaminaCost;
+		if (CachedStatComponent->GetCurrentStamina() < RequiredStamina)
+		{
+			Client_CancelAttackPrediction();
+			return;
+		}
+		
+		CachedStatComponent->ConsumeStamina(RequiredStamina);
+	}
+	
 	// --- 1. Ammo Validation ---
 	if (UMeshComponent* TraceMesh = GetActiveTraceMesh())
 	{
@@ -319,15 +365,11 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 	PerformAttack(bIsHeavy);
 
 	// Multicast
-	UVGWeaponDataAsset* Data = GetCurrentCombatData();
-	if (Data)
-	{
-		UAnimMontage* MontageToPlay = bIsHeavy ? Data->HeavyAttackMontage : Data->LightAttackMontage;
-		FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
-		FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
+	UAnimMontage* MontageToPlay = bIsHeavy ? Data->HeavyAttackMontage : Data->LightAttackMontage;
+	FString SectionPrefix = bIsHeavy ? TEXT("Heavy") : TEXT("Light");
+	FName SectionName = FName(*FString::Printf(TEXT("%s%d"), *SectionPrefix, CurrentComboIndex + 1));
 
-		Multicast_PlayAttackMontage(MontageToPlay, SectionName, Data->AttackSpeed);
-	}
+	Multicast_PlayAttackMontage(MontageToPlay, SectionName, Data->AttackSpeed);
 }
 
 bool UVGCombatComponent::Server_TryAttack_Validate(bool bIsHeavy, int32 ExpectedComboIndex)
@@ -381,8 +423,9 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 	float Distance = FVector::Distance(Owner->GetActorLocation(), HitActor->GetActorLocation());
 	if (Distance <= Data->MaxAttackRange)
 	{
+		float AttackDamage = bIsCurrentAttackHeavy ? Data->HeavyAttackDamage : Data->LightAttackDamage;
 		// (이용호 추가) 데미지 배율 계산용
-		float FinalDamage = Data->BaseDamage * DamageMultiplier;
+		float FinalDamage = AttackDamage * DamageMultiplier;
 		
 		UGameplayStatics::ApplyDamage
 		(
@@ -439,8 +482,9 @@ void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActo
 		
 		if (AVGProjectile* Projectile = Cast<AVGProjectile>(SpawnedActor))
 		{
-			// // (이용호 추가) 데미지 배율 계산용
-			float FinalDamage = Data->BaseDamage * DamageMultiplier;
+			float AttackDamage = Data->LightAttackDamage;
+			// (이용호 추가) 데미지 배율 계산용
+			float FinalDamage = AttackDamage * DamageMultiplier;
 			Projectile->InitializeProjectile(FinalDamage);
 		}
 	}
