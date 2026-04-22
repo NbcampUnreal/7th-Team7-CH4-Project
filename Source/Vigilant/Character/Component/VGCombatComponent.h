@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "VGCombatComponent.generated.h"
 
+class UVGStatComponent;
 class UVGAttackExecution;
 class UVGShieldDataAsset;
 class UVGWeaponDataAsset;
@@ -123,17 +124,24 @@ private:
 	UPROPERTY(Replicated)
 	FGameplayTagContainer CurrentCombatTags;
 	
+	UPROPERTY(Transient)
+	TObjectPtr<UVGAttackExecution> CurrentExecution;
+	
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimMontage> ActiveAttackMontage;
+	
+	TWeakObjectPtr<UVGStatComponent> CachedStatComponent;
+	
 	int32 CurrentComboIndex = 0;
 	bool bCanChainCombo = false;
 	bool bHasBufferedAttack = false;
 	bool bIsBufferedAttackHeavy = false;
-	
-	UPROPERTY(Transient)
-	TObjectPtr<UVGAttackExecution> CurrentExecution;
+	bool bIsCurrentAttackHeavy = false;
 	
 	// (이용호 추가) 기본 데미지 배율
 	float DamageMultiplier = 1.0f;
 	
 private:
 	void InstantiateExecutionObject();
+	void SetCombatRotationMode(bool bIsAttacking);
 };
