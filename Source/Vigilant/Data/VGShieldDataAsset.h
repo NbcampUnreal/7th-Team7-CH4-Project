@@ -21,10 +21,4 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Stats")
 	float BlockStaminaDrainPerSecond = 5.0f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Audio")
-	TObjectPtr<USoundBase> BlockSound;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Audio")
-	TObjectPtr<USoundBase> ParrySound;
 };

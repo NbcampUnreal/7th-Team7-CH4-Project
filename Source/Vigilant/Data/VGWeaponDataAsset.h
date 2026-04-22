@@ -58,15 +58,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, Instanced, BlueprintReadOnly, Category = "Weapon|Execution")
 	TObjectPtr<UVGAttackExecution> AttackExecutionTemplate;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio")
-	TObjectPtr<USoundBase> SwingSound;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio")
-	TObjectPtr<USoundBase> HitSound;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visuals")
-	TObjectPtr<UNiagaraSystem> HitVFX;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visuals")
-	TSubclassOf<AActor> DummyProjectileClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Feedback")
+	TObjectPtr<USoundBase> ImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Feedback")
+	TObjectPtr<UNiagaraSystem> ImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Feedback")
+	TSubclassOf<AActor> DummyActorClass; 
 };
