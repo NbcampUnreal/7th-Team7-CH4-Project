@@ -127,6 +127,9 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UVGAttackExecution> CurrentExecution;
 	
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimMontage> ActiveAttackMontage;
+	
 	TWeakObjectPtr<UVGStatComponent> CachedStatComponent;
 	
 	int32 CurrentComboIndex = 0;
@@ -140,4 +143,5 @@ private:
 	
 private:
 	void InstantiateExecutionObject();
+	void SetCombatRotationMode(bool bIsAttacking);
 };

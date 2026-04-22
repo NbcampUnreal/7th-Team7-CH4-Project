@@ -36,6 +36,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Stats")
 	float HeavyAttackStaminaCost = 20.0f;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Weapon|Movement")
+	bool bFaceCameraDuringAttack = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Stats", meta = (ClampMin = "0.1"))
 	float AttackSpeed = 1.0f;

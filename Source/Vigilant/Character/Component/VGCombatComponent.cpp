@@ -9,6 +9,7 @@
 #include "Data/VGWeaponDataAsset.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
@@ -76,22 +77,18 @@ void UVGCombatComponent::OnRep_ActiveShieldData(UVGShieldDataAsset* OldData)
 
 void UVGCombatComponent::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	UVGWeaponDataAsset* Data = GetCurrentCombatData();
-	if (!Data)
+	if (Montage!= ActiveAttackMontage)
 	{
 		return;
 	}
 
-	bool bWasAttackMontage = (Montage == Data->LightAttackMontage || Montage == Data->HeavyAttackMontage);
-	if (!bWasAttackMontage)
-	{
-		return;
-	}
-
+	ActiveAttackMontage = nullptr;
 	bCanChainCombo = false;
 	bHasBufferedAttack = false;
 	CurrentComboIndex = 0;
 
+	SetCombatRotationMode(false);
+	
 	if (CurrentExecution)
 	{
 		CurrentExecution->StopAttack();
@@ -107,6 +104,32 @@ void UVGCombatComponent::InstantiateExecutionObject()
 	{
 		CurrentExecution = DuplicateObject(Data->AttackExecutionTemplate, this);
 		CurrentExecution->Initialize(this);
+	}
+}
+
+void UVGCombatComponent::SetCombatRotationMode(bool bIsAttacking)
+{
+	ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
+	if (!OwnerCharacter)
+	{
+		return;
+	}
+	
+	UCharacterMovementComponent* MovementComponent = OwnerCharacter->GetCharacterMovement();
+	if (!MovementComponent)
+	{
+		return;
+	}
+	
+	if (bIsAttacking)
+	{
+		MovementComponent->bOrientRotationToMovement = false;
+		MovementComponent->bUseControllerDesiredRotation = true;
+	}
+	else
+	{
+		MovementComponent->bUseControllerDesiredRotation = false;
+		MovementComponent->bOrientRotationToMovement = true;
 	}
 }
 
@@ -274,7 +297,13 @@ void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 	else
 	{
 		OwnerCharacter->PlayAnimMontage(MontageToPlay, Data->AttackSpeed, SectionName);
+		if (Data->bFaceCameraDuringAttack)
+		{
+			SetCombatRotationMode(true);
+		}
 	}
+	
+	ActiveAttackMontage = MontageToPlay;
 }
 
 // ---------------------------------------------------------
