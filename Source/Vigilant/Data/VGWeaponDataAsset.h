@@ -5,6 +5,7 @@
 #include "VGWeaponDataAsset.generated.h"
 
 class UVGAttackExecution;
+class UNiagaraSystem;
 
 /**
  * 무기의 공격 관련 데이터를 담는 Data Asset.
@@ -56,4 +57,16 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Instanced, BlueprintReadOnly, Category = "Weapon|Execution")
 	TObjectPtr<UVGAttackExecution> AttackExecutionTemplate;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio")
+	TObjectPtr<USoundBase> SwingSound;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Audio")
+	TObjectPtr<USoundBase> HitSound;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visuals")
+	TObjectPtr<UNiagaraSystem> HitVFX;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Visuals")
+	TSubclassOf<AActor> DummyProjectileClass;
 };
