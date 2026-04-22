@@ -6,6 +6,7 @@
 #include "Data/VGWeaponDataAsset.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 
 void UVGBossMeleeExecution::StartAttack()
 {
@@ -87,10 +88,21 @@ void UVGBossMeleeExecution::TickAttack()
 			for (const FHitResult& Hit : HitResults)
 			{
 				AActor* HitActor = Hit.GetActor();
-				if (HitActor && !BossHitActorsThisSwing.Contains(HitActor))
+				APawn* HitPawn = Cast<APawn>(HitActor);
+				
+				if (HitPawn && !BossHitActorsThisSwing.Contains(HitPawn))
 				{
-					BossHitActorsThisSwing.Add(HitActor);
-					CombatComp->Server_ProcessHit(HitActor);
+					BossHitActorsThisSwing.Add(HitPawn);
+					CombatComp->Server_ProcessHit(HitPawn);
+					
+					if (HitSound)
+					{
+						UGameplayStatics::PlaySoundAtLocation(
+							GetWorld(), 
+							HitSound, 
+							Hit.ImpactPoint
+						);
+					}
 				}
 			}
 		}

@@ -26,4 +26,7 @@ private:
 	TMap<FName, FVector> BossPrevSockets;
 
 	bool bIsFirstTick;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "SFX")
+	USoundBase* HitSound;
 };
