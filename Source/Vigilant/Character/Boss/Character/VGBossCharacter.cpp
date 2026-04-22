@@ -146,46 +146,11 @@ void AVGBossCharacter::PawnClientRestart()
 
 void AVGBossCharacter::Move(const FInputActionValue& Value)
 {
-	const FVector2D MovementVector = Value.Get<FVector2D>();
-
-	// 달리다가 S키(뒷걸음)를 누르면 브레이크
-	if (MovementVector.X < -0.1f)
-	{
-		if (CharacterTags.HasTag(VigilantCharacter::Sprint))
-		{
-			PerformStopSprint(); 
-			Server_StopSprint();
-		}
-	}
-	
-	else if (MovementVector.X > 0.1f)
-	{
-		// 유저가 아직 Shift 유지 상태고 현재 걷고 있는 상태면
-		if (bWantsToSprint && !CharacterTags.HasTag(VigilantCharacter::Sprint))
-		{
-			// 스태미나 확인 후 다시 달리기
-			if (StatComponent && StatComponent->GetCurrentStamina() >= MinStaminaToSprint)
-			{
-				PerformStartSprint();
-				Server_StartSprint();
-			}
-		}
-	}
-	
 	Super::Move(Value);
 }
 
 void AVGBossCharacter::StartSprint(const FInputActionValue& Value)
 {
-	// 뒤로 걷고 있는지 검사
-	FVector InputVector = GetCharacterMovement()->GetLastInputVector();
-	FVector ForwardDirection = FRotationMatrix(FRotator(0, GetControlRotation().Yaw, 0)).GetUnitAxis(EAxis::X);
-    
-	// 입력 방향이 컨트롤러 기준 뒤쪽인지 검사
-	if (FVector::DotProduct(InputVector, ForwardDirection) < -0.1f)
-	{
-		return;
-	}
 	Super::StartSprint(Value);
 }
 
