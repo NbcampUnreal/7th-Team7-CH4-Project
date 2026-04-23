@@ -57,7 +57,7 @@ void UVGProjectileExecution::StartAttack()
 	FVector TargetLocation;
 	
 	UWorld* World = GetWorld();
-	if (World && World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Pawn, QueryParams))
+	if (World && World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
 	{
 		TargetLocation = HitResult.ImpactPoint;
 	}
