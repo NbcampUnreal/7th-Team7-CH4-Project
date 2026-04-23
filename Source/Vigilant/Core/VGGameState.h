@@ -26,7 +26,9 @@ public:
 	AVGGameState();
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	
-
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
+	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+	
 	// UI가 바인드할 채널
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
 	FOnPhaseChanged OnPhaseChanged;
@@ -137,5 +139,9 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_PhaseEndTime(float OldEndTime);
+	
+private:
+	// 공통적으로 UI를 갱신할 헬퍼 함수
+	void UpdateUIInternal();
 	
 };

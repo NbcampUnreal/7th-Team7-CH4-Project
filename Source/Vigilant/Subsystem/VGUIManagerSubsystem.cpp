@@ -117,6 +117,15 @@ void UVGUIManagerSubsystem::ClearEquipIcon(int32 SlotIndex)
 	}
 }
 
+void UVGUIManagerSubsystem::UpdateReadyPeople(int32 ReadyPeople, int32 TotalPeople)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->UpdateReadyPeople(ReadyPeople, TotalPeople);
+	}
+	
+}
+
 void UVGUIManagerSubsystem::SetHiddenPocketIcon(UTexture2D* Icon)
 {
 	if (CurrentHUDWidget)
