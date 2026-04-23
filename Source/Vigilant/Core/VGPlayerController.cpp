@@ -143,6 +143,7 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 			if (bCanShowHUD)
 			{
 				UIManager->ShowHUD();
+				Client_UpdateReadyPeople_Implementation();
 			}
 
 			UIManager->OnChatMessageRequested.AddUniqueDynamic(this, &AVGPlayerController::OnChatMessageReceived);
