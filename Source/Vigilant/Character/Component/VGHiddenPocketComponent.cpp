@@ -32,7 +32,7 @@ void UVGHiddenPocketComponent::TogglePocket()
 	if (!PlayerState) return;
 	
 	// 마피아 태그가 없다면 아무 동작도 하지 않고 바로 종료
-	if (!PlayerState->HasPlayerTag(VigilantRoleTags::Mafia))
+	if (!PlayerState->IsRole(VigilantRoleTags::Mafia))
 	{
 		return; 
 	}
