@@ -148,7 +148,7 @@ void UVGHUDWidget::SetMissionBarContract(float NerfRate)
 
 	if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 	{
-		float OffsetSizeRatio = 2.0f - NerfRate; 
+		float OffsetSizeRatio = 1.0f + ((1.0f - NerfRate) * BarSizeMultiplier);
 		float NewOffsetSize = 360.0f * OffsetSizeRatio;
         
 		FMargin CurrentOffsets = CanvasSlot->GetOffsets();
@@ -183,9 +183,10 @@ void UVGHUDWidget::UpdateTimePerSecond()
 		
 		// 프로그레스 바 업데이트
 		MissionProgress->SetPercent(MissionTimeRatio);
-
+		
+		
 		float CurrentNerfRate = TotalTime / OriginalPhaseDuration; 
-		float OffsetSizeRatio = 2.0f - CurrentNerfRate;
+		float OffsetSizeRatio = 1.0f + ((1.0f - CurrentNerfRate) * BarSizeMultiplier);
 		
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 		{
