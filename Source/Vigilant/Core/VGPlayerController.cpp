@@ -235,6 +235,52 @@ void AVGPlayerController::ClearEquipIconUI(int32 SlotIndex)
 	}
 }
 
+void AVGPlayerController::UpdateHiddenPocketIconUI(UTexture2D* Icon)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->SetHiddenPocketIcon(Icon);
+		}
+	}
+}
+
+void AVGPlayerController::ClearHiddenPocketIconUI()
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->ClearHiddenPocketIcon();
+		}
+	}
+}
+
+void AVGPlayerController::UpdatePlayerNameUI(int32 PlayerIndex, const FString& PlayerName)
+{
+	PlayerNameInController = PlayerName;
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			// UIManager로 데이터 전달
+			UIManager->UpdatePlayerName(PlayerIndex, PlayerNameInController);
+		}
+	}
+}
+
+void AVGPlayerController::ShowRoleNotificationUI(FGameplayTag RoleTag)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->ShowRoleUI(RoleTag);
+		}
+  }
+}
+
 void AVGPlayerController::DisableInputForCinematic()
 {
 	if (APawn* MyPawn = GetPawn())

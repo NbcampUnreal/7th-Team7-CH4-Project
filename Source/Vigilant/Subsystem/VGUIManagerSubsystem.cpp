@@ -3,6 +3,7 @@
 
 #include "VGUIManagerSubsystem.h"
 
+#include "GameplayTagContainer.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
 #include "Components/Overlay.h"
@@ -113,6 +114,38 @@ void UVGUIManagerSubsystem::ClearEquipIcon(int32 SlotIndex)
 	if (CurrentHUDWidget)
 	{
 		CurrentHUDWidget->ClearEquipIcon(SlotIndex);
+	}
+}
+
+void UVGUIManagerSubsystem::SetHiddenPocketIcon(UTexture2D* Icon)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetHiddenPocketIcon(Icon);
+	}
+}
+
+void UVGUIManagerSubsystem::ClearHiddenPocketIcon()
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->ClearHiddenPocketIcon();
+	}
+}
+
+void UVGUIManagerSubsystem::UpdatePlayerName(int32 PlayerIndex, const FString& PlayerName)
+{
+	CachedPlayerNames.Add(PlayerIndex, PlayerName);
+	
+	UE_LOG(LogTemp, Warning, TEXT("[UIManager] %d번 플레이어 닉네임 저장 완료: %s"), PlayerIndex, *PlayerName);
+}
+
+void UVGUIManagerSubsystem::ShowRoleUI(FGameplayTag RoleTag)
+{
+	if (CurrentHUDWidget)
+	{
+		
+		CurrentHUDWidget->DisplayRole(RoleTag);
 	}
 }
 

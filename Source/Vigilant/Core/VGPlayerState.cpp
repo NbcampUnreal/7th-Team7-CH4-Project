@@ -1,4 +1,6 @@
 #include "Core/VGPlayerState.h"
+
+#include "Interface/VGUIControllerInterface.h"
 #include "Net/UnrealNetwork.h"
 
 AVGPlayerState::AVGPlayerState()
@@ -36,6 +38,15 @@ void AVGPlayerState::Client_ReceiveRole_Implementation(FGameplayTag AssignedRole
 	{
 		SecretRoleTag = AssignedRoleTag;
 	}
+	
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetOwner()))
+	{
+		// 인터페이스를 통해 UI에 직업 알림 지시
+		if (IVGUIControllerInterface* UIController = Cast<IVGUIControllerInterface>(PlayerController))
+		{
+			UIController->ShowRoleNotificationUI(AssignedRoleTag);
+		}
+	}
 }
 
 void AVGPlayerState::AddPlayerTag(const FGameplayTag& TagToAdd)
@@ -72,6 +83,18 @@ bool AVGPlayerState::IsRole(const FGameplayTag& RoleTagToCheck) const
 void AVGPlayerState::SetVGPlayerName(const FString& NewName)
 {
 	VGPlayerName = NewName;
+}
+
+void AVGPlayerState::OnRep_VGPlayerName()
+{
+	if (APlayerController* LocalPC = GetWorld()->GetFirstPlayerController())
+	{
+		if (IVGUIControllerInterface* UIController = Cast<IVGUIControllerInterface>(LocalPC))
+		{
+			// 몇 번째 플레이어(EntryIndex)인지와 이름 데이터를 인터페이스로 토스
+			UIController->UpdatePlayerNameUI(EntryIndex, VGPlayerName);
+		}
+	}
 }
 
 int32 AVGPlayerState::GetPlayerIndex() const
