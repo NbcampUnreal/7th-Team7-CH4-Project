@@ -286,7 +286,7 @@ void AVGGameMode::PopPhase()
 
 void AVGGameMode::CheckWinCondition()
 {
-	if (!bGameHasStarted) return;
+	if (!bGameHasStarted || bIsMatchEnding) return;
 
 	int32 AliveCitizen = 0;
 	int32 AliveMafia = 0;
@@ -329,11 +329,25 @@ void AVGGameMode::CheckWinCondition()
 
 	if (bGameOver)
 	{
-		if (PhaseStack.Num() > 0)
+		bIsMatchEnding = true;
+		// 카운트 초기화
+		ReadyPlayerCountForGameEnd = 0;
+
+		if (AVGGameState* VGGameState = GetGameState<AVGGameState>())
 		{
-			PhaseStack.Last()->ExecutePhaseResult();
+			VGGameState->WinnerTeamTag = WinnerTeam;
+			VGGameState->Multicast_PlayGameEndCinematic(WinnerTeam);
 		}
+
+		// 시네마틱 보다가 튕긴 사람 대비용 15초 타이머
+		GetWorld()->GetTimerManager().SetTimer(
+			GameEndFailSafeTimerHandle,
+			this,
+			&AVGGameMode::ExecuteGameEndSequence, 
+			15.0f,
+			false);
 	}
+	
 }
 
 void AVGGameMode::StartDuelPhase(AVGCharacterBase* Challenger, AVGCharacterBase* Target)
@@ -567,5 +581,62 @@ void AVGGameMode::RequestDuelPhase_Implementation(AVGCharacterBase* Challenger, 
 		{
 			UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 현재 미션 페이즈가 아니므로 막고라 요청이 무시되었습니다."));
 		}
+	}
+}
+
+void AVGGameMode::ReportVoteUIFinished()
+{
+	ReadyPlayerCountForCinematic++;
+
+	int32 TotalPlayers = 0;
+	if (GameState)
+	{
+		for (APlayerState* PlayerState : GameState->PlayerArray)
+		{
+			if (Cast<AVGPlayerState>(PlayerState)) TotalPlayers++;
+		}
+	}
+	
+	if (ReadyPlayerCountForCinematic >= TotalPlayers)
+	{
+        
+		if (AVGGameState* VGGameState = Cast<AVGGameState>(GameState))
+		{
+			VGGameState->Multicast_PlayVoteResultCinematic(VGGameState->VotedPlayerIndex);
+		}
+		
+		// 카운트 초기화
+		ReadyPlayerCountForCinematic = 0; 
+	}
+	
+}
+
+void AVGGameMode::ReportGameEndUIFinished()
+{
+	ReadyPlayerCountForGameEnd++;
+
+	int32 TotalPlayers = 0;
+	if (GameState)
+	{
+		for (APlayerState* PS : GameState->PlayerArray)
+		{
+			if (Cast<AVGPlayerState>(PS)) TotalPlayers++;
+		}
+	}
+
+	// 전부 다 봐서 총 인원과 카운트가 같을 때
+	if (ReadyPlayerCountForGameEnd >= TotalPlayers)
+	{
+		// 예비용 타이머 없앤 후 서버 트래블 시도
+		GetWorld()->GetTimerManager().ClearTimer(GameEndFailSafeTimerHandle);
+		ExecuteGameEndSequence();
+	}
+}
+
+void AVGGameMode::ExecuteGameEndSequence()
+{
+	if (PhaseStack.Num() > 0)
+	{
+		PhaseStack.Last()->ExecutePhaseResult();
 	}
 }
