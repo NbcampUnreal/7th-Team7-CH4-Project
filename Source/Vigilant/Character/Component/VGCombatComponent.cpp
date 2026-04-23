@@ -749,4 +749,18 @@ void UVGCombatComponent::Multicast_PlayShieldFeedback_Implementation(bool bIsPar
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, VFXToPlay, ImpactLocation, ImpactRotation);
 	}
+	
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn && OwnerPawn->IsLocallyControlled())
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController()))
+		{
+			TSubclassOf<UCameraShakeBase> ShakeToPlay = bIsParry ? ShieldData->ParryCameraShake : ShieldData->BlockCameraShake;
+			
+			if (ShakeToPlay)
+			{
+				PlayerController->ClientStartCameraShake(ShakeToPlay);
+			}
+		}
+	}
 }
