@@ -151,9 +151,12 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 			// 있으면 바로 연결
 			if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 			{
+				if (VGGameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseMission))
+				{
 				float StartTime = VGGameState->PhaseStartTime;
 				float EndTime = VGGameState->PhaseEndTime;
 				UIManager->TransferMissionTimeData(StartTime, EndTime);
+				}
 
 				VGGameState->OnPhaseChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleUIByPhase);
 				VGGameState->OnPhaseTimeChanged.AddUniqueDynamic(this, &AVGPlayerController::HandleTimeChanged);
@@ -424,7 +427,10 @@ void AVGPlayerController::TryBindGameState()
 		{
 			if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
 			{
+				if (VGGameState->CurrentPhaseTag.MatchesTag(VigilantPhaseTags::PhaseMission))
+				{
 				UIManager->TransferMissionTimeData(VGGameState->PhaseStartTime, VGGameState->PhaseEndTime);
+				}
 			}
 		}
 
