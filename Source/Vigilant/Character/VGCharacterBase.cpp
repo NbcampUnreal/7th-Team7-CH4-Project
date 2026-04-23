@@ -817,6 +817,12 @@ void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 	{
 		return;
 	}
+	
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController && TakeDamageCameraShake)
+	{
+		PlayerController->ClientStartCameraShake(TakeDamageCameraShake);
+	}
 
 	LaunchCharacter(PushDirection * KnockbackForce, true, true);
 	Multicast_PlayStaggerVisual();

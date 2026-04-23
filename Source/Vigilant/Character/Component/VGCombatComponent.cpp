@@ -574,6 +574,19 @@ void UVGCombatComponent::Multicast_PlayImpactFeedback_Implementation(const FHitR
 			Dummy->SetLifeSpan(10.0f);
 		}
 	}
+	
+	// 4. Camera Shake
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn && OwnerPawn->IsLocallyControlled())
+	{
+		if (APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController()))
+		{
+			if (WeaponData->HitCameraShake)
+			{
+				PlayerController->ClientStartCameraShake(WeaponData->HitCameraShake);
+			}
+		}
+	}
 }
 
 // ---------------------------------------------------------
@@ -756,7 +769,6 @@ void UVGCombatComponent::Multicast_PlayShieldFeedback_Implementation(bool bIsPar
 		if (APlayerController* PlayerController = Cast<APlayerController>(OwnerPawn->GetController()))
 		{
 			TSubclassOf<UCameraShakeBase> ShakeToPlay = bIsParry ? ShieldData->ParryCameraShake : ShieldData->BlockCameraShake;
-			
 			if (ShakeToPlay)
 			{
 				PlayerController->ClientStartCameraShake(ShakeToPlay);
