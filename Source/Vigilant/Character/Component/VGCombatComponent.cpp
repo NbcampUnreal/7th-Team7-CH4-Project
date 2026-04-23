@@ -750,3 +750,16 @@ void UVGCombatComponent::Multicast_PlayShieldFeedback_Implementation(bool bIsPar
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, VFXToPlay, ImpactLocation, ImpactRotation);
 	}
 }
+
+void UVGCombatComponent::Server_PlayHitSound_Implementation(USoundBase* Sound, FVector Location)
+{
+	Multicast_PlayHitSound(Sound, Location);
+}
+
+void UVGCombatComponent::Multicast_PlayHitSound_Implementation(USoundBase* Sound, FVector Location)
+{
+	if (Sound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Sound, Location);
+	}
+}
