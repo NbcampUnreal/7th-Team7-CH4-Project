@@ -374,7 +374,7 @@ void AVGGameMode::CheckWinCondition()
 			GameEndFailSafeTimerHandle,
 			this,
 			&AVGGameMode::ExecuteGameEndSequence, 
-			25.0f,
+			15.0f,
 			false);
 	}
 	
