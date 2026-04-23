@@ -96,7 +96,10 @@ protected:
 
 
 	void Hey();
-	
+	UFUNCTION(Server, Reliable) // 실행 자체는 확실히 서버에 전달되어야 하므로 Reliable
+	void Server_PlayHeySound();
+	UFUNCTION(NetMulticast, Unreliable) // 사운드 재생 명령은 Unreliable 권장
+	void Multicast_PlayHeySound(int32 SoundIndex);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
 	float DodgeForce = 600.0f;

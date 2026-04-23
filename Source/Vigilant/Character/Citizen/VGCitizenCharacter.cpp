@@ -13,7 +13,9 @@
 #include "Core/Interface/VGUIControllerInterface.h"
 #include "Data/VGShieldDataAsset.h"
 #include "Data/VGWeaponDataAsset.h"
+#include "Data/VGCharacterDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
 
 
@@ -117,6 +119,10 @@ void AVGCitizenCharacter::SetupPlayerInputComponent(class UInputComponent* Playe
 		{
 			EnhancedInput->BindAction(BlockAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::StartBlock);
 			EnhancedInput->BindAction(BlockAction, ETriggerEvent::Completed, this, &AVGCitizenCharacter::StopBlock);
+		}
+		if (HeyAction)
+		{
+			EnhancedInput->BindAction(HeyAction, ETriggerEvent::Started, this, &AVGCitizenCharacter::Hey);
 		}
 	}
 }
@@ -502,5 +508,45 @@ void AVGCitizenCharacter::ApplyGuardStaminaCost(bool bIsGuarding)
 
 void AVGCitizenCharacter::Hey()
 {
-	
+	if (!HasAuthority()) 
+	{
+		Server_PlayHeySound();
+		UE_LOG(LogTemp, Warning, TEXT("클라이언트 헤이 "));
+	}
+	else 
+	{
+		//리슨 서버(방장)인 경우 본인이 직접 인덱스를 뽑아서 방송
+		if (CharacterDataAsset && CharacterDataAsset->HeySound.Num() > 0)
+		{
+			// 0부터 (배열크기 - 1) 사이의 랜덤한 숫자 추출
+			int32 RandomIndex = FMath::RandRange(0, CharacterDataAsset->HeySound.Num() - 1);
+			Multicast_PlayHeySound(RandomIndex);
+		}
+	}
 }
+
+void AVGCitizenCharacter::Multicast_PlayHeySound_Implementation(int32 SoundIndex)
+{
+	if (CharacterDataAsset && CharacterDataAsset->HeySound.IsValidIndex(SoundIndex))
+	{
+		USoundBase* SelectedSound = CharacterDataAsset->HeySound[SoundIndex];
+		
+		if (SelectedSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, SelectedSound, GetActorLocation());
+		}
+	}
+}
+
+
+void AVGCitizenCharacter::Server_PlayHeySound_Implementation()
+{
+	if (CharacterDataAsset && CharacterDataAsset->HeySound.Num() > 0)
+	{
+		int32 RandomIndex = FMath::RandRange(0, CharacterDataAsset->HeySound.Num() - 1);
+		UE_LOG(LogTemp, Warning, TEXT("서버 헤이 "));
+		// 결정된 인덱스를 모든 클라이언트에게 전송
+		Multicast_PlayHeySound(RandomIndex);
+	}
+}
+
