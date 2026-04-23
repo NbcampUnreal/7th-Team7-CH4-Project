@@ -71,6 +71,12 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	void SetEquipIcon(int32 SlotIndex, UTexture2D* Icon);
 	void ClearEquipIcon(int32 SlotIndex);
 	
+	
+	UFUNCTION()
+	void SetHiddenPocketIcon(UTexture2D* Icon);
+	UFUNCTION()
+	void ClearHiddenPocketIcon();
+	
 	UFUNCTION()
 	void UpdatePlayerName(int32 PlayerIndex, const FString& PlayerName);
 	

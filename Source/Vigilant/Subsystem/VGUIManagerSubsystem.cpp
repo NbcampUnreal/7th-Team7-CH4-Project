@@ -117,6 +117,22 @@ void UVGUIManagerSubsystem::ClearEquipIcon(int32 SlotIndex)
 	}
 }
 
+void UVGUIManagerSubsystem::SetHiddenPocketIcon(UTexture2D* Icon)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetHiddenPocketIcon(Icon);
+	}
+}
+
+void UVGUIManagerSubsystem::ClearHiddenPocketIcon()
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->ClearHiddenPocketIcon();
+	}
+}
+
 void UVGUIManagerSubsystem::UpdatePlayerName(int32 PlayerIndex, const FString& PlayerName)
 {
 	CachedPlayerNames.Add(PlayerIndex, PlayerName);

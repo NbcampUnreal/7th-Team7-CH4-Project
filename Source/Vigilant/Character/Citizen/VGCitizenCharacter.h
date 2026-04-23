@@ -48,7 +48,9 @@ protected:
 	// 가드
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* BlockAction;
-
+	//헤이!
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* HeyAction;
 	// 캐릭터의 이동 상태(걷기, 낙하 등)가 변할 때마다 엔진이 호출해 주는 함수
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 
@@ -65,6 +67,13 @@ protected:
 	
 	UFUNCTION()
 	void HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipmentDataAsset* EquipmentData, UMeshComponent* EquippedMesh);
+	
+	UFUNCTION()
+	void HandlePocketItemStashed(UVGEquipmentDataAsset* EquipmentData, UMeshComponent* EquippedMesh);
+
+	UFUNCTION()
+	void HandlePocketItemDropped();
+	
 	
 	//base의 무브 함수 재정의
 	virtual void Move(const FInputActionValue& Value) override;
@@ -86,6 +95,9 @@ protected:
 	void PerformDodgeAction(const FVector& Direction);
 
 
+	void Hey();
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")
 	float DodgeForce = 600.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dodge|Force")

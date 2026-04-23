@@ -34,6 +34,12 @@ public:
 	UFUNCTION(Category = "UI|Equipment")
 	void ClearEquipIcon(int32 SlotIndex);
 	
+	UFUNCTION(Category = "UI|HiddenPocket")
+	void SetHiddenPocketIcon(UTexture2D* IconTexture);
+
+	UFUNCTION(Category = "UI|HiddenPocket")
+	void ClearHiddenPocketIcon();
+	
 	UFUNCTION(Category = "UI")
 	void UpdateStaminaUI(float NewValue, float MaxValue);
     
@@ -74,7 +80,14 @@ public:
 	TObjectPtr<USizeBox> TimerBarSize;
 	
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UOverlay> HiddenInven;
+	TObjectPtr<UTextBlock> ReadyNotification;
+	
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UOverlay> HiddenPocket;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> HiddenPocketIcon;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> RoleText;

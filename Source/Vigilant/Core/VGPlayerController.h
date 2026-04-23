@@ -58,6 +58,10 @@ public:
 	
 	virtual void UpdateEquipIconUI(int32 SlotIndex, UTexture2D* Icon) override;
 	virtual void ClearEquipIconUI(int32 SlotIndex) override;
+	
+	virtual void UpdateHiddenPocketIconUI(UTexture2D* Icon) override;
+	virtual void ClearHiddenPocketIconUI() override;
+	
 	virtual void UpdatePlayerNameUI(int32 PlayerIndex, const FString& PlayerName) override;
 	virtual void ShowRoleNotificationUI(FGameplayTag RoleTag) override;
 	

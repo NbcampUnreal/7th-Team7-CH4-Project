@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "Character/Component/VGCombatComponent.h"
 #include "Character/Component/VGEquipmentComponent.h"
+#include "Character/Component/VGHiddenPocketComponent.h"
 #include "Character/Component/VGStatComponent.h"
 #include "Common/VGGameplayTags.h"
 #include "Components/SceneCaptureComponent2D.h"
@@ -59,6 +60,12 @@ void AVGCitizenCharacter::BeginPlay()
 					EquipmentComponent->OnInteractTargetFound.AddDynamic(
 						this, &AVGCitizenCharacter::HandleInteractFound);
 				
+				//
+				if (UVGHiddenPocketComponent* PocketComp = GetComponentByClass<UVGHiddenPocketComponent>())
+				{
+					PocketComp->OnPocketItemStashed.AddDynamic(this, &AVGCitizenCharacter::HandlePocketItemStashed);
+					PocketComp->OnPocketItemDropped.AddDynamic(this, &AVGCitizenCharacter::HandlePocketItemDropped);
+				}
 				
 			}
 			
@@ -320,6 +327,8 @@ void AVGCitizenCharacter::PerformDodgeAction(const FVector& Direction)
 	}
 }
 
+
+
 void AVGCitizenCharacter::Multicast_Dodge_Implementation()
 {
 	//다른 클라이언트에서는 애니매이션만 재생
@@ -389,6 +398,27 @@ void AVGCitizenCharacter::HandleItemEquipped(EVGEquipmentSlot Slot, UVGEquipment
 	}
 	
 	
+}
+
+void AVGCitizenCharacter::HandlePocketItemStashed(UVGEquipmentDataAsset* EquipmentData, UMeshComponent* EquippedMesh)
+{
+	if (EquipmentData && EquipmentData->ItemIcon)
+	{
+		if (IVGUIControllerInterface* UIController = Cast<IVGUIControllerInterface>(GetController()))
+		{
+			// 데이터 에셋의 아이콘을 인터페이스로 토스
+			UIController->UpdateHiddenPocketIconUI(EquipmentData->ItemIcon);
+		}
+	}
+}
+
+void AVGCitizenCharacter::HandlePocketItemDropped()
+{
+	if (IVGUIControllerInterface* UIController = Cast<IVGUIControllerInterface>(GetController()))
+	{
+		// 주머니가 비었으니 UI를 지우라고 지시
+		UIController->ClearHiddenPocketIconUI();
+	}
 }
 
 void AVGCitizenCharacter::HandleItemDropped(EVGEquipmentSlot Slot)
@@ -468,4 +498,9 @@ void AVGCitizenCharacter::ApplyGuardStaminaCost(bool bIsGuarding)
 	{
 		StatComponent->StopContinuousConsumeStamina();
 	}
+}
+
+void AVGCitizenCharacter::Hey()
+{
+	
 }

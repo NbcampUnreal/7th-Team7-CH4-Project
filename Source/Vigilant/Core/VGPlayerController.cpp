@@ -220,6 +220,28 @@ void AVGPlayerController::ClearEquipIconUI(int32 SlotIndex)
 	}
 }
 
+void AVGPlayerController::UpdateHiddenPocketIconUI(UTexture2D* Icon)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->SetHiddenPocketIcon(Icon);
+		}
+	}
+}
+
+void AVGPlayerController::ClearHiddenPocketIconUI()
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->ClearHiddenPocketIcon();
+		}
+	}
+}
+
 void AVGPlayerController::UpdatePlayerNameUI(int32 PlayerIndex, const FString& PlayerName)
 {
 	PlayerNameInController = PlayerName;

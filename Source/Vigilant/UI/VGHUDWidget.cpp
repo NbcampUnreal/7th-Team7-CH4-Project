@@ -45,6 +45,24 @@ void UVGHUDWidget::ClearEquipIcon(int32 SlotIndex)
 	}
 }
 
+void UVGHUDWidget::SetHiddenPocketIcon(UTexture2D* IconTexture)
+{
+	if (HiddenPocketIcon && IconTexture)
+	{
+		HiddenPocketIcon->SetBrushFromTexture(IconTexture);
+		HiddenPocketIcon->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 1.f)); // 투명도 복구
+	}
+}
+
+void UVGHUDWidget::ClearHiddenPocketIcon()
+{
+	if (HiddenPocketIcon)
+	{
+		// 텍스처를 비우지 않고 투명도만 0으로 만들어서 숨김
+		HiddenPocketIcon->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
+	}
+}
+
 void UVGHUDWidget::UpdateStaminaUI(float NewValue, float MaxValue)
 {
 	if (MaxValue > 0.f)
@@ -144,6 +162,7 @@ void UVGHUDWidget::StopPhaseTimeData()
 }
 
 
+
 void UVGHUDWidget::UpdateTimePerSecond()
 {
 	if (!GetWorld() || !MissionProgress || !TimerBarSize) return;
@@ -211,9 +230,9 @@ void UVGHUDWidget::DisplayRole(FGameplayTag RoleTag)
 		RoleText->SetText(FText::FromString(TEXT("제물의 도주를 방해하고 \n 정체를 숨겨라")));
 		
 		RoleText->SetColorAndOpacity(FSlateColor(FLinearColor::Red));
-		if (HiddenInven)
+		if (HiddenPocket)
 		{
-			HiddenInven->SetVisibility(ESlateVisibility::HitTestInvisible);
+			HiddenPocket->SetVisibility(ESlateVisibility::HitTestInvisible);
 		}
 	}
 	else if (RoleTag == VigilantRoleTags::Citizen)
