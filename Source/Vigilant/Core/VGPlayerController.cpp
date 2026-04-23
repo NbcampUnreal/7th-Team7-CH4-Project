@@ -220,6 +220,30 @@ void AVGPlayerController::ClearEquipIconUI(int32 SlotIndex)
 	}
 }
 
+void AVGPlayerController::UpdatePlayerNameUI(int32 PlayerIndex, const FString& PlayerName)
+{
+	PlayerNameInController = PlayerName;
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			// UIManager로 데이터 전달
+			UIManager->UpdatePlayerName(PlayerIndex, PlayerNameInController);
+		}
+	}
+}
+
+void AVGPlayerController::ShowRoleNotificationUI(FGameplayTag RoleTag)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->ShowRoleUI(RoleTag);
+		}
+	}
+}
+
 void AVGPlayerController::Client_SetInputToGame_Implementation()
 {
 	FInputModeGameOnly InputGameOnly;

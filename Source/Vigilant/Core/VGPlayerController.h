@@ -58,11 +58,13 @@ public:
 	
 	virtual void UpdateEquipIconUI(int32 SlotIndex, UTexture2D* Icon) override;
 	virtual void ClearEquipIconUI(int32 SlotIndex) override;
+	virtual void UpdatePlayerNameUI(int32 PlayerIndex, const FString& PlayerName) override;
+	virtual void ShowRoleNotificationUI(FGameplayTag RoleTag) override;
 	
 	UFUNCTION(Client, Reliable)
 	void Client_SetInputToGame();
 	
-	
+	FString PlayerNameInController;
 	
 protected:
 	// 페이즈 변경 시 UI 처리용 위한 함수

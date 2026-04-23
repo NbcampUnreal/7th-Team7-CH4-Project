@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/Interface.h"
 #include "VGUIControllerInterface.generated.h"
 
@@ -26,4 +27,8 @@ public:
 	
 	virtual void UpdateEquipIconUI(int32 SlotIndex, UTexture2D* Icon) = 0;
 	virtual void ClearEquipIconUI(int32 SlotIndex) = 0;
+	
+	virtual void ShowRoleNotificationUI(FGameplayTag RoleTag)=0;
+	
+	virtual void UpdatePlayerNameUI(int32 PlayerIndex, const FString& PlayerName) = 0;
 };

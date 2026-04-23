@@ -6,6 +6,7 @@
 #include "Subsystems/LocalPlayerSubsystem.h"
 #include "VGUIManagerSubsystem.generated.h"
 
+struct FGameplayTag;
 class UVGInteractionWidget;
 //디커플링을 위한 방송용 델리게이트
 //채팅 메시지 전달용
@@ -70,7 +71,15 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	void SetEquipIcon(int32 SlotIndex, UTexture2D* Icon);
 	void ClearEquipIcon(int32 SlotIndex);
 	
+	UFUNCTION()
+	void UpdatePlayerName(int32 PlayerIndex, const FString& PlayerName);
+	
 	FUIOnPlayerReadySignature OnPlayerReadySignature;
+	
+	TMap<int32, FString> CachedPlayerNames;
+	
+	UFUNCTION()
+	void ShowRoleUI(FGameplayTag RoleTag);
 #pragma region 위젯 생성과 표시, 숨김
 	void CreateHUDWidget();
 	void CreateVoteWidget();

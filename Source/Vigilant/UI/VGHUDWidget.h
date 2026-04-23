@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "VGHUDWidget.generated.h"
 
+class UTextBlock;
+struct FGameplayTag;
 class USizeBox;
 class UOverlay;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReadyDelegate, bool, bReady);
@@ -71,6 +73,11 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<USizeBox> TimerBarSize;
 	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UOverlay> HiddenInven;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> RoleText;
 	//레디를 올려보낼 델리게이
 	FOnReadyDelegate OnReadyDelegate;
 	
@@ -98,6 +105,17 @@ public:
 	UFUNCTION()
 	void OnReadyButtonClicked();
 	
+	UFUNCTION()
+	void DisplayRole(FGameplayTag RoleTag);
+	
+	UFUNCTION()
+	void HideRoleText();
+	
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> RoleAnim;
+	
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
 	TObjectPtr<UTexture2D> GlowingFrame;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
@@ -105,4 +123,8 @@ public:
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="HpEffect")
 	float ShowBloodRatio;
+	
+private:
+	FTimerHandle RoleTextTimerHandle;
+	
 };

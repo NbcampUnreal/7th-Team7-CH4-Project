@@ -38,11 +38,13 @@ public:
 	bool IsRole(const FGameplayTag& RoleTagToCheck) const;
 	
 	// 플레이어 이름
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")
+	UPROPERTY(ReplicatedUsing = OnRep_VGPlayerName, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")
 	FString VGPlayerName;
 	
 	void SetVGPlayerName(const FString& NewName);
-
+	
+	UFUNCTION()
+	void OnRep_VGPlayerName();
 	// 플레이어 입장 순서
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|PlayerInfo")
 	int32 EntryIndex;
