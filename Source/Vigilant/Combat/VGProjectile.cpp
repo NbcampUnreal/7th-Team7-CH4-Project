@@ -1,6 +1,6 @@
 #include "Combat/VGProjectile.h"
 
-#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -29,6 +29,10 @@ AVGProjectile::AVGProjectile()
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->ProjectileGravityScale = 1.0f;
 	InitialLifeSpan = 5.0f;
+	
+	TrailVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailVFX"));
+	TrailVFXComponent->SetupAttachment(RootComponent);
+	TrailVFXComponent->bAutoActivate = true;
 }
 
 void AVGProjectile::BeginPlay()
@@ -65,6 +69,12 @@ void AVGProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* O
 		                              nullptr);
 	}
 	
+	if (TrailVFXComponent)
+	{
+		TrailVFXComponent->Deactivate();
+		TrailVFXComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	}
+	
 	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ProjectileMesh->SetVisibility(false);
 	ProjectileMovement->StopMovementImmediately();
@@ -84,7 +94,7 @@ void AVGProjectile::Multicast_PlayImpactFeedback_Implementation(FVector ImpactPo
 	if (ImpactVFX)
 	{
 		FRotator VFXRotation = ImpactNormal.Rotation();
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactVFX, ImpactPoint, VFXRotation);
+		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, ImpactPoint, VFXRotation);
 	}
 
 	if (DummyActorClass && HitComponent)

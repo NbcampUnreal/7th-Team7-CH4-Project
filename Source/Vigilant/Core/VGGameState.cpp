@@ -1,4 +1,5 @@
 #include "Core/VGGameState.h"
+#include "Core/VGPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 AVGGameState::AVGGameState()
@@ -23,6 +24,7 @@ void AVGGameState::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) con
 	}
 }
 
+
 float AVGGameState::GetRemainingPhaseTime() const
 {
 	if (PhaseEndTime < 0.0f)
@@ -46,6 +48,39 @@ void AVGGameState::SetCurrentPhaseTag(FGameplayTag NewTag)
 		CurrentPhaseTag = NewTag;
 		OnRep_CurrentPhaseTag(); 
 	}
+}
+
+int32 AVGGameState::GetReadyPlayerCount() const
+{
+	int32 ReadyPlayerCount = 0;
+
+	for (APlayerState* PlayerState : PlayerArray)
+	{
+		if (AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState))
+		{
+			if (VGPlayerState->bIsReady)
+			{
+				ReadyPlayerCount++;
+			}
+		}
+	}
+
+	return ReadyPlayerCount;
+}
+
+int32 AVGGameState::GetTotalPlayerCount() const
+{
+	int32 TotalPlayerCount = 0;
+
+	for (APlayerState* PlayerState : PlayerArray)
+	{
+		if (Cast<AVGPlayerState>(PlayerState))
+		{
+			TotalPlayerCount++;
+		}
+	}
+
+	return TotalPlayerCount;
 }
 	
 

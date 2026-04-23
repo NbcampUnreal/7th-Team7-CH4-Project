@@ -68,6 +68,14 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_BossNerfRate, BlueprintReadOnly, Category = "Vigilant|Stats")
 	float BossNerfRate;
 	
+	// 레디 완료한 플레이어 수 가져오는 함수
+	UFUNCTION(BlueprintPure, Category = "Vigilant|Lobby")
+	int32 GetReadyPlayerCount() const;
+
+	// 현재 접속중인 총 플레이어 수 가져오는 함수
+	UFUNCTION(BlueprintPure, Category = "Vigilant|Lobby")
+	int32 GetTotalPlayerCount() const;
+	
 	// 투표 관련
 	// 최다 득표자의 이름
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|VoteResult")

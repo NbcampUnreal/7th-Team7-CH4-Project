@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "VGHUDWidget.generated.h"
 
+class UTextBlock;
+struct FGameplayTag;
 class USizeBox;
 class UOverlay;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReadyDelegate, bool, bReady);
@@ -31,6 +33,12 @@ public:
 
 	UFUNCTION(Category = "UI|Equipment")
 	void ClearEquipIcon(int32 SlotIndex);
+	
+	UFUNCTION(Category = "UI|HiddenPocket")
+	void SetHiddenPocketIcon(UTexture2D* IconTexture);
+
+	UFUNCTION(Category = "UI|HiddenPocket")
+	void ClearHiddenPocketIcon();
 	
 	UFUNCTION(Category = "UI")
 	void UpdateStaminaUI(float NewValue, float MaxValue);
@@ -71,6 +79,18 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<USizeBox> TimerBarSize;
 	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ReadyNotification;
+	
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UOverlay> HiddenPocket;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> HiddenPocketIcon;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> RoleText;
 	//레디를 올려보낼 델리게이
 	FOnReadyDelegate OnReadyDelegate;
 	
@@ -96,6 +116,8 @@ public:
 	float OriginalPhaseDuration = -1.0f;
 	// 최초 1회만 저장하도록 하기위한 불변수
 	bool bIsDurationSet = false;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "UI|BarSize")
+	float BarSizeMultiplier = 3.0f;
 	
 	
 	UFUNCTION()
@@ -105,6 +127,17 @@ public:
 	UFUNCTION()
 	void OnReadyButtonClicked();
 	
+	UFUNCTION()
+	void DisplayRole(FGameplayTag RoleTag);
+	
+	UFUNCTION()
+	void HideRoleText();
+	
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	TObjectPtr<UWidgetAnimation> RoleAnim;
+	
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
 	TObjectPtr<UTexture2D> GlowingFrame;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
@@ -112,4 +145,8 @@ public:
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="HpEffect")
 	float ShowBloodRatio;
+	
+private:
+	FTimerHandle RoleTextTimerHandle;
+	
 };

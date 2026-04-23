@@ -5,8 +5,11 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/SceneCaptureComponent2D.h"
+#include "Components/TextBlock.h"
 #include "Kismet/KismetRenderingLibrary.h" // 동적 RT 생성을 위해 필요
 #include "Materials/MaterialInstanceDynamic.h" // 동적 머티리얼 생성을 위해 필요
+
+
 
 void UVGVoteSlotWidget::NativeConstruct()
 {
@@ -49,6 +52,14 @@ void UVGVoteSlotWidget::SetupSlot(int32 InPlayerIndex, USceneCaptureComponent2D*
 		TargetCamera->TextureTarget = DynamicRT;
 		TargetCamera->CaptureScene();
 
+	}
+}
+
+void UVGVoteSlotWidget::SetNickName(const FString& InNickName)
+{
+	if (NickName)
+	{
+		NickName->SetText(FText::FromString(InNickName));
 	}
 }
 

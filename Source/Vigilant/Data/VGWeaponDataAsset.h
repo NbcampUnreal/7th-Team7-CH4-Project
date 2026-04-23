@@ -66,4 +66,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Feedback")
 	TSubclassOf<AActor> DummyActorClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|VFX")
+	TObjectPtr<UNiagaraSystem> MeleeTrailVFX;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Feedback")
+	TSubclassOf<UCameraShakeBase> HitCameraShake;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Feedback")
+	TSubclassOf<UCameraShakeBase> FireCameraShake;
 };

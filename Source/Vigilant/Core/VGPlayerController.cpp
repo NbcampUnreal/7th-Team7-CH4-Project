@@ -235,6 +235,52 @@ void AVGPlayerController::ClearEquipIconUI(int32 SlotIndex)
 	}
 }
 
+void AVGPlayerController::UpdateHiddenPocketIconUI(UTexture2D* Icon)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->SetHiddenPocketIcon(Icon);
+		}
+	}
+}
+
+void AVGPlayerController::ClearHiddenPocketIconUI()
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->ClearHiddenPocketIcon();
+		}
+	}
+}
+
+void AVGPlayerController::UpdatePlayerNameUI(int32 PlayerIndex, const FString& PlayerName)
+{
+	PlayerNameInController = PlayerName;
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			// UIManager로 데이터 전달
+			UIManager->UpdatePlayerName(PlayerIndex, PlayerNameInController);
+		}
+	}
+}
+
+void AVGPlayerController::ShowRoleNotificationUI(FGameplayTag RoleTag)
+{
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->ShowRoleUI(RoleTag);
+		}
+  }
+}
+
 void AVGPlayerController::DisableInputForCinematic()
 {
 	if (APawn* MyPawn = GetPawn())
@@ -331,21 +377,13 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 		DisableInputForCinematic();
 		// 새로 만들 Show 투표결과UI 함수 들어가야함
 		VGUIManager->HideHUD();
-		
 		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 		{
 			// 상단 게이지바 사이즈를 먼저 줄임
 			VGUIManager->SetHUDBarSizeByNerf(VGGameState->BossNerfRate);
 		}
-		// 지금은 임시로 타이머로 재생하지만 ui나오면 없애야함
-		FTimerHandle TempUITimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(
-			TempUITimerHandle, 
-			this, 
-			&AVGPlayerController::Server_NotifyVoteResultUIFinished,
-			5.0f, 
-			false
-		);
+		// UI기획 사라졌으므로 바로 시퀀스 재생
+		Server_NotifyVoteResultUIFinished();
 	}
 	else
 	{

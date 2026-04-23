@@ -25,6 +25,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "TimerManager.h"
 #include "Boss/DamageType/VGDamageType_Slow.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/PlayerState.h"
 
 #pragma region Interfaces GameplayTag
@@ -72,6 +73,8 @@ AVGCharacterBase::AVGCharacterBase()
 	
 	TargetCameraDistance = DefaultCameraDistance;
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	
 	// create the orbiting camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -816,6 +819,12 @@ void AVGCharacterBase::ApplyStagger(FVector PushDirection, float KnockbackForce)
 		VigilantCharacter::StaggerImmune))
 	{
 		return;
+	}
+	
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController && TakeDamageCameraShake)
+	{
+		PlayerController->ClientStartCameraShake(TakeDamageCameraShake);
 	}
 
 	LaunchCharacter(PushDirection * KnockbackForce, true, true);

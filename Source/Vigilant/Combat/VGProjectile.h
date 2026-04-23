@@ -6,7 +6,8 @@
 
 class USphereComponent;
 class UProjectileMovementComponent;
-class UNiagaraSystem;
+class UParticleSystem;
+class UNiagaraComponent;
 
 UCLASS()
 class VIGILANT_API AVGProjectile : public AActor
@@ -39,10 +40,13 @@ protected:
 	TObjectPtr<USoundBase> ImpactSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
-	TObjectPtr<UNiagaraSystem> ImpactVFX;
+	TObjectPtr<UParticleSystem> ImpactVFX;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
 	TSubclassOf<AActor> DummyActorClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|VFX")
+	TObjectPtr<UNiagaraComponent> TrailVFXComponent;
 	
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayImpactFeedback(FVector ImpactPoint, FVector ImpactNormal, UPrimitiveComponent* HitComponent);
