@@ -76,6 +76,12 @@ public:
 	// (이용호 추가) 데미지 배율 설정 함수
 	UFUNCTION(BlueprintCallable, Category = "Combat")
 	void SetDamageMultiplier(float NewMultiplier);
+	
+	// (하상빈 추가)
+	UFUNCTION(Server, Unreliable)
+	void Server_PlayHitSound(USoundBase* Sound, FVector Location);
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayHitSound(USoundBase* Sound, FVector Location);
 
 protected:
 	virtual void BeginPlay() override;
