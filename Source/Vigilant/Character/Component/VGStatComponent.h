@@ -120,7 +120,7 @@ private: /* 상태 */
     bool bIsAlive = true; 
 
 private: // [6] 네트워크 동기화 콜백 함수 (OnRep)
-    UFUNCTION() void OnRep_MaxHP();
+    UFUNCTION() void OnRep_MaxHP(); 
     UFUNCTION() void OnRep_CurrentHP(float OldHP);
     UFUNCTION() void OnRep_CurrentStamina();
     UFUNCTION() void OnRep_bIsAlive();

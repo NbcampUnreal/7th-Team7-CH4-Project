@@ -810,6 +810,35 @@ void AVGCharacterBase::HandleDeath(AController* Killer)
 		{
 			IVGGameModeInterface::Execute_NotifyPlayerDeath(GameMode, KillerCharacter, this);
 		}
+		
+		Multicast_PlayDeathRagdoll();
+	}
+}
+
+void AVGCharacterBase::Multicast_PlayDeathRagdoll_Implementation()
+{
+	if (UCharacterMovementComponent* MovementComp = Cast<UCharacterMovementComponent>(GetMovementComponent()))
+	{
+		MovementComp->DisableMovement();
+		MovementComp->StopMovementImmediately();
+	}
+
+	// 2. 캡슐 콜리전 비활성화 (다른 플레이어의 이동을 막지 않고, 카메라는 이 높이에서 회전 가능하도록 유지)
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	// 3. 스켈레탈 메쉬에 랙돌 물리 적용
+	if (USkeletalMeshComponent* SkelMesh = GetMesh())
+	{
+		// 충돌 프리셋을 언리얼 기본 Ragdoll로 변경
+		SkelMesh->SetCollisionProfileName(TEXT("Ragdoll"));
+		SkelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		
+		// 모든 뼈에 물리 시뮬레이션 켜기
+		SkelMesh->SetAllBodiesSimulatePhysics(true);
+		SkelMesh->SetSimulatePhysics(true);
+		SkelMesh->WakeAllRigidBodies();
+		SkelMesh->bBlendPhysics = true;
 	}
 }
 
