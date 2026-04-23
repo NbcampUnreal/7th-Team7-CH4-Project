@@ -34,15 +34,16 @@ protected:
 	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, 
 		class AController* EventInstigator, AActor* DamageCauser) override;
-private:
-	UFUNCTION()
-	void OnDead(AController* LastInstigator);
-
-	UFUNCTION()
-	void OnHPChanged(float NewHP, float MaxHP);
 	
 	UFUNCTION()
-	void OnRep_CurrentHPRatio();
+	virtual void OnDead(AController* LastInstigator);
+
+	UFUNCTION()
+	virtual void OnHPChanged(float NewHP, float MaxHP);
+	
+	UFUNCTION()
+	virtual void OnRep_CurrentHPRatio();
+	
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSandbagDefeated OnSandbagDefeated;
@@ -63,7 +64,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	
 	// 마지막으로 데미지를 준 플레이어 — 서버 전용
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Attack")
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Attack")
 	TObjectPtr<AVGCharacterBase> LastAttacker;
 	
 	// HP 바 표시용 — Replicated

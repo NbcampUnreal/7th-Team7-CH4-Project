@@ -5,10 +5,13 @@
 #include "Common/VGGameplayTags.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+#include "Character/Component/VGStatComponent.h"
 
 void UVGDuelPhase::EnterPhase()
 {
 	Super::EnterPhase();
+	
+	bIsDuelFinished = false;
 	
 	if (!GameModeRef) return;
 	
@@ -75,22 +78,42 @@ void UVGDuelPhase::EnterPhase()
 			FVector Loc = TargetStart->GetActorLocation();
 			FRotator Rot = TargetStart->GetActorRotation();
 
-			if (APlayerController* PC = Cast<APlayerController>(VGCharacter->GetController()))
+			if (APlayerController* PlayerController = Cast<APlayerController>(VGCharacter->GetController()))
 			{
-				PC->SetControlRotation(Rot);
-				PC->ClientSetRotation(Rot);
+				PlayerController->SetControlRotation(Rot);
+				PlayerController->ClientSetRotation(Rot);
 			}
 			VGCharacter->TeleportTo(Loc, Rot, false, true);
+			VGCharacter->Client_ForceRotation(Rot, false);
 		}
 	}
 	
-	
+	if (UVGStatComponent* Stat1 = Player1->GetStatComponent())
+	{
+		Stat1->OnHPChanged.AddUniqueDynamic(this, &UVGDuelPhase::OnChallengerHPChanged);
+	}
+	if (UVGStatComponent* Stat2 = Player2->GetStatComponent())
+	{
+		Stat2->OnHPChanged.AddUniqueDynamic(this, &UVGDuelPhase::OnTargetHPChanged);
+	}
 	
 
 }
 
 void UVGDuelPhase::ExitPhase()
 {
+	AVGCharacterBase* Player1 = GameModeRef->GetDuelChallenger();
+	AVGCharacterBase* Player2 = GameModeRef->GetDuelTarget();
+	
+	if (Player1 && Player1->GetStatComponent())
+	{
+		Player1->GetStatComponent()->OnHPChanged.RemoveDynamic(this, &UVGDuelPhase::OnChallengerHPChanged);
+	}
+	if (Player2 && Player2->GetStatComponent())
+	{
+		Player2->GetStatComponent()->OnHPChanged.RemoveDynamic(this, &UVGDuelPhase::OnTargetHPChanged);
+	}
+	
 	// 플레이어 원위치 복귀
 	for (auto& Pair : OriginalTransforms)
 	{
@@ -183,20 +206,36 @@ bool UVGDuelPhase::CanPlayerTakeDamage(AActor* DamageCauser, AVGCharacterBase* T
 
 void UVGDuelPhase::OnPlayerDeath(AVGCharacterBase* Killer, AVGCharacterBase* Victim)
 {
-	if (!GameModeRef) return;
-	
-	if (!Victim) return;
+}
 
-	AVGPlayerState* VictimPlayerState = Victim->GetPlayerState<AVGPlayerState>();
-	if (!VictimPlayerState) return;
-
-	// 죽은 사람이 막고라 참가자인지 확인
-	if (VictimPlayerState->HasPlayerTag(VigilantStateTags::DuelParticipant))
+void UVGDuelPhase::OnChallengerHPChanged(float NewHP, float MaxHP)
+{
+	if (MaxHP > 0.f && (NewHP / MaxHP) < 0.2f)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[VGDuelPhase] 참가자 %s 사망! 막고라 종료"), *VictimPlayerState->GetPlayerName());
-
-		// 후에 진 사람 채팅 불가 등 디버프 추가 예정
-		
-		ExecutePhaseResult();
+		if (GameModeRef)
+		{
+			HandleDuelDefeat(GameModeRef->GetDuelChallenger());
+		}
 	}
+		
+}
+
+void UVGDuelPhase::OnTargetHPChanged(float NewHP, float MaxHP)
+{
+	if (MaxHP > 0.f && (NewHP / MaxHP) < 0.2f)
+	{
+		if (GameModeRef)
+		{
+			HandleDuelDefeat(GameModeRef->GetDuelTarget());
+		}
+	}
+}
+
+void UVGDuelPhase::HandleDuelDefeat(AVGCharacterBase* DefeatedPlayer)
+{
+	if (bIsDuelFinished) return;
+	bIsDuelFinished = true;
+
+	// 참가자 중 한 명 체력 20% 밑으로 줄어들면 바로 종료
+	ExecutePhaseResult();
 }

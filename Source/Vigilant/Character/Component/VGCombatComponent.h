@@ -5,6 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "VGCombatComponent.generated.h"
 
+class UVGStatComponent;
 class UVGAttackExecution;
 class UVGShieldDataAsset;
 class UVGWeaponDataAsset;
@@ -57,14 +58,24 @@ public:
 	
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_ProcessHit(AActor* HitActor);
+	void Server_ProcessHit(const FHitResult& HitResult);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SpawnProjectile(TSubclassOf<AActor> ProjectileClass, const FVector& SpawnLocation, const FRotator& SpawnRotation);
 	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayImpactFeedback(const FHitResult& HitResult, UVGWeaponDataAsset* WeaponData);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayShieldFeedback(bool bIsParry, FVector ImpactLocation, FRotator ImpactRotation);
+	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	UVGShieldDataAsset* GetCurrentShieldData() const;
 	UMeshComponent* GetActiveTraceMesh() const;
+	
+	// (이용호 추가) 데미지 배율 설정 함수
+	UFUNCTION(BlueprintCallable, Category = "Combat")
+	void SetDamageMultiplier(float NewMultiplier);
 
 protected:
 	virtual void BeginPlay() override;
@@ -119,14 +130,24 @@ private:
 	UPROPERTY(Replicated)
 	FGameplayTagContainer CurrentCombatTags;
 	
+	UPROPERTY(Transient)
+	TObjectPtr<UVGAttackExecution> CurrentExecution;
+	
+	UPROPERTY(Transient)
+	TObjectPtr<UAnimMontage> ActiveAttackMontage;
+	
+	TWeakObjectPtr<UVGStatComponent> CachedStatComponent;
+	
 	int32 CurrentComboIndex = 0;
 	bool bCanChainCombo = false;
 	bool bHasBufferedAttack = false;
 	bool bIsBufferedAttackHeavy = false;
+	bool bIsCurrentAttackHeavy = false;
 	
-	UPROPERTY(Transient)
-	TObjectPtr<UVGAttackExecution> CurrentExecution;
+	// (이용호 추가) 기본 데미지 배율
+	float DamageMultiplier = 1.0f;
 	
 private:
 	void InstantiateExecutionObject();
+	void SetCombatRotationMode(bool bIsAttacking);
 };

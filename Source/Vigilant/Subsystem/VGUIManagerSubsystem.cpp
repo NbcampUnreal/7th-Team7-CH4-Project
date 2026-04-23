@@ -225,13 +225,18 @@ void UVGUIManagerSubsystem::ShowHUD()
 	{
 		CurrentHUDWidget->AddToViewport();
 	}
+	
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
 }
 
 void UVGUIManagerSubsystem::HideHUD()
 {
 	if (CurrentHUDWidget->IsInViewport())
 	{
-		CurrentHUDWidget->RemoveFromParent();
+		CurrentHUDWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -384,6 +389,23 @@ void UVGUIManagerSubsystem::ClearAllWidgets()
 void UVGUIManagerSubsystem::OnWorldInitialized(UWorld* World, const UWorld::InitializationValues IValues)
 {
 	ClearAllWidgets();
+}
+
+void UVGUIManagerSubsystem::OnBossHealthUpdate(float NewValue, float MaxValue)
+{
+	if (CurrentHUDWidget)
+	{
+		// 원래있던 미션게이지 함수 재활용
+		CurrentHUDWidget->UpdateMissionUI(NewValue, MaxValue);
+	}
+}
+
+void UVGUIManagerSubsystem::SetHUDBarSizeByNerf(float NerfRate)
+{
+	if (CurrentHUDWidget)
+	{
+		CurrentHUDWidget->SetMissionBarContract(NerfRate);
+	}
 }
 
 void UVGUIManagerSubsystem::LoggingChatMessage(const FString& Message)

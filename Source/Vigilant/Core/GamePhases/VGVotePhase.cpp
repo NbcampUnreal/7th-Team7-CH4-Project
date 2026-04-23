@@ -129,10 +129,15 @@ void UVGVotePhase::CalculateVoteResult()
 		}
 	}
 	
-	if (MaxVotedPlayer && !bIsTie)
+	if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
 	{
-		if (AVGGameState* VGGameState = GameModeRef->GetWorld()->GetGameState<AVGGameState>())
+		if (MaxVotedPlayer && !bIsTie)
 		{
+			// 최다 투표자 정보 게임스테이트에 저장
+			VGGameState->VotedPlayerName = MaxVotedPlayer->VGPlayerName;
+			VGGameState->VotedPlayerIndex = MaxVotedPlayer->EntryIndex;
+			VGGameState->bIsVoteTie = false;
+			
 			// 마피아 태그가 있는지 확인
 			if (MaxVotedPlayer->IsRole(VigilantRoleTags::Mafia))
 			{
@@ -148,13 +153,18 @@ void UVGVotePhase::CalculateVoteResult()
 
 			// 값이 비정상적으로 튀지 않도록 안전장치
 			VGGameState->BossNerfRate = FMath::Clamp(VGGameState->BossNerfRate, 0.1f, 2.0f);
-
-			// 클라이언트 UI 갱신을 위해 수동 방송(X)
-			VGGameState->OnBossNerfUpdated.Broadcast(VGGameState->BossNerfRate);
 		}
-	}
-	else if (bIsTie)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 동표 발생. 보스 스탯에 변동이 없습니다."));
+		else if (bIsTie)
+		{
+			// 동표자 정보 저장(이때는 플레이어 이름 인덱스 초기값 저장됨)
+			VGGameState->VotedPlayerName = TEXT("");
+			VGGameState->VotedPlayerIndex = -1;
+			VGGameState->bIsVoteTie = true;
+			VGGameState->BossNerfRate += BossStatChangeAmount;
+			UE_LOG(LogTemp, Warning, TEXT("[VGVotePhase] 동표 발생. 마피아 검거에 실패했습니다!"));
+		}
+		
+		// 서버 컴퓨터 갱신을 위한 수동 호출(데디케이티드 서버라 필요없지만 혹시 몰라서)
+		VGGameState->OnBossNerfUpdated.Broadcast(VGGameState->BossNerfRate);
 	}
 }

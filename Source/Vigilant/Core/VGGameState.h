@@ -12,7 +12,10 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseChanged, FGameplayTag, NewPh
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionProgressUpdated, float, CurrentProgress);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDuelWinnerAnnounced, const FString&, WinnerName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossNerfUpdated, float, BossRate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPhaseEndTimeChanged, float, NewEndTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPhaseTimeChanged);
+// 시네마틱 재생용
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVoteResultCinematic, int32, TargetEntryIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameEndCinematic, FGameplayTag, WinnerTeamTag);
 
 UCLASS()
 class VIGILANT_API AVGGameState : public AGameState, public IGameplayTagAssetInterface
@@ -38,7 +41,7 @@ public:
 	FOnBossNerfUpdated OnBossNerfUpdated;
 	
 	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
-	FOnPhaseEndTimeChanged OnPhaseEndTimeChanged;
+	FOnPhaseTimeChanged OnPhaseTimeChanged;
 	
 	// 서버가 갱신하고 클라이언트로 동기화되는 데이터
 	
@@ -58,12 +61,48 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_PhaseEndTime, BlueprintReadOnly, Category = "Vigilant|Time")
 	float PhaseEndTime;
 	
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Time")
+	UPROPERTY(ReplicatedUsing = OnRep_PhaseStartTime, BlueprintReadOnly, Category = "Vigilant|Time")
 	float PhaseStartTime;
 	
 	// 미션 페이즈 결과에 따른 보스 스탯 배율
 	UPROPERTY(ReplicatedUsing = OnRep_BossNerfRate, BlueprintReadOnly, Category = "Vigilant|Stats")
 	float BossNerfRate;
+	
+	// 레디 완료한 플레이어 수 가져오는 함수
+	UFUNCTION(BlueprintPure, Category = "Vigilant|Lobby")
+	int32 GetReadyPlayerCount() const;
+
+	// 현재 접속중인 총 플레이어 수 가져오는 함수
+	UFUNCTION(BlueprintPure, Category = "Vigilant|Lobby")
+	int32 GetTotalPlayerCount() const;
+	
+	// 투표 관련
+	// 최다 득표자의 이름
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|VoteResult")
+	FString VotedPlayerName;
+	// 최다 득표자의 인덱스
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|VoteResult")
+	int32 VotedPlayerIndex;
+	// 동점 여부
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|VoteResult")
+	bool bIsVoteTie;
+	// 블루프린트 바인딩용
+	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
+	FOnVoteResultCinematic OnVoteResultCinematic;
+	// 서버가 모든 클라이언트에서 시네마틱 델리게이트를 호출하도록 하는 RPC
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayVoteResultCinematic(int32 TargetEntryIndex);
+	
+	// 엔딩 관련
+	// 최종 승리 팀의 태그
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Vigilant|Result")
+	FGameplayTag WinnerTeamTag;
+	// 블루프린트에서 바인딩용
+	UPROPERTY(BlueprintAssignable, Category = "Vigilant|Events")
+	FOnGameEndCinematic OnGameEndCinematic;
+	// 서버가 클라이언트들에게 엔딩 시네마틱 재생을 지시하는 RPC
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayGameEndCinematic(FGameplayTag InWinnerTeamTag);
 	
 	// UI에서 사용할 남은 시간 구하는 함수
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Vigilant|Time")
@@ -92,6 +131,9 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_BossNerfRate();
+	
+	UFUNCTION()
+	void OnRep_PhaseStartTime();
 	
 	UFUNCTION()
 	void OnRep_PhaseEndTime(float OldEndTime);

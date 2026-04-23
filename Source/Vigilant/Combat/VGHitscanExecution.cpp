@@ -55,15 +55,10 @@ void UVGHitscanExecution::StartAttack()
 	FHitResult HitResult;
 	if (UWorld* World = GetWorld())
 	{
-		bool bHit = World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Pawn, QueryParams);
-		if (bHit)
+		bool bHit = World->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+		if (bHit && HitResult.GetActor())
 		{
-			AActor* HitActor = HitResult.GetActor();
-			if (HitActor)
-			{
-				CombatComponent->Server_ProcessHit(HitActor);
-				// TODO: 더미 화살 생성
-			}
+			CombatComponent->Server_ProcessHit(HitResult);
 		}
 	}
 }

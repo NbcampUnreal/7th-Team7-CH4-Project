@@ -100,6 +100,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|Time")
 	void SetPhaseTimeData(float InStartTime, float InEndTime, bool Init = false);
 	
+	void SetMissionBarContract(float NerfRate);
+	
 	// (이용호 추가) 막고라 페이즈 들어갈 때 프로그레스바 멈추기 용
 	UFUNCTION(BlueprintCallable, Category = "UI|Time")
 	void StopPhaseTimeData();
@@ -110,6 +112,11 @@ public:
 	float TargetStartTime = -1.f;
 	float TargetNewEndTime = -1.f;
 	float TargetOldEndTime = -1.f;
+	// (이용호 추가) 기존 페이즈의 길이 저장용
+	float OriginalPhaseDuration = -1.0f;
+	// 최초 1회만 저장하도록 하기위한 불변수
+	bool bIsDurationSet = false;
+	
 	
 	UFUNCTION()
 	void PauseUpdateTimer();

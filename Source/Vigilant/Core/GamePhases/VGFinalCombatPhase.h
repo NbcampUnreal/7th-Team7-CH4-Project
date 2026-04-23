@@ -11,6 +11,8 @@ class VIGILANT_API UVGFinalCombatPhase : public UVGPhaseBase
 {
 	GENERATED_BODY()
 public:
+	UVGFinalCombatPhase();
+	
 	virtual void EnterPhase() override;
 	virtual void ExitPhase() override;
 	

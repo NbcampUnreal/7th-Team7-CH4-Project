@@ -11,11 +11,35 @@
 #include "Components/CapsuleComponent.h"
 #include "Data/VGBossDataAsset.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Subsystem/VGUIManagerSubsystem.h"
 
 AVGBossCharacter::AVGBossCharacter()
 {
 	// 스킬 컴포넌트 생성 및 부착
 	SkillComponent = CreateDefaultSubobject<UVGBossSkillComponent>(TEXT("BossSkillComponent"));
+}
+
+void AVGBossCharacter::ApplyNerfAndInitStat(float NerfRate)
+{
+	// 서버에서만 실행됨
+	if (HasAuthority() && BossData)
+	{
+		// 보스 체력, 스태미나 설정
+		if (BossData && StatComponent)
+		{
+			float FinalHealth = BossData->BaseHealth * NerfRate;
+			StatComponent->InitStat(FinalHealth, StatComponent->GetMaxStamina());
+		}
+        
+		// 보스 공격력 설정
+		if (CombatComponent)
+		{
+			CombatComponent->SetDamageMultiplier(NerfRate);
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("[VGBossCharacter] 보스 스탯 배율 확인용: %.2f"), NerfRate);
+	}
+	
 }
 
 void AVGBossCharacter::BeginPlay()
@@ -49,7 +73,25 @@ void AVGBossCharacter::BeginPlay()
 		CombatComponent->SetActiveCombatData(CombatComponent->GetCurrentCombatData(), GetMesh());
 	}
   
-  CharacterTags.AddTag(VigilantCharacter::StaggerImmune);
+	CharacterTags.AddTag(VigilantCharacter::StaggerImmune);
+	
+	if (StatComponent)
+	{
+		if (APlayerController* LocalPlayerController = GetWorld()->GetFirstPlayerController())
+		{
+			if (ULocalPlayer* LocalPlayer = LocalPlayerController->GetLocalPlayer())
+			{
+				if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+				{
+					// VGUIManagerSubsystem의 OnBossHealthUpdate 함수에 체력 변경 바안딩
+					StatComponent->OnHPChanged.AddUniqueDynamic(UIManager, &UVGUIManagerSubsystem::OnBossHealthUpdate);
+					
+					// 초기화 (최대체력에 연동)
+					UIManager->OnBossHealthUpdate(StatComponent->GetCurrentHP(), StatComponent->GetMaxHP());
+				}
+			}
+		}
+	}
 }
 
 void AVGBossCharacter::AddBossMappingContext(AController* InController)
@@ -104,46 +146,11 @@ void AVGBossCharacter::PawnClientRestart()
 
 void AVGBossCharacter::Move(const FInputActionValue& Value)
 {
-	const FVector2D MovementVector = Value.Get<FVector2D>();
-
-	// 달리다가 S키(뒷걸음)를 누르면 브레이크
-	if (MovementVector.X < -0.1f)
-	{
-		if (CharacterTags.HasTag(VigilantCharacter::Sprint))
-		{
-			PerformStopSprint(); 
-			Server_StopSprint();
-		}
-	}
-	
-	else if (MovementVector.X > 0.1f)
-	{
-		// 유저가 아직 Shift 유지 상태고 현재 걷고 있는 상태면
-		if (bWantsToSprint && !CharacterTags.HasTag(VigilantCharacter::Sprint))
-		{
-			// 스태미나 확인 후 다시 달리기
-			if (StatComponent && StatComponent->GetCurrentStamina() >= MinStaminaToSprint)
-			{
-				PerformStartSprint();
-				Server_StartSprint();
-			}
-		}
-	}
-	
 	Super::Move(Value);
 }
 
 void AVGBossCharacter::StartSprint(const FInputActionValue& Value)
 {
-	// 뒤로 걷고 있는지 검사
-	FVector InputVector = GetCharacterMovement()->GetLastInputVector();
-	FVector ForwardDirection = FRotationMatrix(FRotator(0, GetControlRotation().Yaw, 0)).GetUnitAxis(EAxis::X);
-    
-	// 입력 방향이 컨트롤러 기준 뒤쪽인지 검사
-	if (FVector::DotProduct(InputVector, ForwardDirection) < -0.1f)
-	{
-		return;
-	}
 	Super::StartSprint(Value);
 }
 

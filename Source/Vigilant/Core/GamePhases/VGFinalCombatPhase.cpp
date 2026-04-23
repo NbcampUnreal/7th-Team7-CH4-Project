@@ -1,5 +1,6 @@
 #include "VGFinalCombatPhase.h"
 #include "Character/VGCharacterBase.h"
+#include "Character/Boss/Character/VGBossCharacter.h"
 #include "Common/VGGameplayTags.h"
 #include "Core/VGGameMode.h"
 #include "Core/VGPlayerState.h"
@@ -7,9 +8,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 
-void UVGFinalCombatPhase::EnterPhase()
+UVGFinalCombatPhase::UVGFinalCombatPhase()
 {
 	bHasTimeLimit = false;
+}
+
+void UVGFinalCombatPhase::EnterPhase()
+{
 	
 	Super::EnterPhase();
 	UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 최후의 전투 시작"));
@@ -55,6 +60,9 @@ void UVGFinalCombatPhase::EnterPhase()
 
         APlayerController* PlayerController = VGPlayerState->GetPlayerController();
         if (!PlayerController) continue;
+    	
+    	PlayerController->SetIgnoreMoveInput(false);
+    	
 
         APawn* CurrentPawn = PlayerController->GetPawn();
 
@@ -72,6 +80,14 @@ void UVGFinalCombatPhase::EnterPhase()
             {
                 PlayerController->Possess(BossPawn);
                 UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 마피아 플레이어, 투기장 보스로 빙의"));
+            	
+            	if (AVGBossCharacter* BossCharacter = Cast<AVGBossCharacter>(BossPawn))
+            	{
+            		if (AVGGameState* VGGameState = Cast<AVGGameState>(GameModeRef->GameState))
+            		{
+            			BossCharacter->ApplyNerfAndInitStat(VGGameState->BossNerfRate);
+            		}
+            	}
             }
         }
         // 시민 유저 처리 (투기장으로 순간이동)
@@ -95,7 +111,7 @@ void UVGFinalCombatPhase::EnterPhase()
             	
             	if (AVGCharacterBase* VGCharacter = Cast<AVGCharacterBase>(CurrentPawn))
             	{
-            		VGCharacter->Client_ForceRotation(CitizenRot);
+            		VGCharacter->Client_ForceRotation(CitizenRot, false);
             	}
             	
                 CitizenSpawnIndex++;
@@ -121,7 +137,7 @@ void UVGFinalCombatPhase::ExecutePhaseResult()
 
 bool UVGFinalCombatPhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject)
 {
-	return false;
+	return true;
 }
 
 bool UVGFinalCombatPhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target)

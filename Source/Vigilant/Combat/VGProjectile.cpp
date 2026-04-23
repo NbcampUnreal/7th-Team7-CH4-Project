@@ -1,5 +1,6 @@
 #include "Combat/VGProjectile.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -33,12 +34,12 @@ AVGProjectile::AVGProjectile()
 void AVGProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (GetInstigator())
 	{
 		CollisionComponent->IgnoreActorWhenMoving(GetInstigator(), true);
 	}
-	
+
 	if (HasAuthority())
 	{
 		CollisionComponent->OnComponentHit.AddDynamic(this, &AVGProjectile::OnProjectileHit);
@@ -64,7 +65,46 @@ void AVGProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* O
 		                              nullptr);
 	}
 	
-	// TODO: 피격 파티클 / 사운드 스폰
-	
-	Destroy();
+	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ProjectileMesh->SetVisibility(false);
+	ProjectileMovement->StopMovementImmediately();
+
+	Multicast_PlayImpactFeedback(Hit.ImpactPoint, Hit.ImpactNormal, OtherComp);
+	SetLifeSpan(0.1f);
+}
+
+void AVGProjectile::Multicast_PlayImpactFeedback_Implementation(FVector ImpactPoint, FVector ImpactNormal,
+                                                                UPrimitiveComponent* HitComponent)
+{
+	if (ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, ImpactPoint);
+	}
+
+	if (ImpactVFX)
+	{
+		FRotator VFXRotation = ImpactNormal.Rotation();
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactVFX, ImpactPoint, VFXRotation);
+	}
+
+	if (DummyActorClass && HitComponent)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		FRotator DummyRotation = ImpactNormal.Rotation();
+		DummyRotation.Pitch -= 180.0f;
+
+
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			AActor* Dummy = World->SpawnActor<AActor>(DummyActorClass, ImpactPoint, DummyRotation, SpawnParams);
+			if (Dummy)
+			{
+				Dummy->AttachToComponent(HitComponent, FAttachmentTransformRules::KeepWorldTransform);
+				Dummy->SetLifeSpan(10.0f);
+			}
+		}
+	}
 }
