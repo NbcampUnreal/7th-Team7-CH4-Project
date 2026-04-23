@@ -66,4 +66,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Feedback")
 	TSubclassOf<AActor> DummyActorClass;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|VFX")
+	TObjectPtr<UNiagaraSystem> MeleeTrailVFX;
 };
