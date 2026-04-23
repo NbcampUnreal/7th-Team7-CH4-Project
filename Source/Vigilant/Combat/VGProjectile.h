@@ -6,6 +6,7 @@
 
 class USphereComponent;
 class UProjectileMovementComponent;
+class UNiagaraSystem;
 
 UCLASS()
 class VIGILANT_API AVGProjectile : public AActor
@@ -33,6 +34,18 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
+	TObjectPtr<USoundBase> ImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
+	TObjectPtr<UNiagaraSystem> ImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
+	TSubclassOf<AActor> DummyActorClass;
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayImpactFeedback(FVector ImpactPoint, FVector ImpactNormal, UPrimitiveComponent* HitComponent);
 	
 private:
 	float ProjectileDamage = 0.0f;

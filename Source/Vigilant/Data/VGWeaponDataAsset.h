@@ -65,5 +65,5 @@ public:
 	TObjectPtr<UNiagaraSystem> ImpactVFX;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Feedback")
-	TSubclassOf<AActor> DummyActorClass; 
+	TSubclassOf<AActor> DummyActorClass;
 };
