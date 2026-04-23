@@ -1,4 +1,7 @@
 #include "Combat/VGMeleeExecution.h"
+
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Character/Component/VGCombatComponent.h"
 #include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/Character.h"
@@ -6,12 +9,12 @@
 void UVGMeleeExecution::StartAttack()
 {
 	Super::StartAttack();
-	
+
 	if (!CombatComponent.IsValid())
 	{
 		return;
 	}
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(CombatComponent->GetOwner());
 	if (!OwnerCharacter || !OwnerCharacter->IsLocallyControlled())
 	{
@@ -22,22 +25,17 @@ void UVGMeleeExecution::StartAttack()
 	PreviousSocketLocations.Empty();
 
 	UVGWeaponDataAsset* Data = CombatComponent->GetCurrentCombatData();
-	if (!Data)
-	{
-		return;
-	}
+	UMeshComponent* TraceMesh = CombatComponent->GetActiveTraceMesh()
+		                            ? CombatComponent->GetActiveTraceMesh()
+		                            : OwnerCharacter->GetMesh();
 
-	UMeshComponent* TraceMesh = CombatComponent->GetActiveTraceMesh();
-	
-	if (!TraceMesh)
+	if (Data && TraceMesh && Data->MeleeTrailVFX)
 	{
-		TraceMesh = OwnerCharacter->GetMesh();
+		FName AttachSocket = Data->HitboxSocketNames.Num() > 0 ? Data->HitboxSocketNames[0] : NAME_None;
 
-	}
-	
-	if (!TraceMesh)
-	{
-		return;
+		SpawnedTrail = UNiagaraFunctionLibrary::SpawnSystemAttached(Data->MeleeTrailVFX, TraceMesh, AttachSocket,
+		                                                            FVector::ZeroVector, FRotator::ZeroRotator,
+		                                                            EAttachLocation::SnapToTarget, true);
 	}
 
 	// Data Asset에 정의된 모든 소켓의 시작 위치 기록
@@ -51,12 +49,12 @@ void UVGMeleeExecution::StartAttack()
 void UVGMeleeExecution::TickAttack()
 {
 	Super::TickAttack();
-	
+
 	if (!CombatComponent.IsValid())
 	{
 		return;
 	}
-	
+
 	ACharacter* OwnerCharacter = Cast<ACharacter>(CombatComponent->GetOwner());
 	if (!OwnerCharacter || !OwnerCharacter->IsLocallyControlled())
 	{
@@ -102,7 +100,7 @@ void UVGMeleeExecution::TickAttack()
 		{
 			return;
 		}
-		
+
 		bool bHit = World->SweepMultiByChannel(
 			HitResults,
 			PreviousLoc,
@@ -113,6 +111,7 @@ void UVGMeleeExecution::TickAttack()
 			QueryParams
 		);
 
+		/*
 		// --- Debug ---
 		FVector TraceVector = CurrentLoc - PreviousLoc;
 		float TraceLength = TraceVector.Size();
@@ -131,6 +130,7 @@ void UVGMeleeExecution::TickAttack()
 			);
 		}
 		// ---
+		*/
 
 		if (bHit)
 		{
@@ -152,12 +152,12 @@ void UVGMeleeExecution::TickAttack()
 void UVGMeleeExecution::StopAttack()
 {
 	Super::StopAttack();
-	
+
 	if (!CombatComponent.IsValid())
 	{
 		return;
 	}
-	
+
 	APawn* OwnerPawn = Cast<APawn>(CombatComponent->GetOwner());
 	if (!OwnerPawn || !OwnerPawn->IsLocallyControlled())
 	{
@@ -166,4 +166,10 @@ void UVGMeleeExecution::StopAttack()
 
 	HitActorsThisSwing.Empty();
 	PreviousSocketLocations.Empty();
+	
+	if (SpawnedTrail)
+	{
+		SpawnedTrail->Deactivate();
+		SpawnedTrail = nullptr;
+	}
 }

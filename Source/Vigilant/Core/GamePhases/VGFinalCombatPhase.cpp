@@ -8,9 +8,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 
-void UVGFinalCombatPhase::EnterPhase()
+UVGFinalCombatPhase::UVGFinalCombatPhase()
 {
 	bHasTimeLimit = false;
+}
+
+void UVGFinalCombatPhase::EnterPhase()
+{
 	
 	Super::EnterPhase();
 	UE_LOG(LogTemp, Warning, TEXT("[VGFinalCombatPhase] 최후의 전투 시작"));
@@ -133,7 +137,7 @@ void UVGFinalCombatPhase::ExecutePhaseResult()
 
 bool UVGFinalCombatPhase::CanPlayerInteract(AVGCharacterBase* Player, AActor* InteractableObject)
 {
-	return false;
+	return true;
 }
 
 bool UVGFinalCombatPhase::CanPlayerAttack(AVGCharacterBase* Attacker, AVGCharacterBase* Target)

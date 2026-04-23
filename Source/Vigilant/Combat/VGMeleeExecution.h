@@ -4,6 +4,8 @@
 #include "Combat/VGAttackExecution.h"
 #include "VGMeleeExecution.generated.h"
 
+class UNiagaraComponent;
+
 UCLASS(NotBlueprintable)
 class VIGILANT_API UVGMeleeExecution : public UVGAttackExecution
 {
@@ -25,4 +27,8 @@ private:
 	
 	UPROPERTY(Transient)
 	TMap<FName, FVector> PreviousSocketLocations;
+	
+	// VFX
+	UPROPERTY(Transient)
+	TObjectPtr<UNiagaraComponent> SpawnedTrail;
 };

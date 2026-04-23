@@ -2,6 +2,7 @@
 
 #include "VGAmmoProviderInterface.h"
 #include "Character/Component/VGCombatComponent.h"
+#include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -74,4 +75,11 @@ void UVGProjectileExecution::StartAttack()
 	CombatComponent->Server_SpawnProjectile(ProjectileClass, MuzzleLocation, SpawnRotation);
 	
 	AmmoProvider->ConsumeAmmo();
+	
+	// 5. Camera Shake
+	UVGWeaponDataAsset* Data = CombatComponent->GetCurrentCombatData();
+	if (Data && Data->FireCameraShake)
+	{
+		PlayerController->ClientStartCameraShake(Data->FireCameraShake);
+	}
 }

@@ -2,6 +2,7 @@
 
 #include "VGAmmoProviderInterface.h"
 #include "Character/Component/VGCombatComponent.h"
+#include "Data/VGWeaponDataAsset.h"
 #include "GameFramework/Character.h"
 
 void UVGHitscanExecution::StartAttack()
@@ -60,5 +61,12 @@ void UVGHitscanExecution::StartAttack()
 		{
 			CombatComponent->Server_ProcessHit(HitResult);
 		}
+	}
+	
+	// 3. Camera Shake
+	UVGWeaponDataAsset* Data = CombatComponent->GetCurrentCombatData();
+	if (Data && Data->FireCameraShake)
+	{
+		PlayerController->ClientStartCameraShake(Data->FireCameraShake);
 	}
 }

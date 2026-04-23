@@ -18,5 +18,6 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Mesh")
 	TArray<TObjectPtr<USkeletalMesh>> PlayerMeshes;
 	
-	
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	TArray<TObjectPtr<USoundBase>> HeySound;
 };
