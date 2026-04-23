@@ -116,6 +116,8 @@ public:
 	float OriginalPhaseDuration = -1.0f;
 	// 최초 1회만 저장하도록 하기위한 불변수
 	bool bIsDurationSet = false;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "UI|BarSize")
+	float BarSizeMultiplier = 3.0f;
 	
 	
 	UFUNCTION()

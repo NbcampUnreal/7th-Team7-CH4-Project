@@ -377,21 +377,13 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 		DisableInputForCinematic();
 		// 새로 만들 Show 투표결과UI 함수 들어가야함
 		VGUIManager->HideHUD();
-		
 		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 		{
 			// 상단 게이지바 사이즈를 먼저 줄임
 			VGUIManager->SetHUDBarSizeByNerf(VGGameState->BossNerfRate);
 		}
-		// 지금은 임시로 타이머로 재생하지만 ui나오면 없애야함
-		FTimerHandle TempUITimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(
-			TempUITimerHandle, 
-			this, 
-			&AVGPlayerController::Server_NotifyVoteResultUIFinished,
-			5.0f, 
-			false
-		);
+		// UI기획 사라졌으므로 바로 시퀀스 재생
+		Server_NotifyVoteResultUIFinished();
 	}
 	else
 	{
