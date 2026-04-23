@@ -32,6 +32,9 @@ public:
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Vigilant|Lobby")
 	void Server_SetReady(bool bReady);
 	
+	UFUNCTION(Client, Reliable, BlueprintCallable, Category = "Vigilant|Lobby")
+	void Client_UpdateReadyPeople();	
+
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Vigilant|Lobby")
 	void Server_SetName(const FString& NewName);
 	

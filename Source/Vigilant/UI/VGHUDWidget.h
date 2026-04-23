@@ -82,6 +82,8 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ReadyNotification;
 	
+	UFUNCTION()
+	void UpdateReadyPeople(int32 ReadyPeoPle, int32 TotalPeople);
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UOverlay> HiddenPocket;

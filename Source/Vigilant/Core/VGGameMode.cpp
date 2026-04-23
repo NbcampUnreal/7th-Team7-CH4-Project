@@ -1,6 +1,7 @@
 #include "Core/VGGameMode.h"
 
 #include "EngineUtils.h"
+#include "VGPlayerController.h"
 #include "gameframework/PlayerController.h"
 #include "GameFramework/GameStateBase.h"
 #include "Core/GamePhases/VGPhaseBase.h"
@@ -171,6 +172,15 @@ void AVGGameMode::PostLogin(APlayerController* NewPlayer)
 
 	UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 플레이어 접속 완료. 배정된 번호: %d"),
 	       NewPlayer->GetPlayerState<AVGPlayerState>()->EntryIndex);
+	
+	
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (AVGPlayerController* VGPC = Cast<AVGPlayerController>(It->Get()))
+		{
+			VGPC->Client_UpdateReadyPeople();
+		}
+	}
 }
 
 void AVGGameMode::Logout(AController* Exiting)
@@ -198,6 +208,29 @@ void AVGGameMode::Logout(AController* Exiting)
 				CheckWinCondition();
 			}
 		}
+		
+		int32 RemainingPlayers = GetNumPlayers();
+		if (RemainingPlayers == 0)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[VGGameMode] 모든 플레이어가 퇴장했습니다. 방을 초기화합니다."));
+			GetWorld()->ServerTravel(TEXT("?Restart"), false); 
+		}
+	
+		if (!bGameHasStarted)
+		{
+			CheckAllPlayersReady();
+		
+			// 추가: 대기실(레디 중)에서 누군가 나갔다면 남은 사람들의 UI 갱신
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			{
+				if (AVGPlayerController* VGPC = Cast<AVGPlayerController>(It->Get()))
+				{
+					VGPC->Client_UpdateReadyPeople();
+				}
+			}
+		}
+		
+		
 	}
 	
 	Super::Logout(Exiting);

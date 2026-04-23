@@ -1,4 +1,6 @@
 #include "Core/VGGameState.h"
+
+#include "VGPlayerController.h"
 #include "Core/VGPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -22,6 +24,19 @@ void AVGGameState::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) con
 	{
 		TagContainer.AddTag(CurrentPhaseTag);
 	}
+}
+
+void AVGGameState::AddPlayerState(APlayerState* PlayerState)
+{
+	Super::AddPlayerState(PlayerState);
+	
+	UpdateUIInternal();
+}
+
+void AVGGameState::RemovePlayerState(APlayerState* PlayerState)
+{
+	Super::RemovePlayerState(PlayerState);
+	UpdateUIInternal();
 }
 
 
@@ -142,6 +157,18 @@ void AVGGameState::OnRep_PhaseEndTime(float OldEndTime)
 	}
 	
 	OnPhaseTimeChanged.Broadcast();
+}
+
+void AVGGameState::UpdateUIInternal()
+{
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (AVGPlayerController* VGPlayerController = Cast<AVGPlayerController>(PC))
+		{
+			// 이미 만들어두신 RPC 함수를 로컬에서 직접 호출 (구현부 실행)
+			VGPlayerController->Client_UpdateReadyPeople();
+		}
+	}
 }
 
 void AVGGameState::Multicast_PlayVoteResultCinematic_Implementation(int32 TargetEntryIndex)
