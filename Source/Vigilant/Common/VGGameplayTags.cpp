@@ -18,6 +18,7 @@ UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedLeftHand, "Character.State.Occ
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::OccupiedRightHand, "Character.State.Occupied.Right");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::LockOn, "Character.State.LockOn");
 UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::RotateLock, "Character.State.RotateLock");
+UE_DEFINE_GAMEPLAY_TAG(VigilantCharacter::Slowed, "Character.State.Slowed");
 
 
 // 보스 태그 정의
