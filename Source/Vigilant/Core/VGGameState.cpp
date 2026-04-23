@@ -1,4 +1,5 @@
 #include "Core/VGGameState.h"
+#include "Core/VGPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 AVGGameState::AVGGameState()
@@ -22,6 +23,7 @@ void AVGGameState::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) con
 		TagContainer.AddTag(CurrentPhaseTag);
 	}
 }
+
 
 float AVGGameState::GetRemainingPhaseTime() const
 {
@@ -47,6 +49,39 @@ void AVGGameState::SetCurrentPhaseTag(FGameplayTag NewTag)
 		OnRep_CurrentPhaseTag(); 
 	}
 }
+
+int32 AVGGameState::GetReadyPlayerCount() const
+{
+	int32 ReadyPlayerCount = 0;
+
+	for (APlayerState* PlayerState : PlayerArray)
+	{
+		if (AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PlayerState))
+		{
+			if (VGPlayerState->bIsReady)
+			{
+				ReadyPlayerCount++;
+			}
+		}
+	}
+
+	return ReadyPlayerCount;
+}
+
+int32 AVGGameState::GetTotalPlayerCount() const
+{
+	int32 TotalPlayerCount = 0;
+
+	for (APlayerState* PlayerState : PlayerArray)
+	{
+		if (Cast<AVGPlayerState>(PlayerState))
+		{
+			TotalPlayerCount++;
+		}
+	}
+
+	return TotalPlayerCount;
+}
 	
 
 void AVGGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -62,6 +97,7 @@ void AVGGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVGGameState, VotedPlayerName);
 	DOREPLIFETIME(AVGGameState, VotedPlayerIndex);
 	DOREPLIFETIME(AVGGameState, bIsVoteTie);
+	DOREPLIFETIME(AVGGameState, WinnerTeamTag);
 }
 
 void AVGGameState::OnRep_CurrentPhaseTag()
@@ -111,4 +147,9 @@ void AVGGameState::OnRep_PhaseEndTime(float OldEndTime)
 void AVGGameState::Multicast_PlayVoteResultCinematic_Implementation(int32 TargetEntryIndex)
 {
 	OnVoteResultCinematic.Broadcast(TargetEntryIndex);
+}
+
+void AVGGameState::Multicast_PlayGameEndCinematic_Implementation(FGameplayTag InWinnerTeamTag)
+{
+	OnGameEndCinematic.Broadcast(InWinnerTeamTag);
 }

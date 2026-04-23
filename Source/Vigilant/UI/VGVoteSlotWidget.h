@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "VGVoteSlotWidget.generated.h"
 
+class UTextBlock;
 //버튼이 눌렸을때 몇번 슬롯(플레이어)인지 전달하는 델리게이
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVoteSlotClicked, int32, ClickedIndex);
 class UButton;
@@ -21,7 +22,8 @@ class VIGILANT_API UVGVoteSlotWidget : public UUserWidget
 public:
 	// 부모가 이 슬롯을 생성할 때 번호를 부여해 줄 함수
 	void SetupSlot(int32 InPlayerIndex, USceneCaptureComponent2D* TargetCamera);
-	
+	void SetNickName(const FString& InNickName);
+
 	UPROPERTY()
 	FOnVoteSlotClicked OnVoteSlotClickedDelegate;
 
@@ -32,6 +34,8 @@ protected:
 	TObjectPtr<UImage> PortraitImage;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> VoteButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> NickName;
 	
 	//몇번 째로 들어온지 확인하는 인덱스
 	int32 PlayerIndex;

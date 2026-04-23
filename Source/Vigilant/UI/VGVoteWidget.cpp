@@ -13,6 +13,7 @@
 #include "Components/WrapBoxSlot.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
+#include "Core/VGPlayerState.h"// 디커플링포기
 
 void UVGVoteWidget::NativeConstruct()
 {
@@ -63,9 +64,18 @@ void UVGVoteWidget::SetPortraitRenderTarget()
 		PortraitWrapBox->ClearChildren();
 	}
 
-	int32 SlotIndex = 1;
+	
+	UVGUIManagerSubsystem* UIManager = GetOwningLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>();
+
+
+	
 	for (APlayerState* PS : World->GetGameState()->PlayerArray)
 	{
+		AVGPlayerState* VGPlayerState = Cast<AVGPlayerState>(PS);
+		if (!VGPlayerState)
+		{
+			continue;
+		}
 		if (APawn* PlayerPawn = PS->GetPawn())
 		{
 			if (USceneCaptureComponent2D* CaptureComp = PlayerPawn->FindComponentByClass<USceneCaptureComponent2D>())
@@ -73,8 +83,26 @@ void UVGVoteWidget::SetPortraitRenderTarget()
 				UVGVoteSlotWidget* SlotWidget = CreateWidget<UVGVoteSlotWidget>(GetOwningPlayer(), VoteSlotClass);
 				if (SlotWidget)
 				{
+					int32 RealPlayerIndex = VGPlayerState->EntryIndex;
+
 					//초상화 설정은 여기서
-					SlotWidget->SetupSlot(SlotIndex, CaptureComp);
+					SlotWidget->SetupSlot(RealPlayerIndex, CaptureComp);
+					
+					if (UIManager && UIManager->CachedPlayerNames.Contains(RealPlayerIndex))
+					{
+						FString PlayerName = UIManager->CachedPlayerNames[RealPlayerIndex];
+						SlotWidget->SetNickName(PlayerName);
+					}
+					else
+					{
+						// 혹시 캐시가 비어있다면 최후의 수단으로 PlayerState에서 직접 가져옴
+						FString FallbackName = VGPlayerState->VGPlayerName;
+						SlotWidget->SetNickName(FallbackName);
+					}
+					
+					
+					
+					
 					SlotWidget->OnVoteSlotClickedDelegate.AddDynamic(this, &UVGVoteWidget::ProcessVoteClick);
 
 					if (GetOwningPlayer())
@@ -87,7 +115,7 @@ void UVGVoteWidget::SetPortraitRenderTarget()
 				}
 			}
 		}
-		SlotIndex++;
+		
 		
 	}
 	

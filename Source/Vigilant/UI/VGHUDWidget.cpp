@@ -3,11 +3,15 @@
 
 #include "VGHUDWidget.h"
 
+#include "GameplayTagContainer.h"
+#include "Common/VGGameplayTags.h"
 #include "Components/Button.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
+#include "Components/Overlay.h"
 #include "Components/ProgressBar.h"
 #include "Components/SizeBox.h"
+#include "Components/TextBlock.h"
 #include "GameFramework/GameStateBase.h"
 
 void UVGHUDWidget::NativeConstruct()
@@ -38,6 +42,24 @@ void UVGHUDWidget::ClearEquipIcon(int32 SlotIndex)
 	{
 		// 이미지를 투명하게 만들어 숨김
 		TargetImage->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
+	}
+}
+
+void UVGHUDWidget::SetHiddenPocketIcon(UTexture2D* IconTexture)
+{
+	if (HiddenPocketIcon && IconTexture)
+	{
+		HiddenPocketIcon->SetBrushFromTexture(IconTexture);
+		HiddenPocketIcon->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 1.f)); // 투명도 복구
+	}
+}
+
+void UVGHUDWidget::ClearHiddenPocketIcon()
+{
+	if (HiddenPocketIcon)
+	{
+		// 텍스처를 비우지 않고 투명도만 0으로 만들어서 숨김
+		HiddenPocketIcon->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
 	}
 }
 
@@ -148,7 +170,7 @@ void UVGHUDWidget::SetMissionBarContract(float NerfRate)
 
 	if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 	{
-		float OffsetSizeRatio = 2.0f - NerfRate; 
+		float OffsetSizeRatio = 1.0f + ((1.0f - NerfRate) * BarSizeMultiplier);
 		float NewOffsetSize = 360.0f * OffsetSizeRatio;
         
 		FMargin CurrentOffsets = CanvasSlot->GetOffsets();
@@ -167,6 +189,7 @@ void UVGHUDWidget::StopPhaseTimeData()
 }
 
 
+
 void UVGHUDWidget::UpdateTimePerSecond()
 {
 	if (!GetWorld() || !MissionProgress || !TimerBarSize) return;
@@ -183,9 +206,10 @@ void UVGHUDWidget::UpdateTimePerSecond()
 		
 		// 프로그레스 바 업데이트
 		MissionProgress->SetPercent(MissionTimeRatio);
-
+		
+		
 		float CurrentNerfRate = TotalTime / OriginalPhaseDuration; 
-		float OffsetSizeRatio = 2.0f - CurrentNerfRate;
+		float OffsetSizeRatio = 1.0f + ((1.0f - CurrentNerfRate) * BarSizeMultiplier);
 		
 		if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(TimerBarSize->Slot))
 		{
@@ -220,6 +244,62 @@ void UVGHUDWidget::OnReadyButtonClicked()
 {
 	UE_LOG(LogTemp, Warning, TEXT("버튼 누름"));
 	OnReadyDelegate.Broadcast(true);
+}
+
+void UVGHUDWidget::DisplayRole(FGameplayTag RoleTag)
+{
+
+	
+	// 숨겨져 있던 텍스트를 다시 보이게 만듬, 보이긴 하지만 클릭이 안되는 비저빌리티
+	RoleText->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	// 2. 태그에 따라 텍스트 및 색상 세팅
+	if (RoleTag == VigilantRoleTags::Mafia)
+	{
+		RoleText->SetText(FText::FromString(TEXT("제물의 도주를 방해하고 \n 정체를 숨겨라")));
+		
+		RoleText->SetColorAndOpacity(FSlateColor(FLinearColor::Red));
+		if (HiddenPocket)
+		{
+			HiddenPocket->SetVisibility(ESlateVisibility::HitTestInvisible);
+		}
+	}
+	else if (RoleTag == VigilantRoleTags::Citizen)
+	{
+		RoleText->SetText(FText::FromString(TEXT("비밀을 풀고 \n 숨어있는 무언가를 찾아내라.")));
+		RoleText->SetColorAndOpacity(FSlateColor(FLinearColor::White)); 
+	}
+
+	// 0에서 1로 변하는 페이드인 애니메이션 강제 재생
+	if (RoleAnim)
+	{
+		PlayAnimation(RoleAnim);
+	}
+
+	// 타이머 세팅 (3초 뒤에 HideRoleText 함수 실행)
+	if (GetWorld())
+	{
+		// 기존에 돌고 있던 타이머가 있다면 초기화 후 다시 실행
+		GetWorld()->GetTimerManager().ClearTimer(RoleTextTimerHandle);
+			
+		GetWorld()->GetTimerManager().SetTimer(
+			RoleTextTimerHandle, 
+			this, 
+			&UVGHUDWidget::HideRoleText, 
+			3.0f, 
+			false // 반복 안 함
+		);
+	}
+}
+
+
+void UVGHUDWidget::HideRoleText()
+{
+	if (RoleText)
+	{
+		//텍스트를 다시 완전히 숨김 처리
+		RoleText->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 	
 

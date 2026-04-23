@@ -59,10 +59,33 @@ public:
 	virtual void UpdateEquipIconUI(int32 SlotIndex, UTexture2D* Icon) override;
 	virtual void ClearEquipIconUI(int32 SlotIndex) override;
 	
+	virtual void UpdateHiddenPocketIconUI(UTexture2D* Icon) override;
+	virtual void ClearHiddenPocketIconUI() override;
+	
+	virtual void UpdatePlayerNameUI(int32 PlayerIndex, const FString& PlayerName) override;
+	virtual void ShowRoleNotificationUI(FGameplayTag RoleTag) override;
+	
 	UFUNCTION(Client, Reliable)
 	void Client_SetInputToGame();
 	
+	FString PlayerNameInController;
+	// 시네마틱 재생할 때 플레이어 인풋 통제용 함수들
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Input")
+	void DisableInputForCinematic();
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Input")
+	void EnableInputAfterCinematic();
 	
+	// UI 종료 서버 보고용 함수
+	UFUNCTION(Server, Reliable)
+	void Server_NotifyVoteResultUIFinished();
+	
+	// 투표 결과 시네마틱 종료할 때 호출할 함수
+	UFUNCTION(BlueprintCallable, Category = "Vigilant|Cinematic")
+	void OnCinematicFinished();
+	
+	// 게임 종료 시네마틱 완료 서버 보고용 함수
+	UFUNCTION(Server, Reliable)
+	void Server_NotifyGameEndFinished();
 	
 protected:
 	// 페이즈 변경 시 UI 처리용 위한 함수
