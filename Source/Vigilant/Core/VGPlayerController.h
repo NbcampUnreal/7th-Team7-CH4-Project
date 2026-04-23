@@ -87,7 +87,7 @@ public:
 	void OnCinematicFinished();
 	
 	// 게임 종료 시네마틱 완료 서버 보고용 함수
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void Server_NotifyGameEndFinished();
 	
 protected:

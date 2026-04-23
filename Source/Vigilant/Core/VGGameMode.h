@@ -90,12 +90,13 @@ public:
 	FOnMissionTimeRemainingChanged OnMissionTimeRemainingChanged;
 	void OnMissionTimeUpdated();
 	
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+	
 	virtual FString InitNewPlayer(
 		APlayerController* NewPlayerController,
 		const FUniqueNetIdRepl& UniqueId,
 		const FString& Options,
 		const FString& Portal = TEXT("")) override;
-	virtual void PostLogin(APlayerController *NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Vigilant|Phase")
