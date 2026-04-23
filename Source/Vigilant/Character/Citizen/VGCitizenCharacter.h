@@ -16,7 +16,6 @@ struct FInputActionValue;
 UCLASS()
 class VIGILANT_API AVGCitizenCharacter :
 	public AVGCharacterBase
-
 {
 	GENERATED_BODY()
 
@@ -124,4 +123,20 @@ protected:
 	
 	UFUNCTION()
 	void ApplyGuardStaminaCost(bool bIsGuarding);
+	
+public: // 하상빈 추가
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ApplyDebuffMaterial(float Duration);
+
+	UFUNCTION()
+	void RemoveDebuffMaterial();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debuff")
+	class UMaterialInterface* RoarDebuffMaterial;
+
+private:
+	FTimerHandle DebuffMaterialTimerHandle;
 };

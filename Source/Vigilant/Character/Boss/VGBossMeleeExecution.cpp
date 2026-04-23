@@ -97,11 +97,7 @@ void UVGBossMeleeExecution::TickAttack()
 					
 					if (HitSound)
 					{
-						UGameplayStatics::PlaySoundAtLocation(
-							GetWorld(), 
-							HitSound, 
-							Hit.ImpactPoint
-						);
+						CombatComp->Server_PlayHitSound(HitSound, Hit.ImpactPoint);
 					}
 				}
 			}

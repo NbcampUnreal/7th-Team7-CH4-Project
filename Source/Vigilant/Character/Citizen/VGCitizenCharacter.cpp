@@ -17,7 +17,14 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Subsystem/VGUIManagerSubsystem.h"
+#include "Character/Boss/DamageType/VGDamageType_Slow.h" 
+#include "TimerManager.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/DamageEvents.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
+
+class UVGDamageType_Slow;
 
 AVGCitizenCharacter::AVGCitizenCharacter()
 {
@@ -506,6 +513,62 @@ void AVGCitizenCharacter::ApplyGuardStaminaCost(bool bIsGuarding)
 	}
 }
 
+float AVGCitizenCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
+	class AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	if (DamageEvent.DamageTypeClass)
+	{
+		if (const UVGDamageType_Slow* SlowDamageType = Cast<UVGDamageType_Slow>(DamageEvent.DamageTypeClass->GetDefaultObject()))
+		{
+			if (HasAuthority())
+			{
+				CharacterTags.AddTag(VigilantCharacter::Slowed);
+                
+				Multicast_ApplyDebuffMaterial(SlowDamageType->SlowDuration);
+			}
+		}
+	}
+
+	return ActualDamage;
+}
+
+void AVGCitizenCharacter::Multicast_ApplyDebuffMaterial_Implementation(float Duration)
+{
+	if (GetMesh() && RoarDebuffMaterial)
+	{
+		UMaterialInstanceDynamic* DebuffMID = UMaterialInstanceDynamic::Create(RoarDebuffMaterial, this);
+		if (DebuffMID)
+		{
+			DebuffMID->SetScalarParameterValue(FName("StartTime"), GetWorld()->GetTimeSeconds());
+			DebuffMID->SetScalarParameterValue(FName("Duration"), Duration);
+
+			GetMesh()->SetOverlayMaterial(DebuffMID);
+		}
+	}
+
+	GetWorldTimerManager().SetTimer(
+		DebuffMaterialTimerHandle,
+		this,
+		&AVGCitizenCharacter::RemoveDebuffMaterial,
+		Duration,
+		false
+	);
+}
+
+void AVGCitizenCharacter::RemoveDebuffMaterial()
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetOverlayMaterial(nullptr);
+	}
+
+	if (HasAuthority())
+	{
+		CharacterTags.RemoveTag(VigilantCharacter::Slowed);
+	}
+}
 void AVGCitizenCharacter::Hey()
 {
 	if (!HasAuthority()) 
