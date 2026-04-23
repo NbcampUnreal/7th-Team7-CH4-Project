@@ -258,7 +258,7 @@ void UVGHUDWidget::OnReadyButtonClicked()
 void UVGHUDWidget::DisplayRole(FGameplayTag RoleTag)
 {
 
-	
+	ReadyNotification->SetVisibility(ESlateVisibility::Collapsed);
 	// 숨겨져 있던 텍스트를 다시 보이게 만듬, 보이긴 하지만 클릭이 안되는 비저빌리티
 	RoleText->SetVisibility(ESlateVisibility::HitTestInvisible);
 
