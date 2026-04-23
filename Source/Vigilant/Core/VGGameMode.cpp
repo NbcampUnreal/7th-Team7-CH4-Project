@@ -126,6 +126,29 @@ void AVGGameMode::OnMissionTimeUpdated()
 	}
 }
 
+void AVGGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+	
+	if (AVGPlayerState* VGPlayerState = NewPlayer->GetPlayerState<AVGPlayerState>())
+	{
+		if (VGPlayerState->AssignedMeshIndex == -1 && RandomMeshNumber.Num() > 0)
+		{
+			VGPlayerState->AssignedMeshIndex = RandomMeshNumber.Pop();
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 플레이어 게임 시작 완료. 배정된 번호: %d"), VGPlayerState->EntryIndex);
+	}
+	
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (AVGPlayerController* VGPC = Cast<AVGPlayerController>(It->Get()))
+		{
+			VGPC->Client_UpdateReadyPeople();
+		}
+	}
+}
+
 FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId,
                                    const FString& Options,
                                    const FString& Portal)
@@ -155,32 +178,6 @@ FString AVGGameMode::InitNewPlayer(APlayerController* NewPlayerController, const
 	}
 
 	return ErrorMessage;
-}
-
-void AVGGameMode::PostLogin(APlayerController* NewPlayer)
-{
-	//랜덤숫자 나눠주기
-	if (AVGPlayerState* VGPlayerState = NewPlayer->GetPlayerState<AVGPlayerState>())
-	{
-		if (RandomMeshNumber.Num() > 0)
-		{
-			VGPlayerState->AssignedMeshIndex = RandomMeshNumber.Pop();
-		}
-	}
-	
-	Super::PostLogin(NewPlayer);
-
-	UE_LOG(LogTemp, Log, TEXT("[VGGameMode] 플레이어 접속 완료. 배정된 번호: %d"),
-	       NewPlayer->GetPlayerState<AVGPlayerState>()->EntryIndex);
-	
-	
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		if (AVGPlayerController* VGPC = Cast<AVGPlayerController>(It->Get()))
-		{
-			VGPC->Client_UpdateReadyPeople();
-		}
-	}
 }
 
 void AVGGameMode::Logout(AController* Exiting)
