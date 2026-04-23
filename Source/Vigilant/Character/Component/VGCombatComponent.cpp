@@ -1,6 +1,7 @@
 #include "Character/Component/VGCombatComponent.h"
 #include "DrawDebugHelpers.h"
 #include "GameplayTagAssetInterface.h"
+#include "NiagaraFunctionLibrary.h"
 #include "VGStatComponent.h"
 #include "Combat/VGAmmoProviderInterface.h"
 #include "Combat/VGAttackExecution.h"
@@ -47,7 +48,7 @@ void UVGCombatComponent::BeginPlay()
 	if (OwnerCharacter && OwnerCharacter->GetMesh())
 	{
 		CachedStatComponent = OwnerCharacter->FindComponentByClass<UVGStatComponent>();
-		
+
 		UAnimInstance* AnimInstance = OwnerCharacter->GetMesh()->GetAnimInstance();
 		if (AnimInstance)
 		{
@@ -77,7 +78,7 @@ void UVGCombatComponent::OnRep_ActiveShieldData(UVGShieldDataAsset* OldData)
 
 void UVGCombatComponent::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	if (Montage!= ActiveAttackMontage)
+	if (Montage != ActiveAttackMontage)
 	{
 		return;
 	}
@@ -88,7 +89,7 @@ void UVGCombatComponent::HandleMontageEnded(UAnimMontage* Montage, bool bInterru
 	CurrentComboIndex = 0;
 
 	SetCombatRotationMode(false);
-	
+
 	if (CurrentExecution)
 	{
 		CurrentExecution->StopAttack();
@@ -114,13 +115,13 @@ void UVGCombatComponent::SetCombatRotationMode(bool bIsAttacking)
 	{
 		return;
 	}
-	
+
 	UCharacterMovementComponent* MovementComponent = OwnerCharacter->GetCharacterMovement();
 	if (!MovementComponent)
 	{
 		return;
 	}
-	
+
 	if (bIsAttacking)
 	{
 		MovementComponent->bOrientRotationToMovement = false;
@@ -185,7 +186,7 @@ void UVGCombatComponent::TryLightAttack()
 	{
 		return;
 	}
-	
+
 	// 스태미나 확인
 	if (CachedStatComponent.IsValid())
 	{
@@ -228,12 +229,12 @@ void UVGCombatComponent::TryHeavyAttack()
 	{
 		return;
 	}
-	
+
 	if (Data && OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(Data->HeavyAttackMontage))
 	{
 		return;
 	}
-	
+
 	if (CachedStatComponent.IsValid())
 	{
 		if (CachedStatComponent->GetCurrentStamina() < Data->LightAttackStaminaCost)
@@ -254,7 +255,7 @@ void UVGCombatComponent::TryHeavyAttack()
 void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 {
 	bIsCurrentAttackHeavy = bIsHeavy;
-	
+
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (!Data)
 	{
@@ -302,7 +303,7 @@ void UVGCombatComponent::PerformAttack(bool bIsHeavy)
 			SetCombatRotationMode(true);
 		}
 	}
-	
+
 	ActiveAttackMontage = MontageToPlay;
 }
 
@@ -363,7 +364,7 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 	{
 		return;
 	}
-	
+
 	if (CachedStatComponent.IsValid())
 	{
 		float RequiredStamina = bIsHeavy ? Data->HeavyAttackStaminaCost : Data->LightAttackStaminaCost;
@@ -372,10 +373,10 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 			Client_CancelAttackPrediction();
 			return;
 		}
-		
+
 		CachedStatComponent->ConsumeStamina(RequiredStamina);
 	}
-	
+
 	// --- 1. Ammo Validation ---
 	if (UMeshComponent* TraceMesh = GetActiveTraceMesh())
 	{
@@ -388,7 +389,7 @@ void UVGCombatComponent::Server_TryAttack_Implementation(bool bIsHeavy, int32 Ex
 			}
 		}
 	}
-	
+
 	// --- 2. Attack Execution ---
 	CurrentComboIndex = ExpectedComboIndex;
 	PerformAttack(bIsHeavy);
@@ -438,10 +439,11 @@ void UVGCombatComponent::Multicast_PlayAttackMontage_Implementation(UAnimMontage
 }
 
 
-void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
+void UVGCombatComponent::Server_ProcessHit_Implementation(const FHitResult& HitResult)
 {
 	AActor* Owner = GetOwner();
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
+	AActor* HitActor = HitResult.GetActor();
 
 	if (!Owner || !Data || !HitActor)
 	{
@@ -455,50 +457,55 @@ void UVGCombatComponent::Server_ProcessHit_Implementation(AActor* HitActor)
 		float AttackDamage = bIsCurrentAttackHeavy ? Data->HeavyAttackDamage : Data->LightAttackDamage;
 		// (이용호 추가) 데미지 배율 계산용
 		float FinalDamage = AttackDamage * DamageMultiplier;
-		
-		UGameplayStatics::ApplyDamage
+
+		UGameplayStatics::ApplyPointDamage
 		(
 			HitActor,
 			FinalDamage,
+			HitResult.ImpactNormal,
+			HitResult,
 			Owner->GetInstigatorController(),
 			Owner,
 			nullptr
 		);
+		
+		Multicast_PlayImpactFeedback(HitResult, Data);
 	}
 }
 
-bool UVGCombatComponent::Server_ProcessHit_Validate(AActor* HitActor)
+bool UVGCombatComponent::Server_ProcessHit_Validate(const FHitResult& HitResult)
 {
 	return true;
 }
 
 void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActor> ProjectileClass,
-	const FVector& SpawnLocation, const FRotator& SpawnRotation)
+                                                               const FVector& SpawnLocation,
+                                                               const FRotator& SpawnRotation)
 {
 	if (!ProjectileClass)
 	{
 		return;
 	}
-	
+
 	// --- 1. Ammo Validation ---
 	IVGAmmoProviderInterface* AmmoProvider = nullptr;
 	if (UMeshComponent* TraceMesh = GetActiveTraceMesh())
 	{
 		AmmoProvider = Cast<IVGAmmoProviderInterface>(TraceMesh->GetOwner());
 		if (AmmoProvider && !AmmoProvider->HasAmmo())
-			{
-				Client_CancelAttackPrediction();
-				return;
-			}
+		{
+			Client_CancelAttackPrediction();
+			return;
+		}
 	}
-	
+
 	// --- 2. Load Data ---
 	UVGWeaponDataAsset* Data = GetCurrentCombatData();
 	if (!Data)
 	{
 		return;
 	}
-	
+
 	// --- 3. Spawn Projectile ---
 	if (UWorld* World = GetWorld())
 	{
@@ -506,9 +513,9 @@ void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActo
 		SpawnParams.Owner = GetOwner();
 		SpawnParams.Instigator = Cast<APawn>(GetOwner());
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		
+
 		AActor* SpawnedActor = World->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
-		
+
 		if (AVGProjectile* Projectile = Cast<AVGProjectile>(SpawnedActor))
 		{
 			float AttackDamage = Data->LightAttackDamage;
@@ -517,7 +524,7 @@ void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActo
 			Projectile->InitializeProjectile(FinalDamage);
 		}
 	}
-	
+
 	// --- 4. Consume Ammo ---
 	if (AmmoProvider)
 	{
@@ -526,9 +533,47 @@ void UVGCombatComponent::Server_SpawnProjectile_Implementation(TSubclassOf<AActo
 }
 
 bool UVGCombatComponent::Server_SpawnProjectile_Validate(TSubclassOf<AActor> ProjectileClass,
-	const FVector& SpawnLocation, const FRotator& SpawnRotation)
+                                                         const FVector& SpawnLocation, const FRotator& SpawnRotation)
 {
 	return ProjectileClass != nullptr;
+}
+
+void UVGCombatComponent::Multicast_PlayImpactFeedback_Implementation(const FHitResult& HitResult,
+																	 UVGWeaponDataAsset* WeaponData)
+{
+	if (!WeaponData)
+	{
+		return;
+	}
+
+	// 1. 타격 사운드 재생
+	if (WeaponData->ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, WeaponData->ImpactSound, HitResult.ImpactPoint);
+	}
+
+	// 2. VFX 재생
+	if (WeaponData->ImpactVFX)
+	{
+		FRotator VFXRotation = HitResult.ImpactNormal.Rotation();
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, WeaponData->ImpactVFX, HitResult.ImpactPoint, VFXRotation);
+	}
+	
+	// 3. 더미 볼트 생성
+	if (WeaponData->DummyActorClass && HitResult.GetComponent())
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		
+		FRotator DummyRotation = HitResult.ImpactNormal.Rotation();
+		DummyRotation.Pitch -= 180.0f;
+		
+		if (AActor* Dummy = GetWorld()->SpawnActor<AActor>(WeaponData->DummyActorClass, HitResult.ImpactPoint, DummyRotation, SpawnParams))
+		{
+			Dummy->AttachToComponent(HitResult.GetComponent(), FAttachmentTransformRules::KeepWorldTransform);
+			Dummy->SetLifeSpan(10.0f);
+		}
+	}
 }
 
 // ---------------------------------------------------------
@@ -680,5 +725,28 @@ void UVGCombatComponent::Multicast_StopBlockMontage_Implementation(UAnimMontage*
 	if (OwnerCharacter)
 	{
 		OwnerCharacter->StopAnimMontage(MontageToStop);
+	}
+}
+
+void UVGCombatComponent::Multicast_PlayShieldFeedback_Implementation(bool bIsParry, FVector ImpactLocation,
+	FRotator ImpactRotation)
+{
+	UVGShieldDataAsset* ShieldData = GetCurrentShieldData();
+	if (!ShieldData)
+	{
+		return;
+	}
+	
+	USoundBase* SoundToPlay = bIsParry ? ShieldData->ParrySound : ShieldData->BlockSound;
+	UNiagaraSystem* VFXToPlay = bIsParry ? ShieldData->ParryVFX : ShieldData->BlockVFX;
+	
+	if (SoundToPlay)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SoundToPlay, ImpactLocation);
+	}
+	
+	if (VFXToPlay)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, VFXToPlay, ImpactLocation, ImpactRotation);
 	}
 }

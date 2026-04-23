@@ -93,7 +93,7 @@ void UVGBossMeleeExecution::TickAttack()
 				if (HitPawn && !BossHitActorsThisSwing.Contains(HitPawn))
 				{
 					BossHitActorsThisSwing.Add(HitPawn);
-					CombatComp->Server_ProcessHit(HitPawn);
+					CombatComp->Server_ProcessHit(Hit);
 					
 					if (HitSound)
 					{

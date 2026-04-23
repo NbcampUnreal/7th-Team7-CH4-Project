@@ -44,10 +44,4 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment")
 	TSubclassOf<UAnimInstance> EquippedAnimLayer;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment|Audio")
-	TObjectPtr<USoundBase> EquippedSound;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment|Audio")
-	TObjectPtr<USoundBase> DropSound;
 };

@@ -4,6 +4,8 @@
 #include "Data/VGEquipmentDataAsset.h"
 #include "VGShieldDataAsset.generated.h"
 
+class UNiagaraSystem;
+
 UCLASS(BlueprintType)
 class VIGILANT_API UVGShieldDataAsset : public UVGEquipmentDataAsset
 {
@@ -22,9 +24,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Stats")
 	float BlockStaminaDrainPerSecond = 5.0f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Audio")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Feedback")
 	TObjectPtr<USoundBase> BlockSound;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Audio")
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Feedback")
 	TObjectPtr<USoundBase> ParrySound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Feedback")
+	TObjectPtr<UNiagaraSystem> BlockVFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Feedback")
+	TObjectPtr<UNiagaraSystem> ParryVFX;
 };

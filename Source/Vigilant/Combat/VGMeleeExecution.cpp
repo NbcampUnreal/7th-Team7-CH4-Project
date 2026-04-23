@@ -140,7 +140,7 @@ void UVGMeleeExecution::TickAttack()
 				if (HitActor && !HitActorsThisSwing.Contains(HitActor))
 				{
 					HitActorsThisSwing.Add(HitActor);
-					CombatComponent->Server_ProcessHit(HitActor);
+					CombatComponent->Server_ProcessHit(HitResult);
 				}
 			}
 		}
