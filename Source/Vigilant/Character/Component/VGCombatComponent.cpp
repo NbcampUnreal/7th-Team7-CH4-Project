@@ -727,3 +727,26 @@ void UVGCombatComponent::Multicast_StopBlockMontage_Implementation(UAnimMontage*
 		OwnerCharacter->StopAnimMontage(MontageToStop);
 	}
 }
+
+void UVGCombatComponent::Multicast_PlayShieldFeedback_Implementation(bool bIsParry, FVector ImpactLocation,
+	FRotator ImpactRotation)
+{
+	UVGShieldDataAsset* ShieldData = GetCurrentShieldData();
+	if (!ShieldData)
+	{
+		return;
+	}
+	
+	USoundBase* SoundToPlay = bIsParry ? ShieldData->ParrySound : ShieldData->BlockSound;
+	UNiagaraSystem* VFXToPlay = bIsParry ? ShieldData->ParryVFX : ShieldData->BlockVFX;
+	
+	if (SoundToPlay)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SoundToPlay, ImpactLocation);
+	}
+	
+	if (VFXToPlay)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, VFXToPlay, ImpactLocation, ImpactRotation);
+	}
+}

@@ -587,6 +587,9 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 	// 벡터 계산
 	FVector PushDirection = FVector::ZeroVector;
 	bool bIsFrontAttack = false;
+	
+	FVector ImpactLocation = GetActorLocation() + (GetActorForwardVector() * 50.0f);
+	FRotator ImpactRotation = GetActorForwardVector().Rotation();
 
 	if (DamageCauser)
 	{
@@ -607,7 +610,12 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 			FVector ReversePushDirection = -PushDirection;
 			Attacker->ApplyStagger(ReversePushDirection, 600.0f);
 		}
-		// TODO: SFX, VFX 추가
+		
+		if (CombatComponent)
+		{
+			CombatComponent->Multicast_PlayShieldFeedback(true, ImpactLocation, ImpactRotation);
+		}
+		
 		return 0.0f;
 	}
 
@@ -619,6 +627,7 @@ float AVGCharacterBase::TakeDamage(float DamageAmount, struct FDamageEvent const
 		if (CombatComponent && CombatComponent->GetCurrentShieldData())
 		{
 			DamageAmount *= CombatComponent->GetCurrentShieldData()->DamageMitigation;
+			CombatComponent->Multicast_PlayShieldFeedback(false, ImpactLocation, ImpactRotation);
 		}
 	}
 

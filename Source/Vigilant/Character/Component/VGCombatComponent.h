@@ -66,6 +66,9 @@ public:
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_PlayImpactFeedback(const FHitResult& HitResult, UVGWeaponDataAsset* WeaponData);
 	
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayShieldFeedback(bool bIsParry, FVector ImpactLocation, FRotator ImpactRotation);
+	
 	UVGWeaponDataAsset* GetCurrentCombatData() const;
 	UVGShieldDataAsset* GetCurrentShieldData() const;
 	UMeshComponent* GetActiveTraceMesh() const;
