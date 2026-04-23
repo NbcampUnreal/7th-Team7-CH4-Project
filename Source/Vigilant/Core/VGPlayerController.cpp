@@ -111,7 +111,21 @@ void AVGPlayerController::AcknowledgePossession(class APawn* P)
 		}
 		if (UVGUIManagerSubsystem* UIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
 		{
-			UIManager->ShowHUD();
+			bool bCanShowHUD = true;
+			if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
+			{
+				FGameplayTag CurrentTag = VGGameState->CurrentPhaseTag;
+				// 최종전투 페이즈에 보스 새로 빙의할 때는 HUD 안보여줌(투표 결과, 시네마틱 보고 나와야함)
+				if (CurrentTag.MatchesTag(VigilantPhaseTags::PhaseCombat))
+				{
+					bCanShowHUD = false;
+				}
+			}
+			
+			if (bCanShowHUD)
+			{
+				UIManager->ShowHUD();
+			}
 
 			UIManager->OnChatMessageRequested.AddUniqueDynamic(this, &AVGPlayerController::OnChatMessageReceived);
 			UIManager->OnPlayerReadySignature.AddUniqueDynamic(this, &AVGPlayerController::Server_SetReady);
@@ -221,6 +235,31 @@ void AVGPlayerController::ClearEquipIconUI(int32 SlotIndex)
 	}
 }
 
+void AVGPlayerController::DisableInputForCinematic()
+{
+	if (APawn* MyPawn = GetPawn())
+	{
+		MyPawn->DisableInput(this);
+	}
+	
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+	bShowMouseCursor = false;
+}
+
+void AVGPlayerController::EnableInputAfterCinematic()
+{
+	Client_SetInputToGame();
+}
+
+void AVGPlayerController::Server_NotifyVoteResultUIFinished_Implementation()
+{
+	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		VGGameMode->ReportVoteUIFinished();
+	}
+}
+
 void AVGPlayerController::Client_SetInputToGame_Implementation()
 {
 	FInputModeGameOnly InputGameOnly;
@@ -233,6 +272,30 @@ void AVGPlayerController::Client_SetInputToGame_Implementation()
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("[VGPlayerController] 클라이언트: 게임 모드로 전환 및 마우스 숨김"));
+}
+
+void AVGPlayerController::OnCinematicFinished()
+{
+	EnableInputAfterCinematic();
+	
+	if (IsLocalController())
+	{
+		if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+		{
+			if (UVGUIManagerSubsystem* VGUIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+			{
+				VGUIManager->ShowHUD();
+			}
+		}
+	}
+}
+
+void AVGPlayerController::Server_NotifyGameEndFinished_Implementation()
+{
+	if (AVGGameMode* VGGameMode = Cast<AVGGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		VGGameMode->ReportGameEndUIFinished();
+	}
 }
 
 void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
@@ -264,15 +327,25 @@ void AVGPlayerController::HandleUIByPhase(FGameplayTag NewPhaseTag)
 	else if (NewPhaseTag.MatchesTag(VigilantPhaseTags::PhaseCombat))
 	{
 		VGUIManager->StopMissionTimeData();
-		VGUIManager->ShowHUD();
+		VGUIManager->HideVote();
+		DisableInputForCinematic();
+		// 새로 만들 Show 투표결과UI 함수 들어가야함
+		VGUIManager->HideHUD();
 		
 		if (AVGGameState* VGGameState = GetWorld()->GetGameState<AVGGameState>())
 		{
 			// 상단 게이지바 사이즈를 먼저 줄임
 			VGUIManager->SetHUDBarSizeByNerf(VGGameState->BossNerfRate);
 		}
-		
-		VGUIManager->HideVote();
+		// 지금은 임시로 타이머로 재생하지만 ui나오면 없애야함
+		FTimerHandle TempUITimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+			TempUITimerHandle, 
+			this, 
+			&AVGPlayerController::Server_NotifyVoteResultUIFinished,
+			5.0f, 
+			false
+		);
 	}
 	else
 	{

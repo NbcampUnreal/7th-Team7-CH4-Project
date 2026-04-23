@@ -62,6 +62,7 @@ void AVGGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AVGGameState, VotedPlayerName);
 	DOREPLIFETIME(AVGGameState, VotedPlayerIndex);
 	DOREPLIFETIME(AVGGameState, bIsVoteTie);
+	DOREPLIFETIME(AVGGameState, WinnerTeamTag);
 }
 
 void AVGGameState::OnRep_CurrentPhaseTag()
@@ -111,4 +112,9 @@ void AVGGameState::OnRep_PhaseEndTime(float OldEndTime)
 void AVGGameState::Multicast_PlayVoteResultCinematic_Implementation(int32 TargetEntryIndex)
 {
 	OnVoteResultCinematic.Broadcast(TargetEntryIndex);
+}
+
+void AVGGameState::Multicast_PlayGameEndCinematic_Implementation(FGameplayTag InWinnerTeamTag)
+{
+	OnGameEndCinematic.Broadcast(InWinnerTeamTag);
 }

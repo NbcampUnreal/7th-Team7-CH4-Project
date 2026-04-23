@@ -14,8 +14,11 @@ void UVGStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	CurrentHP = MaxHP;
-	CurrentStamina = MaxStamina;
+	if (GetOwnerRole() == ROLE_Authority)
+	{
+		CurrentHP = MaxHP;
+		CurrentStamina = MaxStamina;
+	}
 }
 
 void UVGStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
