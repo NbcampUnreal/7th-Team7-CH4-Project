@@ -58,8 +58,14 @@ public:
 	UFUNCTION()
 	virtual int32 GetRandomMeshNumber() const override;
 	
-	UPROPERTY(Replicated,BlueprintReadOnly,Category = "Vigilant|Lobby")
+	UPROPERTY(ReplicatedUsing = OnRep_bIsReady, BlueprintReadOnly,Category = "Vigilant|Lobby")
 	bool bIsReady = false;
+	
+	// 알리미 함수 선언
+	UFUNCTION()
+	void OnRep_bIsReady();
+	
+	
 	
 	UFUNCTION(Client, Reliable, Category = "Vigilant|Lobby")
 	void Client_ReceiveRole(FGameplayTag AssignedRoleTag);

@@ -105,6 +105,15 @@ void UVGHUDWidget::UpdateMissionUI(float NewValue, float MaxValue)
 	}
 }
 
+void UVGHUDWidget::UpdateReadyPeople(int32 ReadyPeoPle, int32 TotalPeople)
+{
+	if (ReadyNotification)
+	{
+		FString NotiText= FString::Printf(TEXT("%d / %d"),ReadyPeoPle, TotalPeople);
+		ReadyNotification->SetText(FText::FromString(NotiText));
+	}
+}
+
 void UVGHUDWidget::ChangeSelectedEquipSlot(int32 SlotIndex)
 {
 	if (GlowingFrame &&NormalFrame)

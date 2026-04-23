@@ -15,6 +15,20 @@ AVGPlayerController::AVGPlayerController()
 {
 }
 
+
+void AVGPlayerController::Client_UpdateReadyPeople_Implementation()
+{
+	if (AVGGameState* VGGameState= GetWorld()->GetGameState<AVGGameState>())
+	{
+		int32 ReadyCount = VGGameState->GetReadyPlayerCount();
+		int32 TotalCount = VGGameState->GetTotalPlayerCount();
+		if (UVGUIManagerSubsystem* UIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
+		{
+			UIManager->UpdateReadyPeople(ReadyCount,TotalCount);
+		}
+	}
+}
+
 void AVGPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -74,8 +88,12 @@ void AVGPlayerController::Server_SetReady_Implementation(bool bReady)
 		bShowMouseCursor = false;
 		UE_LOG(LogTemp, Warning, TEXT("[VGGameMode] 서버: 모든 플레이어 준비 체크 시작"));
 		Client_SetInputToGame();
-
+		
+		
+		
 		VGGameMode->CheckAllPlayersReady();
+		
+		//TODO 레디 플레이어 갱신
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "Core/VGPlayerState.h"
 
+#include "VGPlayerController.h"
 #include "Interface/VGUIControllerInterface.h"
 #include "Net/UnrealNetwork.h"
 
@@ -105,6 +106,19 @@ int32 AVGPlayerState::GetPlayerIndex() const
 int32 AVGPlayerState::GetRandomMeshNumber() const
 {
 	return AssignedMeshIndex;
+}
+
+void AVGPlayerState::OnRep_bIsReady()
+{
+	// 내 화면을 담당하는 로컬 컨트롤러를 찾음
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (AVGPlayerController* VGPlayerController = Cast<AVGPlayerController>(PC))
+		{
+			// 만들어두신 컨트롤러의 UI 갱신 함수 호출
+			VGPlayerController->Client_UpdateReadyPeople();
+		}
+	}
 }
 
 

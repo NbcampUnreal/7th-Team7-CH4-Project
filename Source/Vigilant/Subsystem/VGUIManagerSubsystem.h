@@ -73,6 +73,9 @@ class VIGILANT_API UVGUIManagerSubsystem : public ULocalPlayerSubsystem
 	
 	
 	UFUNCTION()
+	void UpdateReadyPeople(int32 ReadyPeople, int32 TotalPeople);
+	
+	UFUNCTION()
 	void SetHiddenPocketIcon(UTexture2D* Icon);
 	UFUNCTION()
 	void ClearHiddenPocketIcon();
