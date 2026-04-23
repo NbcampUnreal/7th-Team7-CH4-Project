@@ -1,5 +1,6 @@
 #include "Combat/VGProjectile.h"
 
+#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -29,6 +30,10 @@ AVGProjectile::AVGProjectile()
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->ProjectileGravityScale = 1.0f;
 	InitialLifeSpan = 5.0f;
+	
+	TrailVFXComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailVFX"));
+	TrailVFXComponent->SetupAttachment(RootComponent);
+	TrailVFXComponent->bAutoActivate = true;
 }
 
 void AVGProjectile::BeginPlay()
@@ -63,6 +68,12 @@ void AVGProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* O
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, ProjectileDamage, GetInstigatorController(), GetInstigator(),
 		                              nullptr);
+	}
+	
+	if (TrailVFXComponent)
+	{
+		TrailVFXComponent->Deactivate();
+		TrailVFXComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 	}
 	
 	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
