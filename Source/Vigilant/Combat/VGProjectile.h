@@ -6,7 +6,7 @@
 
 class USphereComponent;
 class UProjectileMovementComponent;
-class UNiagaraSystem;
+class UParticleSystem;
 class UNiagaraComponent;
 
 UCLASS()
@@ -40,7 +40,7 @@ protected:
 	TObjectPtr<USoundBase> ImpactSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
-	TObjectPtr<UNiagaraSystem> ImpactVFX;
+	TObjectPtr<UParticleSystem> ImpactVFX;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Feedback")
 	TSubclassOf<AActor> DummyActorClass;

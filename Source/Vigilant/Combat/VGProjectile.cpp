@@ -1,7 +1,6 @@
 #include "Combat/VGProjectile.h"
 
 #include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -95,7 +94,7 @@ void AVGProjectile::Multicast_PlayImpactFeedback_Implementation(FVector ImpactPo
 	if (ImpactVFX)
 	{
 		FRotator VFXRotation = ImpactNormal.Rotation();
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactVFX, ImpactPoint, VFXRotation);
+		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, ImpactPoint, VFXRotation);
 	}
 
 	if (DummyActorClass && HitComponent)
