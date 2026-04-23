@@ -227,6 +227,9 @@ protected:
     
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float CurrentSpeedMultiplier = 1.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat|Feedback")
+	TSubclassOf<UCameraShakeBase> TakeDamageCameraShake;
 
 #pragma region Stagger & Knockback
 	virtual void ApplyStagger(FVector PushDirection, float KnockbackForce);

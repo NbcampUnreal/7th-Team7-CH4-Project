@@ -35,4 +35,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Feedback")
 	TObjectPtr<UNiagaraSystem> ParryVFX;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Feedback")
+	TSubclassOf<UCameraShakeBase> BlockCameraShake;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shield|Feedback")
+	TSubclassOf<UCameraShakeBase> ParryCameraShake;
 };
