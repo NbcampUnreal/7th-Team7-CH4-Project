@@ -8,6 +8,7 @@
 #include "Interaction/VGInteractable.h"
 #include "VGCitizenCharacter.generated.h"
 
+class UWidgetComponent;
 class UVGEquipmentDataAsset;
 class UVGEquipmentComponent;
 class UInputAction;
@@ -30,6 +31,11 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent; 
+	
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UWidgetComponent> EmoteWidgetComponent;
+	
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// 상호작용 입력 액션
@@ -60,8 +66,10 @@ protected:
 	// 슬롯 선택 실행 함수
 	void SelectSlot(const FInputActionValue& Value);
 
-	
-	
+	//화살표 숨기기 타이머 함수
+	FTimerHandle EmoteTimerHandle;
+	UFUNCTION()
+	void HideEmote();
 
 	
 	//바인딩 함수
