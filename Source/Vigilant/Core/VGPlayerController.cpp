@@ -22,9 +22,12 @@ void AVGPlayerController::Client_UpdateReadyPeople_Implementation()
 	{
 		int32 ReadyCount = VGGameState->GetReadyPlayerCount();
 		int32 TotalCount = VGGameState->GetTotalPlayerCount();
-		if (UVGUIManagerSubsystem* UIManager = GetLocalPlayer()->GetSubsystem<UVGUIManagerSubsystem>())
+		if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
 		{
-			UIManager->UpdateReadyPeople(ReadyCount,TotalCount);
+			if (UVGUIManagerSubsystem* UIManager = LocalPlayer->GetSubsystem<UVGUIManagerSubsystem>())
+			{
+				UIManager->UpdateReadyPeople(ReadyCount,TotalCount);
+			}
 		}
 	}
 }
