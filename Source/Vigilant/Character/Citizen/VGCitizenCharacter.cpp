@@ -20,6 +20,7 @@
 #include "Character/Boss/DamageType/VGDamageType_Slow.h" 
 #include "TimerManager.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
@@ -43,6 +44,13 @@ AVGCitizenCharacter::AVGCitizenCharacter()
 	EquipmentComponent = CreateDefaultSubobject<UVGEquipmentComponent>(TEXT("EquipmentComponent"));
 	SceneCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("SceneCaptureComponent2D"));
 	SceneCaptureComponent->SetupAttachment(RootComponent);
+	
+	EmoteWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("EmoteWidgetComponent"));
+	EmoteWidgetComponent->SetupAttachment(RootComponent);
+	EmoteWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen); // 항상 카메라를 바라보는 스크린 모드
+	EmoteWidgetComponent->SetDrawSize(FVector2D(100.f, 100.f)); // UI 크기 지정
+	EmoteWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f)); // 머리 위 Z축 오프셋
+	EmoteWidgetComponent->SetVisibility(false); // 기본 상태는 숨김
 }
 
 void AVGCitizenCharacter::BeginPlay()
@@ -599,6 +607,20 @@ void AVGCitizenCharacter::Multicast_PlayHeySound_Implementation(int32 SoundIndex
 			UGameplayStatics::PlaySoundAtLocation(this, SelectedSound, GetActorLocation());
 		}
 	}
+	
+	if (EmoteWidgetComponent)
+	{
+		EmoteWidgetComponent->SetVisibility(true);
+
+		// 연타할 경우를 대비해 기존 타이머 초기화 후 재시작
+		GetWorldTimerManager().ClearTimer(EmoteTimerHandle);
+		GetWorldTimerManager().SetTimer(
+			EmoteTimerHandle, 
+			this, 
+			&AVGCitizenCharacter::HideEmote, 
+			1.0f, 
+			false);
+	}
 }
 
 
@@ -613,3 +635,10 @@ void AVGCitizenCharacter::Server_PlayHeySound_Implementation()
 	}
 }
 
+void AVGCitizenCharacter::HideEmote()
+{
+	if (EmoteWidgetComponent)
+	{
+		EmoteWidgetComponent->SetVisibility(false);
+	}
+}

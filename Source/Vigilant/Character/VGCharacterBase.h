@@ -212,6 +212,8 @@ protected:
 	UFUNCTION()
 	virtual void HandleDeath(AController* Killer);
 	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayDeathRagdoll();
 public:
 	// --- 디버프(슬로우) 관련 함수 --- (하상빈 추가)
 	void ApplySlow(float SlowMultiplier, float Duration);
