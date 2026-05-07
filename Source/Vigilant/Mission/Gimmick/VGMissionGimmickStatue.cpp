@@ -38,7 +38,7 @@ void AVGMissionGimmickStatue::OnInteractWith(AActor* Interactor, const FTransfor
 	TargetAngle = FMath::Fmod(TargetAngle + RotateStep, 360.f);
 	
 	// 서버 직접 호출
-	OnRep_TargetAngle();
+	ApplyTargetAngle();
 	
 	OnGimmickInteracted.Broadcast(this, Interactor);
 }
@@ -115,6 +115,11 @@ bool AVGMissionGimmickStatue::IsAtAnswerAngle() const
 }
 
 void AVGMissionGimmickStatue::OnRep_TargetAngle()
+{
+	ApplyTargetAngle();
+}
+
+void AVGMissionGimmickStatue::ApplyTargetAngle()
 {
 	SetActorTickEnabled(true);
 }

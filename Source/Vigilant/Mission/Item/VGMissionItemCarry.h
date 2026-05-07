@@ -13,7 +13,7 @@ struct VIGILANT_API FVGCarryPlaceInfo
 	
 public:
 	UPROPERTY()
-	TObjectPtr<AActor> AttachmentTargetActor = nullptr;
+	TObjectPtr<AActor> AttachmentTargetActor;
 	UPROPERTY()
 	FVector RelativeLocation = FVector::ZeroVector;
 };

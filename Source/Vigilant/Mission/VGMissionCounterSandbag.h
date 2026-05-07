@@ -99,7 +99,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Mission|Counter")
 	int32 CounterTriggerInterval = 1;
  
-	// 현재 픽겨 횟수
+	// 현재 피격 횟수
 	UPROPERTY(ReplicatedUsing = OnRep_HitCount, VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Counter")
 	int32 HitCount = 0;
 	

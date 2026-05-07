@@ -150,7 +150,7 @@ void AVGMissionItemBase::BeginPlay()
 	
 	if (EquipmentData)
 	{
-		UVGMissionItemDataAsset* ItemDataAsset = Cast<UVGMissionItemDataAsset>(EquipmentData);
+		const UVGMissionItemDataAsset* ItemDataAsset = Cast<UVGMissionItemDataAsset>(EquipmentData);
 		
 		if (ItemDataAsset)
 		{

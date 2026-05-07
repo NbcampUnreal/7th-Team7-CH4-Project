@@ -20,7 +20,7 @@ struct FVGAltarPlacementSlot
 
 	// 이 슬롯에 필요한 아이템의 데이터 에셋
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UVGMissionItemDataAsset> ItemDataAsset = nullptr;
+	TObjectPtr<UVGMissionItemDataAsset> ItemDataAsset;
 
 	// 소켓이 없을 때 사용할 상대 오프셋
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -28,7 +28,7 @@ struct FVGAltarPlacementSlot
 	
 	// Hint Effect
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VFX")
-	TObjectPtr<UNiagaraSystem> RequiredItemHintEffect = nullptr;
+	TObjectPtr<UNiagaraSystem> RequiredItemHintEffect;
 };
 
 UCLASS()

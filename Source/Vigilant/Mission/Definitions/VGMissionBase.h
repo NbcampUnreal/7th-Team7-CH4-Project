@@ -11,6 +11,7 @@ class AVGMissionGimmickBase;
 class AVGMissionItemBase;
 class UVGMissionDataAsset;
 
+// 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMissionCompleted, int32, MissionID);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnMissionStateChanged, int32, MissionID, FGameplayTag, NewStateTag);
 

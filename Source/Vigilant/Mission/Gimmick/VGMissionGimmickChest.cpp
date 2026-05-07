@@ -150,7 +150,7 @@ void AVGMissionGimmickChest::OnLidTimelineFinished()
 	LidMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	
 	bChestOpened = true;
-	OnRep_bChestOpened();
+	StartDissolve();  
 	
 	if (HasAuthority())
 	{
