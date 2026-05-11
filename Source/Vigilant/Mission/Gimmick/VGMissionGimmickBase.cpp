@@ -124,7 +124,7 @@ AVGMissionItemBase* AVGMissionGimmickBase::FindMissionItemByTag(UVGEquipmentComp
 			continue;
 		}
  
-		UVGMissionItemDataAsset* ItemData =
+		const UVGMissionItemDataAsset* ItemData =
 			Cast<UVGMissionItemDataAsset>(HandItem->EquipmentData);
  
 		if (ItemData && ItemData->ItemTypeTag == RequiredTag)
@@ -158,6 +158,9 @@ void AVGMissionGimmickBase::OnRep_GimmickStateTag()
 		EmissiveColor = ActiveEmissiveColor;
 	}
 	
-	BodyDynMat->SetVectorParameterValue(TEXT("Color"), Color);
-	BodyDynMat->SetVectorParameterValue(TEXT("EmissiveColor"), EmissiveColor);
+	if (IsValid(BodyDynMat))
+	{
+		BodyDynMat->SetVectorParameterValue(TEXT("Color"), Color);
+		BodyDynMat->SetVectorParameterValue(TEXT("EmissiveColor"), EmissiveColor);
+	}
 }

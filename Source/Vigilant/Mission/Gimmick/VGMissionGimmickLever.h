@@ -44,7 +44,7 @@ public:
 	
 protected:
 	// 손잡이 매쉬
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|Chest",
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gimmick|Lever",
 		meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> LeverMeshComponent;
 	

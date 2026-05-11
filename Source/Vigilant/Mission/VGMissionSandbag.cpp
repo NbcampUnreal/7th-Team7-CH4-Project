@@ -77,14 +77,21 @@ void AVGMissionSandbag::OnRep_CurrentHPRatio()
 
 	if (FMath::IsNearlyEqual(CurrentHPRatio, 1.f))
 	{
-		MeshComponent->SetVisibility(true);
-		MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		if (MeshComponent)
+		{
+			MeshComponent->SetVisibility(true);
+			MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		}
+		
 		OnSandbagReseted.Broadcast();
 	}
 	else if (FMath::IsNearlyZero(CurrentHPRatio))
 	{
-		MeshComponent->SetVisibility(false);
-		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (MeshComponent)
+		{
+			MeshComponent->SetVisibility(false);
+			MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 	}
 	else
 	{
@@ -94,8 +101,12 @@ void AVGMissionSandbag::OnRep_CurrentHPRatio()
 
 void AVGMissionSandbag::OnDead(AController* LastInstigator)
 {
-	MeshComponent->SetVisibility(false);
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (MeshComponent)
+	{
+		MeshComponent->SetVisibility(false);
+		MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	
 	// 막타 플레이어와 함께 미션에 보고
 	OnSandbagDefeated.Broadcast(LastAttacker);
 }

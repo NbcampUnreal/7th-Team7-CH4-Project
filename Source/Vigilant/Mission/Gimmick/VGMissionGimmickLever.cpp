@@ -9,11 +9,10 @@ AVGMissionGimmickLever::AVGMissionGimmickLever()
 	PrimaryActorTick.bCanEverTick = false;
 	GimmickTypeTag = VigilantMissionTags::LeverGimmick;
 	
-	// 뚜껑 메시 — 피봇을 경첩 위치에 맞춰야 자연스럽게 열림
-	LeverMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LidMeshComponent"));
+	LeverMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeverMeshComponent"));
 	LeverMeshComponent->SetupAttachment(MeshComponent);
  
-	LeverTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("LidTimeline"));
+	LeverTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("LeverTimeline"));
 	
 	TargetPitch = InactivePitch;
 }

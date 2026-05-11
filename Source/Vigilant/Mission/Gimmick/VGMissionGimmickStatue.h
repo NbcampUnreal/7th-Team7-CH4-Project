@@ -34,6 +34,8 @@ private:
 	
 	UFUNCTION()
 	void OnRep_TargetAngle();
+	
+	void ApplyTargetAngle();
 
 public:
 	// 한 번 상호작용 시 회전하는 각도 (에디터 지정, 기본 90도)

@@ -33,6 +33,7 @@ void AVGMissionCounterSandbag::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
+	DOREPLIFETIME(ThisClass, HitCount);
 	DOREPLIFETIME(ThisClass, CounterState);
 	DOREPLIFETIME(ThisClass, TargetYaw);
 	DOREPLIFETIME(ThisClass, StartRoll);

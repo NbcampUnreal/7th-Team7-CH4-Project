@@ -75,7 +75,7 @@ void UVGMissionSubsystem::Server_OnMissionCompleted_Implementation(int32 Mission
 	}
 	
 	// 전체 완료 체크
-	if (CachedCompletedCount == RegisteredMissions.Num())
+	if (ClearedMissionIDs.Num() == RegisteredMissions.Num())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Server] All Mission Clear!"));
 		OnAllMissionCompleted.Broadcast();
@@ -140,14 +140,14 @@ float UVGMissionSubsystem::GetMissionProgress() const
 		return 0.f;
 	}
 	
-	return static_cast<float>(CachedCompletedCount) / RegisteredMissions.Num();
+	return static_cast<float>(ClearedMissionIDs.Num()) / RegisteredMissions.Num();
 }
 
 void UVGMissionSubsystem::HandleMissionStateChanged(int32 MissionID, FGameplayTag NewStateTag)
 {
 	if (NewStateTag == VigilantMissionTags::MissionCompleted)
 	{
-		CachedCompletedCount++;
+		ClearedMissionIDs.Add(MissionID);
 	}
 	OnMissionStateChanged.Broadcast(MissionID, NewStateTag);
 }
